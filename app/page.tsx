@@ -1,103 +1,241 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { SidebarTrigger } from "@/components/ui/sidebar"
+import { BarChart3, ShoppingCart, DollarSign, Users, AlertTriangle, Package, Truck } from "lucide-react"
+import { Progress } from "@/components/ui/progress"
+
+const kpis = [
+  {
+    title: "Commandes aujourd'hui",
+    value: "127",
+    change: "+12%",
+    changeType: "positive" as const,
+    icon: ShoppingCart,
+  },
+  {
+    title: "Chiffre d'affaires",
+    value: "€24,580",
+    change: "+8.2%",
+    changeType: "positive" as const,
+    icon: DollarSign,
+  },
+  {
+    title: "Utilisateurs actifs",
+    value: "2,847",
+    change: "+5.1%",
+    changeType: "positive" as const,
+    icon: Users,
+  },
+  {
+    title: "Produits en rupture",
+    value: "23",
+    change: "-3",
+    changeType: "negative" as const,
+    icon: AlertTriangle,
+  },
+]
+
+const recentOrders = [
+  {
+    id: "#ORD-001",
+    customer: "Marie Dubois",
+    zone: "Dakar Plateau",
+    amount: "€45.80",
+    status: "En cours",
+    weight: "12.5kg",
+  },
+  {
+    id: "#ORD-002",
+    customer: "Amadou Ba",
+    zone: "Parcelles Assainies",
+    amount: "€78.20",
+    status: "Livré",
+    weight: "18.2kg",
+  },
+  {
+    id: "#ORD-003",
+    customer: "Fatou Sall",
+    zone: "Almadies",
+    amount: "€32.50",
+    status: "Préparation",
+    weight: "8.7kg",
+  },
+  {
+    id: "#ORD-004",
+    customer: "Ousmane Diop",
+    zone: "Yoff",
+    amount: "€91.30",
+    status: "En livraison",
+    weight: "25.1kg",
+  },
+]
+
+const lowStockProducts = [
+  {
+    name: "Riz Brisé 25kg",
+    stock: 5,
+    minStock: 20,
+    store: "Boutique Plateau",
+  },
+  {
+    name: "Huile Tournesol 5L",
+    stock: 8,
+    minStock: 15,
+    store: "Boutique Parcelles",
+  },
+  {
+    name: "Savon Marseille x12",
+    stock: 3,
+    minStock: 10,
+    store: "Boutique Almadies",
+  },
+]
+
+export default function Dashboard() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="flex h-screen flex-col">
+      <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+        <SidebarTrigger className="-ml-1" />
+        <div className="flex flex-1 items-center justify-between">
+          <div>
+            <h1 className="text-lg font-semibold">Tableau de bord</h1>
+            <p className="text-sm text-muted-foreground">Vue d'ensemble de votre activité Oumoul</p>
+          </div>
+          <Button>
+            <BarChart3 className="mr-2 h-4 w-4" />
+            Rapport détaillé
+          </Button>
         </div>
+      </header>
+
+      <main className="flex-1 overflow-auto p-4 space-y-6">
+        {/* KPIs */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {kpis.map((kpi) => (
+            <Card key={kpi.title}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">{kpi.title}</CardTitle>
+                <kpi.icon className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{kpi.value}</div>
+                <p className="text-xs text-muted-foreground">
+                  <span className={kpi.changeType === "positive" ? "text-green-600" : "text-red-600"}>
+                    {kpi.change}
+                  </span>{" "}
+                  par rapport à hier
+                </p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Recent Orders */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ShoppingCart className="h-5 w-5" />
+                Commandes récentes
+              </CardTitle>
+              <CardDescription>Les dernières commandes passées sur la plateforme</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {recentOrders.map((order) => (
+                  <div key={order.id} className="flex items-center justify-between border-b pb-3 last:border-0">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{order.id}</span>
+                        <Badge
+                          variant={
+                            order.status === "Livré"
+                              ? "default"
+                              : order.status === "En livraison"
+                                ? "secondary"
+                                : order.status === "En cours"
+                                  ? "outline"
+                                  : "destructive"
+                          }
+                        >
+                          {order.status}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{order.customer}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {order.zone} • {order.weight}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium">{order.amount}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Low Stock Alert */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-orange-500" />
+                Alertes stock faible
+              </CardTitle>
+              <CardDescription>Produits nécessitant un réapprovisionnement</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {lowStockProducts.map((product, index) => (
+                  <div key={index} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-sm">{product.name}</p>
+                        <p className="text-xs text-muted-foreground">{product.store}</p>
+                      </div>
+                      <Badge variant="destructive" className="text-xs">
+                        {product.stock} restant
+                      </Badge>
+                    </div>
+                    <Progress value={(product.stock / product.minStock) * 100} className="h-2" />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Quick Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Actions rapides</CardTitle>
+            <CardDescription>Accès rapide aux fonctionnalités principales</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <Button variant="outline" className="h-20 flex-col gap-2">
+                <Package className="h-6 w-6" />
+                <span className="text-sm">Ajouter produit</span>
+              </Button>
+              <Button variant="outline" className="h-20 flex-col gap-2">
+                <ShoppingCart className="h-6 w-6" />
+                <span className="text-sm">Nouvelle commande</span>
+              </Button>
+              <Button variant="outline" className="h-20 flex-col gap-2">
+                <Truck className="h-6 w-6" />
+                <span className="text-sm">Planifier livraison</span>
+              </Button>
+              <Button variant="outline" className="h-20 flex-col gap-2">
+                <Users className="h-6 w-6" />
+                <span className="text-sm">Gérer clients</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
-  );
+  )
 }
