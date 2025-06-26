@@ -1,28 +1,23 @@
 "use client"
 
 import {
-  Bell,
   Box,
-  CreditCard,
-  Gift,
-  Home,
-  MapPin,
-  Package,
-  Settings,
-  ShoppingCart,
-  Star,
-  Store,
-  Truck,
-  Users,
-  Warehouse,
-  Shield,
-  Tag,
-  Layers,
   LogOut,
+  Settings
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   Sidebar,
   SidebarContent,
@@ -36,124 +31,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu"
-
-const menuItems = [
-  {
-    title: "Tableau de bord",
-    url: "/",
-    icon: Home,
-  },
-  {
-    title: "Commandes",
-    url: "/orders",
-    icon: ShoppingCart,
-  },
-  {
-    title: "Paiements",
-    url: "/payments",
-    icon: CreditCard,
-  },
-  {
-    title: "Livraisons",
-    url: "/deliveries",
-    icon: Truck,
-  },
-]
-
-const productItems = [
-  {
-    title: "Produits",
-    url: "/products",
-    icon: Package,
-  },
-  {
-    title: "Variantes de produits",
-    url: "/variants",
-    icon: Layers,
-  },
-  {
-    title: "Catégories",
-    url: "/categories",
-    icon: Tag,
-  },
-  {
-    title: "Inventaire",
-    url: "/inventory",
-    icon: Warehouse,
-  },
-]
-
-const customerItems = [
-  {
-    title: "Clients",
-    url: "/clients",
-    icon: Users,
-  },
-  {
-    title: "Utilisateurs",
-    url: "/staff",
-    icon: Users,
-  },
-  {
-    title: "Rôles & permissions",
-    url: "/roles",
-    icon: Shield,
-  },
-]
-
-const marketingItems = [
-  {
-    title: "Promotions",
-    url: "/promotions",
-    icon: Gift,
-  },
-  {
-    title: "Fidélité",
-    url: "/loyalty",
-    icon: Star,
-  },
-  {
-    title: "Notifications",
-    url: "/notifications",
-    icon: Bell,
-  },
-]
-
-const locationItems = [
-  {
-    title: "Adresses & zones",
-    url: "/zones",
-    icon: MapPin,
-  },
-  {
-    title: "Boutiques",
-    url: "/stores",
-    icon: Store,
-  },
-]
-
-const systemItems = [
-  {
-    title: "Avis",
-    url: "/reviews",
-    icon: Star,
-  },
-  {
-    title: "Paramètres",
-    url: "/settings",
-    icon: Settings,
-  },
-]
+import { sidebarContent } from "@/data/navigation"
 
 export function AppSidebar() {
   const pathname = usePathname()
@@ -176,15 +54,17 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="px-2">
-        <SidebarGroup>
+        { sidebarContent.map((item, id)=>(
+          <SidebarGroup key={id}>
+          <SidebarGroupLabel>{item.title}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={pathname === item.url}>
-                    <Link href={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
+              {item.items.map((subItem) => (
+                <SidebarMenuItem key={subItem.title}>
+                  <SidebarMenuButton asChild isActive={pathname === subItem.url}>
+                    <Link href={subItem.url}>
+                      <subItem.icon className="h-4 w-4" />
+                      <span>{subItem.title}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -192,96 +72,7 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>{"Produits"}</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {productItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={pathname === item.url}>
-                    <Link href={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>{"Utilisateurs"}</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {customerItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={pathname === item.url}>
-                    <Link href={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>{"Marketing"}</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {marketingItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={pathname === item.url}>
-                    <Link href={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>{"Localisation"}</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {locationItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={pathname === item.url}>
-                    <Link href={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>{"Système"}</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {systemItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={pathname === item.url}>
-                    <Link href={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        ))}
       </SidebarContent>
 
       <SidebarFooter className="border-t p-4">

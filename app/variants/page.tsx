@@ -197,28 +197,6 @@ export default function VariantsPage() {
 
   return (
     <div className="flex h-screen flex-col">
-      <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-        <SidebarTrigger className="-ml-1" />
-        <div className="flex flex-1 items-center justify-between">
-          <div>
-            <h1 className="text-lg font-semibold">Variantes de produits</h1>
-            <p className="text-sm text-muted-foreground">Gérez les différentes variantes de vos produits</p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setIsUnitsDialogOpen(true)}>
-              Gérer les unités
-            </Button>
-            <Button variant="outline" onClick={() => setIsTypesDialogOpen(true)}>
-              Gérer les types
-            </Button>
-            <Button onClick={handleAdd}>
-              <Plus className="mr-2 h-4 w-4" />
-              Nouvelle variante
-            </Button>
-          </div>
-        </div>
-      </header>
-
       <main className="flex-1 overflow-auto p-4 space-y-6">
         {/* Variant Stats */}
         <div className="grid gap-4 md:grid-cols-4">

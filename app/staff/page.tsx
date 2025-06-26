@@ -180,20 +180,6 @@ export default function StaffPage() {
 
   return (
     <div className="flex h-screen flex-col">
-      <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-        <SidebarTrigger className="-ml-1" />
-        <div className="flex flex-1 items-center justify-between">
-          <div>
-            <h1 className="text-lg font-semibold">Gestion des utilisateurs</h1>
-            <p className="text-sm text-muted-foreground">Gérez les comptes utilisateurs et leurs permissions</p>
-          </div>
-          <Button onClick={handleAdd}>
-            <Plus className="mr-2 h-4 w-4" />
-            Nouvel utilisateur
-          </Button>
-        </div>
-      </header>
-
       <main className="flex-1 overflow-auto p-4 space-y-6">
         {/* Staff Stats */}
         <div className="grid gap-4 md:grid-cols-4">
