@@ -2,7 +2,7 @@
 
 import { DialogTrigger } from "@/components/ui/dialog";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,10 @@ import {
 import { Label } from "@/components/ui/label";
 import { Search, Plus, Edit, Trash2, Star, AlertTriangle } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import ProductQuery from "@/queries/product";
+import { useQuery } from "@tanstack/react-query";
+import { useStore } from "@/providers/datastore";
+import PageLayout from "@/components/page-layout";
 
 const products = [
   {
@@ -99,6 +103,19 @@ const products = [
 ];
 
 export default function ProductsPage() {
+
+  const product = new ProductQuery();
+  const productData = useQuery({
+    queryKey: ["productFetchAll"],
+    queryFn: () => product.getAll(),
+  });
+  const { setLoading } = useStore();
+  React.useEffect(()=>{
+    setLoading(productData.isLoading);
+    if(productData.isSuccess){
+      console.log("Products fetched successfully:", productData.data);
+    }
+  }, [productData.isSuccess, productData.isLoading, productData.data, setLoading]);
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -152,11 +169,11 @@ export default function ProductsPage() {
   };
 
   return (
-    <main className="flex-1 overflow-auto p-4 space-y-6">
+    <PageLayout isLoading={productData.isLoading} className="flex-1 overflow-auto p-4 space-y-6">
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>Filtres et actions</CardTitle>
+          <CardTitle>{"Filtres et actions"}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex gap-4 flex-wrap items-center">
@@ -199,19 +216,19 @@ export default function ProductsPage() {
                 <DialogTrigger asChild>
                   <Button variant="outline">
                     <Edit className="mr-2 h-4 w-4" />
-                    Édition groupée ({selectedProducts.length})
+                    {`Édition groupée (${selectedProducts.length})`}
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Édition groupée</DialogTitle>
+                    <DialogTitle>{"Édition groupée"}</DialogTitle>
                     <DialogDescription>
-                      Modifiez plusieurs produits en même temps
+                      {"Modifiez plusieurs produits en même temps"}
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="bulk-category">Catégorie</Label>
+                      <Label htmlFor="bulk-category">{"Catégorie"}</Label>
                       <Select>
                         <SelectTrigger>
                           <SelectValue placeholder="Changer la catégorie" />
@@ -549,6 +566,6 @@ export default function ProductsPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </main>
+    </PageLayout>
   );
 }

@@ -30,7 +30,7 @@ export default function RootLayout({
         <QueryProvider>
           <NotificationProvider>
             {/* <Notification /> */}
-            <DashboardLayout>{children}</DashboardLayout>
+            {children}
           </NotificationProvider>
         </QueryProvider>
       </body>

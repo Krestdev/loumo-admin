@@ -37,10 +37,16 @@ type Store = {
   setOrderAddress: (addressId: number) => void;
   resetOrderDraft: () => void;
 };
+type LoadingState = {
+  isLoading: boolean;
+  setLoading: (value:boolean)=>void;
+}
 
-export const useStore = create<Store>()(
+export const useStore = create<Store&LoadingState>()(
   persist(
     (set, get) => ({
+      isLoading: false,
+      setLoading: (value) => set(() => ({ isLoading: value })),
       user: null,
       setUser: (user) => set(() => ({ user })),
       logout: () => set({ user: null }),
@@ -74,7 +80,7 @@ export const useStore = create<Store>()(
                 : x
             ),
           }));
-          toast.info(`Increased quantity for ${variant.name}`);
+          toast.info(`Ajout de la quantité de ${variant.name}`);
         } else {
           const price = variant.price || 0;
           const newItem: OrderItem = {
@@ -92,7 +98,7 @@ export const useStore = create<Store>()(
             currentOrderItems: [...state.currentOrderItems, newItem],
           }));
 
-          toast.success(`Added ${variant.name} to order`);
+          toast.success(`Ajout de ${variant.name} à la commande`);
         }
       },
 

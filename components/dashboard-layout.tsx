@@ -1,7 +1,8 @@
 import React from 'react'
-import { SidebarInset, SidebarProvider } from './ui/sidebar'
 import { AppSidebar } from './app-sidebar'
 import DashboardHeader from './dashboard-header'
+import GlobalLoader from './global-loader'
+import { SidebarInset, SidebarProvider } from './ui/sidebar'
 
 function DashboardLayout({children}: {children: React.ReactNode}) {
   return (
@@ -9,7 +10,8 @@ function DashboardLayout({children}: {children: React.ReactNode}) {
         <AppSidebar/>
         <SidebarInset>
           <DashboardHeader/>
-          {children}
+          <GlobalLoader/>
+            {children}
           </SidebarInset>
         {/**Toaster to add here */}
     </SidebarProvider>
