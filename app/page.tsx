@@ -96,21 +96,6 @@ const lowStockProducts = [
 
 export default function Dashboard() {
   return (
-    <div className="flex h-screen flex-col">
-      <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-        <SidebarTrigger className="-ml-1" />
-        <div className="flex flex-1 items-center justify-between">
-          <div>
-            <h1 className="text-lg font-semibold">Tableau de bord</h1>
-            <p className="text-sm text-muted-foreground">Vue d'ensemble de votre activité Oumoul</p>
-          </div>
-          <Button>
-            <BarChart3 className="mr-2 h-4 w-4" />
-            Rapport détaillé
-          </Button>
-        </div>
-      </header>
-
       <main className="flex-1 overflow-auto p-4 space-y-6">
         {/* KPIs */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -236,6 +221,5 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </main>
-    </div>
   )
 }
