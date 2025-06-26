@@ -1,5 +1,7 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -7,22 +9,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import {
-  BarChart3,
-  ShoppingCart,
-  DollarSign,
-  Users,
-  AlertTriangle,
-  Package,
-  Truck,
-} from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import ProductQuery from "@/queries/product";
-import { useQuery } from "@tanstack/react-query";
-import JsonView from "react18-json-view";
+import {
+  AlertTriangle,
+  DollarSign,
+  Package,
+  ShoppingCart,
+  Truck,
+  Users
+} from "lucide-react";
 
 const kpis = [
   {
@@ -112,17 +107,8 @@ const lowStockProducts = [
 ];
 
 export default function Dashboard() {
-  const product = new ProductQuery();
-  const productData = useQuery({
-    queryKey: ["productFetchAll"],
-    queryFn: () => product.getAll(),
-  });
   return (
     <main className="flex-1 overflow-auto p-4 space-y-6">
-      <div className="max-w-3xl mx-auto mt-10">
-        <h1 className="mb-4">Product Data</h1>
-        <JsonView src={productData.data} />
-      </div>
       {/* KPIs */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {kpis.map((kpi) => (
