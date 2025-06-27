@@ -8,7 +8,7 @@ export default class CategoryQuery {
     data: Omit<Category, "id"> & { productIds?: number[] }
   ): Promise<Category> => {
     return api.post(`${this.route}`, data).then((response) => {
-      toast.success(`Welcome back ${response.data.category.name}`);
+      toast.success(`Catégorie ${response.data.category.name} créée avec succès`);
       return response.data;
     });
   };

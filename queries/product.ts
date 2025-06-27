@@ -5,11 +5,11 @@ import { toast } from "react-toastify";
 export default class ProductQuery {
   route = "/products";
   create = async (
-    data: Omit<Product, "id"> & { categoryId: number }
+    data: Omit<Product, "id" | "createdAt" | "updatedAt"> & { categoryId: number }
   ): Promise<Product> => {
     return api.post(`${this.route}`, data).then((response) => {
-      toast.success(`Welcome back ${response.data.product.name}`);
-      return response.data;
+      toast.success(`Produit ${response.data.product.name} créé avec succès`);
+      return response.data.product;
     });
   };
 
