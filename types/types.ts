@@ -35,6 +35,8 @@ export type Zone = {
   id: number;
   price: number;
   addresses: Address[];
+  description: string;
+  status: string;
 };
 
 export type Agent = {
