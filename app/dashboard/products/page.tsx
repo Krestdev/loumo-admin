@@ -2,13 +2,20 @@
 
 import { DialogTrigger } from "@/components/ui/dialog";
 
-import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import PageLayout from "@/components/page-layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -24,133 +31,94 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Search, Plus, Edit, Trash2, Star, AlertTriangle } from "lucide-react";
-import { Textarea } from "@/components/ui/textarea";
-import ProductQuery from "@/queries/product";
-import { useQuery } from "@tanstack/react-query";
 import { useStore } from "@/providers/datastore";
-import PageLayout from "@/components/page-layout";
-
-const products = [
-  {
-    id: 1,
-    name: "Riz Brisé Premium",
-    category: "Céréales",
-    weight: 25,
-    price: 18.5,
-    loyaltyPoints: 185,
-    stock: {
-      "Boutique Plateau": 45,
-      "Boutique Parcelles": 32,
-      "Boutique Almadies": 18,
-    },
-    status: "Actif",
-    image: "/placeholder.svg?height=60&width=60",
-  },
-  {
-    id: 2,
-    name: "Huile de Tournesol",
-    category: "Huiles",
-    weight: 5,
-    price: 12.8,
-    loyaltyPoints: 128,
-    stock: {
-      "Boutique Plateau": 8,
-      "Boutique Parcelles": 15,
-      "Boutique Almadies": 22,
-    },
-    status: "Stock faible",
-    image: "/placeholder.svg?height=60&width=60",
-  },
-  {
-    id: 3,
-    name: "Savon de Marseille Pack",
-    category: "Hygiène",
-    weight: 2.4,
-    price: 15.6,
-    loyaltyPoints: 156,
-    stock: {
-      "Boutique Plateau": 67,
-      "Boutique Parcelles": 43,
-      "Boutique Almadies": 29,
-    },
-    status: "Actif",
-    image: "/placeholder.svg?height=60&width=60",
-  },
-  {
-    id: 4,
-    name: "Pâtes Spaghetti Bio",
-    category: "Pâtes",
-    weight: 1,
-    price: 4.2,
-    loyaltyPoints: 42,
-    stock: {
-      "Boutique Plateau": 0,
-      "Boutique Parcelles": 5,
-      "Boutique Almadies": 12,
-    },
-    status: "Rupture",
-    image: "/placeholder.svg?height=60&width=60",
-  },
-];
+import CategoryQuery from "@/queries/category";
+import ProductQuery from "@/queries/product";
+import { Category, Product } from "@/types/types";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { formatRelative, subDays } from "date-fns";
+import { fr } from "date-fns/locale";
+import { Edit, PlusCircle, Search, Trash2 } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import EditProduct from "./edit";
+import AddProduct from "./add";
 
 export default function ProductsPage() {
-
+  const queryClient = useQueryClient();
+  const [deletingProductId, setDeletingProductId] = useState<number | null>(
+    null
+  );
   const product = new ProductQuery();
+  const category = new CategoryQuery();
   const productData = useQuery({
-    queryKey: ["productFetchAll"],
+    queryKey: ["products"],
     queryFn: () => product.getAll(),
+    refetchOnWindowFocus: false,
+  });
+  const categoryData = useQuery({
+    queryKey: ["categories"],
+    queryFn: () => category.getAll(),
+    refetchOnWindowFocus: false,
+  });
+  const deleteProduct = useMutation({
+    mutationFn: (id: number) => product.delete(id),
+    onMutate: (id) => {
+      setDeletingProductId(id);
+    },
+    onSettled: () => {
+      setDeletingProductId(null); // reset after success or error
+      queryClient.invalidateQueries({
+        queryKey: ["products"],
+        refetchType: "active",
+      });
+    },
   });
   const { setLoading } = useStore();
-  React.useEffect(()=>{
-    setLoading(productData.isLoading);
-    if(productData.isSuccess){
-      console.log("Products fetched successfully:", productData.data);
+
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  React.useEffect(() => {
+    setLoading(productData.isLoading || categoryData.isLoading);
+    if (productData.isSuccess && categoryData.isSuccess) {
+      setProducts(productData.data);
+      setCategories(categoryData.data);
     }
-  }, [productData.isSuccess, productData.isLoading, productData.data, setLoading]);
+  }, [
+    productData.isLoading,
+    categoryData.isLoading,
+    setLoading,
+    categoryData.isSuccess,
+    categoryData.data,
+    productData.data,
+    productData.isSuccess,
+  ]);
+
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [bulkEditOpen, setBulkEditOpen] = useState(false);
-  const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | undefined>();
 
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.name
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesCategory =
-      categoryFilter === "all" || product.category === categoryFilter;
-    const matchesStatus =
-      statusFilter === "all" || product.status === statusFilter;
-    return matchesSearch && matchesCategory && matchesStatus;
-  });
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Actif":
-        return "default";
-      case "Stock faible":
-        return "secondary";
-      case "Rupture":
-        return "destructive";
-      default:
-        return "outline";
-    }
-  };
-
-  const getTotalStock = (stock: Record<string, number>) => {
-    return Object.values(stock).reduce((sum, qty) => sum + qty, 0);
-  };
+  const filteredProducts = useMemo(
+    () =>
+      products.filter((product) => {
+        const matchesSearch = product?.name
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
+        const matchesCategory =
+          categoryFilter === "all" ||
+          product.categoryId ===
+            categories.find((x) => x.name === categoryFilter)?.id;
+        const matchesStatus =
+          statusFilter === "all" || String(product.status) === statusFilter;
+        return matchesSearch && matchesCategory && matchesStatus;
+      }),
+    [products, categories, searchTerm, statusFilter, categoryFilter]
+  );
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -169,7 +137,10 @@ export default function ProductsPage() {
   };
 
   return (
-    <PageLayout isLoading={productData.isLoading} className="flex-1 overflow-auto p-4 space-y-6">
+    <PageLayout
+      isLoading={productData.isLoading}
+      className="flex-1 overflow-auto p-4 space-y-6"
+    >
       {/* Filters */}
       <Card>
         <CardHeader>
@@ -193,11 +164,14 @@ export default function ProductsPage() {
                 <SelectValue placeholder="Catégorie" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Toutes</SelectItem>
-                <SelectItem value="Céréales">Céréales</SelectItem>
-                <SelectItem value="Huiles">Huiles</SelectItem>
-                <SelectItem value="Hygiène">Hygiène</SelectItem>
-                <SelectItem value="Pâtes">Pâtes</SelectItem>
+                <SelectItem value="all">{"Tous"}</SelectItem>
+                {categories
+                  .filter((x) => x.products && x.products.length > 0)
+                  .map((cat) => (
+                    <SelectItem key={cat.id} value={cat.name}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -205,12 +179,15 @@ export default function ProductsPage() {
                 <SelectValue placeholder="Statut" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tous</SelectItem>
-                <SelectItem value="Actif">Actif</SelectItem>
-                <SelectItem value="Stock faible">Stock faible</SelectItem>
-                <SelectItem value="Rupture">Rupture</SelectItem>
+                <SelectItem value="all">{"Tous"}</SelectItem>
+                <SelectItem value="true">{"Actif"}</SelectItem>
+                <SelectItem value="false">{"Désactivé"}</SelectItem>
               </SelectContent>
             </Select>
+            {/**Add Product */}
+            <Button onClick={()=>{setIsAddDialogOpen(true)}}>
+              <PlusCircle size={16} /> {"Ajouter un produit"}
+            </Button>
             {selectedProducts.length > 0 && (
               <Dialog open={bulkEditOpen} onOpenChange={setBulkEditOpen}>
                 <DialogTrigger asChild>
@@ -234,10 +211,11 @@ export default function ProductsPage() {
                           <SelectValue placeholder="Changer la catégorie" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="cereales">Céréales</SelectItem>
-                          <SelectItem value="huiles">Huiles</SelectItem>
-                          <SelectItem value="hygiene">Hygiène</SelectItem>
-                          <SelectItem value="pates">Pâtes</SelectItem>
+                          {categories.map((cat) => (
+                            <SelectItem key={cat.id} value={cat.name}>
+                              {cat.name}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -248,8 +226,8 @@ export default function ProductsPage() {
                           <SelectValue placeholder="Changer le statut" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="actif">Actif</SelectItem>
-                          <SelectItem value="inactif">Inactif</SelectItem>
+                          <SelectItem value="true">Actif</SelectItem>
+                          <SelectItem value="false">Inactif</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -259,7 +237,7 @@ export default function ProductsPage() {
                     </div>
                     <div className="flex gap-2">
                       <Button onClick={() => setBulkEditOpen(false)}>
-                        Appliquer les modifications
+                        {"Appliquer les modifications"}
                       </Button>
                       <Button
                         variant="outline"
@@ -279,7 +257,7 @@ export default function ProductsPage() {
       {/* Products Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Produits ({filteredProducts.length})</CardTitle>
+          <CardTitle>{`Produits (${filteredProducts.length})`}</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
@@ -293,279 +271,122 @@ export default function ProductsPage() {
                     onCheckedChange={handleSelectAll}
                   />
                 </TableHead>
-                <TableHead>Produit</TableHead>
-                <TableHead>Catégorie</TableHead>
-                <TableHead>Poids</TableHead>
-                <TableHead>Prix</TableHead>
-                <TableHead>Points fidélité</TableHead>
-                <TableHead>Stock total</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>{"Produit"}</TableHead>
+                <TableHead>{"Catégorie"}</TableHead>
+                <TableHead>{"Variants"}</TableHead>
+                <TableHead>{"Statut"}</TableHead>
+                <TableHead>{"Modifié le"}</TableHead>
+                <TableHead>{"Actions"}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredProducts.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell>
-                    <Checkbox
-                      checked={selectedProducts.includes(product.id)}
-                      onCheckedChange={(checked) =>
-                        handleSelectProduct(product.id, checked as boolean)
-                      }
+              {filteredProducts.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={7}
+                    className="text-center text-gray-500 space-y-2 pt-5 sm:text-lg xl:text-xl"
+                  >
+                    {"Aucun produit trouvé"}
+                    <img
+                      src={"/images/no-order.png"}
+                      className="w-1/3 max-w-60 h-auto mx-auto opacity-50"
                     />
                   </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={product.image || "/placeholder.svg"}
-                        alt={product.name}
-                        className="h-10 w-10 rounded-md object-cover"
-                      />
-                      <div>
-                        <p className="font-medium">{product.name}</p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{product.category}</TableCell>
-                  <TableCell>{product.weight}kg</TableCell>
-                  <TableCell>€{product.price.toFixed(2)}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Star className="h-3 w-3 text-yellow-500" />
-                      {product.loyaltyPoints}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <p className="font-medium">
-                        {getTotalStock(product.stock)} unités
-                      </p>
-                      <div className="text-xs text-muted-foreground">
-                        {Object.entries(product.stock).map(([store, qty]) => (
-                          <div key={store} className="flex justify-between">
-                            <span>{store.replace("Boutique ", "")}:</span>
-                            <span className={qty < 10 ? "text-red-500" : ""}>
-                              {qty}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusColor(product.status)}>
-                      {product.status === "Stock faible" && (
-                        <AlertTriangle className="mr-1 h-3 w-3" />
-                      )}
-                      {product.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setEditingProduct(product);
-                          setIsProductDialogOpen(true);
-                        }}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                filteredProducts.map((product) => (
+                  <TableRow key={product.id}>
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedProducts.includes(product.id)}
+                        onCheckedChange={(checked) =>
+                          handleSelectProduct(product.id, checked as boolean)
+                        }
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <p className="font-medium">{product.name}</p>
+                    </TableCell>
+                    <TableCell>
+                      {
+                        categories.find((x) => x.id === product.categoryId)
+                          ?.name
+                      }
+                    </TableCell>
+                    <TableCell>
+                      {product.variants && product.variants.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {product.variants.map((x) => (
+                            <Badge key={x.id} variant={"outline"}>
+                              {x.name}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={product.status ? "default" : "destructive"}
+                      >
+                        {product.status ? "Actif" : "Désactivé"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {formatRelative(
+                        subDays(new Date(product.updatedAt), 2),
+                        new Date(),
+                        {
+                          locale: fr,
+                        }
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setEditingProduct(product);
+                            setIsEditDialogOpen(true);
+                          }}
+                          disabled={deletingProductId === product.id}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            deleteProduct.mutate(product.id);
+                          }}
+                          disabled={deletingProductId === product.id}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
 
       {/* Add/Edit Product Dialog */}
-      <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {editingProduct ? "Modifier le produit" : "Nouveau produit"}
-            </DialogTitle>
-            <DialogDescription>
-              {editingProduct
-                ? "Modifiez les informations du produit"
-                : "Créez un nouveau produit"}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-6">
-            {/* Basic Information */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Informations générales</h3>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="productName">Nom du produit</Label>
-                  <Input
-                    id="productName"
-                    placeholder="Ex: Riz Brisé Premium"
-                    defaultValue={editingProduct?.name || ""}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="productCategory">Catégorie</Label>
-                  <Select defaultValue={editingProduct?.category || ""}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner une catégorie" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Céréales">Céréales</SelectItem>
-                      <SelectItem value="Huiles">Huiles</SelectItem>
-                      <SelectItem value="Hygiène">Hygiène</SelectItem>
-                      <SelectItem value="Pâtes">Pâtes</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="productDescription">Description</Label>
-                <Textarea
-                  id="productDescription"
-                  placeholder="Description détaillée du produit..."
-                  defaultValue={editingProduct?.description || ""}
-                />
-              </div>
-            </div>
-
-            {/* Pricing & Weight */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Prix et poids</h3>
-              <div className="grid gap-4 md:grid-cols-3">
-                <div className="space-y-2">
-                  <Label htmlFor="productWeight">Poids (kg)</Label>
-                  <Input
-                    id="productWeight"
-                    type="number"
-                    step="0.1"
-                    placeholder="25"
-                    defaultValue={editingProduct?.weight || ""}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="productPrice">Prix (MAD)</Label>
-                  <Input
-                    id="productPrice"
-                    type="number"
-                    step="0.01"
-                    placeholder="18.50"
-                    defaultValue={editingProduct?.price || ""}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="loyaltyPoints">Points fidélité</Label>
-                  <Input
-                    id="loyaltyPoints"
-                    type="number"
-                    placeholder="185"
-                    defaultValue={editingProduct?.loyaltyPoints || ""}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Stock Management */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Gestion du stock</h3>
-              <div className="grid gap-4 md:grid-cols-3">
-                <div className="space-y-2">
-                  <Label htmlFor="stockPlateau">Stock Boutique Plateau</Label>
-                  <Input
-                    id="stockPlateau"
-                    type="number"
-                    placeholder="45"
-                    defaultValue={
-                      editingProduct?.stock?.["Boutique Plateau"] || ""
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="stockParcelles">
-                    Stock Boutique Parcelles
-                  </Label>
-                  <Input
-                    id="stockParcelles"
-                    type="number"
-                    placeholder="32"
-                    defaultValue={
-                      editingProduct?.stock?.["Boutique Parcelles"] || ""
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="stockAlmadies">Stock Boutique Almadies</Label>
-                  <Input
-                    id="stockAlmadies"
-                    type="number"
-                    placeholder="18"
-                    defaultValue={
-                      editingProduct?.stock?.["Boutique Almadies"] || ""
-                    }
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Product Image */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Image du produit</h3>
-              <div className="space-y-2">
-                <Label htmlFor="productImage">Image</Label>
-                <Input id="productImage" type="file" accept="image/*" />
-                {editingProduct?.image && (
-                  <div className="mt-2">
-                    <img
-                      src={editingProduct.image || "/placeholder.svg"}
-                      alt="Aperçu"
-                      className="h-20 w-20 rounded-md object-cover"
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Status */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Statut</h3>
-              <div className="space-y-2">
-                <Label htmlFor="productStatus">Statut du produit</Label>
-                <Select defaultValue={editingProduct?.status || "Actif"}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Actif">Actif</SelectItem>
-                    <SelectItem value="Inactif">Inactif</SelectItem>
-                    <SelectItem value="Stock faible">Stock faible</SelectItem>
-                    <SelectItem value="Rupture">Rupture</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <Button onClick={() => setIsProductDialogOpen(false)}>
-                {editingProduct ? "Mettre à jour" : "Créer le produit"}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setIsProductDialogOpen(false)}
-              >
-                Annuler
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <AddProduct
+        isOpen={isAddDialogOpen}
+        openChange={setIsAddDialogOpen}
+        categories={categories}
+      />
+      {editingProduct && (
+        <EditProduct
+          product={editingProduct}
+          isOpen={isEditDialogOpen}
+          openChange={setIsEditDialogOpen}
+          categories={categories}
+        />
+      )}
     </PageLayout>
   );
 }
