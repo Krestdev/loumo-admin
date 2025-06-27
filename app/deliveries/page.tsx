@@ -45,139 +45,34 @@ import {
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-
-const deliveries = [
-  {
-    id: "DEL-001",
-    orderId: "#ORD-001",
-    customer: "Marie Dubois",
-    address: "Rue 15, Immeuble Salam, Apt 3B",
-    zone: "Dakar Plateau",
-    driver: {
-      name: "Ibrahima Sarr",
-      phone: "+221 77 555 01 23",
-      avatar: "/placeholder-user.jpg",
-      rating: 4.8,
-    },
-    status: "En cours",
-    scheduledTime: "2024-01-16 10:00",
-    estimatedArrival: "2024-01-16 10:15",
-    weight: 12.5,
-    items: 3,
-    priority: "Normal",
-    trackingCode: "TRK001234",
-  },
-  {
-    id: "DEL-002",
-    orderId: "#ORD-002",
-    customer: "Amadou Ba",
-    address: "Villa 123, Cité Millionnaire",
-    zone: "Parcelles Assainies",
-    driver: {
-      name: "Moussa Diallo",
-      phone: "+221 76 444 56 78",
-      avatar: "/placeholder-user.jpg",
-      rating: 4.6,
-    },
-    status: "Livré",
-    scheduledTime: "2024-01-15 16:30",
-    deliveredTime: "2024-01-15 16:45",
-    weight: 18.2,
-    items: 5,
-    priority: "Normal",
-    trackingCode: "TRK001235",
-  },
-  {
-    id: "DEL-003",
-    orderId: "#ORD-003",
-    customer: "Fatou Sall",
-    address: "Résidence Les Palmiers, Villa 45",
-    zone: "Almadies",
-    driver: null,
-    status: "En attente",
-    scheduledTime: "2024-01-16 14:00",
-    weight: 8.7,
-    items: 2,
-    priority: "Urgent",
-    trackingCode: "TRK001236",
-  },
-  {
-    id: "DEL-004",
-    orderId: "#ORD-004",
-    customer: "Ousmane Diop",
-    address: "Quartier Résidentiel, Maison 67",
-    zone: "Yoff",
-    driver: {
-      name: "Abdou Kane",
-      phone: "+221 78 333 44 55",
-      avatar: "/placeholder-user.jpg",
-      rating: 4.9,
-    },
-    status: "En route",
-    scheduledTime: "2024-01-16 11:30",
-    estimatedArrival: "2024-01-16 11:45",
-    weight: 25.1,
-    items: 7,
-    priority: "Normal",
-    trackingCode: "TRK001237",
-  },
-];
-
-const drivers = [
-  {
-    id: 1,
-    name: "Ibrahima Sarr",
-    phone: "+221 77 555 01 23",
-    zone: "Dakar Plateau",
-    status: "En livraison",
-    currentDeliveries: 2,
-    todayDeliveries: 8,
-    rating: 4.8,
-    avatar: "/placeholder-user.jpg",
-  },
-  {
-    id: 2,
-    name: "Moussa Diallo",
-    phone: "+221 76 444 56 78",
-    zone: "Parcelles Assainies",
-    status: "Disponible",
-    currentDeliveries: 0,
-    todayDeliveries: 12,
-    rating: 4.6,
-    avatar: "/placeholder-user.jpg",
-  },
-  {
-    id: 3,
-    name: "Abdou Kane",
-    phone: "+221 78 333 44 55",
-    zone: "Yoff",
-    status: "En route",
-    currentDeliveries: 1,
-    todayDeliveries: 6,
-    rating: 4.9,
-    avatar: "/placeholder-user.jpg",
-  },
-  {
-    id: 4,
-    name: "Fatou Mbaye",
-    phone: "+221 77 666 77 88",
-    zone: "Almadies",
-    status: "Pause",
-    currentDeliveries: 0,
-    todayDeliveries: 9,
-    rating: 4.7,
-    avatar: "/placeholder-user.jpg",
-  },
-];
+import { Agent, Delivery } from "@/types/types";
+import DeliveryQuery from "@/queries/delivery";
+import { useQuery } from "@tanstack/react-query";
+import Loading from "@/components/setup/loading";
+import AgentQuery from "@/queries/agent";
 
 export default function DeliveriesPage() {
-  const [selectedDelivery, setSelectedDelivery] = useState(deliveries[0]);
+  const deliveriesQuery = new DeliveryQuery();
+  const deliveryData = useQuery({
+    queryKey: ["deliveryData"],
+    queryFn: deliveriesQuery.getAll,
+  });
+
+  const agentQuery = new AgentQuery();
+  const agentData = useQuery({
+    queryKey: ["deliveryData"],
+    queryFn: agentQuery.getAll,
+  });
+
+  const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(
+    null
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [zoneFilter, setZoneFilter] = useState("all");
   const [activeTab, setActiveTab] = useState("deliveries");
 
-  const [selectedDriver, setSelectedDriver] = useState(null);
+  const [selectedDriver, setSelectedDriver] = useState<Agent | null>(null);
   const [isAddDriverOpen, setIsAddDriverOpen] = useState(false);
   const [isEditDriverOpen, setIsEditDriverOpen] = useState(false);
   const [newDriver, setNewDriver] = useState({
@@ -190,16 +85,32 @@ export default function DeliveriesPage() {
     licenseNumber: "",
   });
 
-  const filteredDeliveries = deliveries.filter((delivery) => {
-    const matchesSearch =
-      delivery.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      delivery.orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      delivery.trackingCode.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      statusFilter === "all" || delivery.status === statusFilter;
-    const matchesZone = zoneFilter === "all" || delivery.zone === zoneFilter;
-    return matchesSearch && matchesStatus && matchesZone;
-  });
+  let drivers: Agent[];
+  if (agentData.isSuccess) {
+    drivers = agentData.data;
+  } else {
+    drivers = [];
+  }
+
+  let filteredDeliveries: Delivery[];
+  if (deliveryData.isSuccess) {
+    filteredDeliveries = deliveryData.data.filter((delivery) => {
+      const matchesSearch =
+        delivery.order?.user.name
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        delivery.orderId === parseInt(searchTerm.toLowerCase()) ||
+        delivery.trackingCode.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus =
+        statusFilter === "all" || delivery.status === statusFilter;
+      const matchesZone =
+        zoneFilter === "all" ||
+        delivery.order?.address?.zone?.name === zoneFilter;
+      return matchesSearch && matchesStatus && matchesZone;
+    });
+  } else {
+    filteredDeliveries = [];
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -348,264 +259,306 @@ export default function DeliveriesPage() {
           </Card>
 
           {/* Deliveries Table */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Livraisons ({filteredDeliveries.length})</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Livraison</TableHead>
-                    <TableHead>Client</TableHead>
-                    <TableHead>Zone</TableHead>
-                    <TableHead>Livreur</TableHead>
-                    <TableHead>Statut</TableHead>
-                    <TableHead>Priorité</TableHead>
-                    <TableHead>Heure prévue</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredDeliveries.map((delivery) => (
-                    <TableRow key={delivery.id}>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{delivery.id}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {delivery.orderId}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {delivery.trackingCode}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{delivery.customer}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {delivery.address}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell>{delivery.zone}</TableCell>
-                      <TableCell>
-                        {delivery.driver ? (
-                          <div className="flex items-center gap-2">
-                            <Avatar className="h-6 w-6">
-                              <AvatarImage
-                                src={
-                                  delivery.driver.avatar || "/placeholder.svg"
-                                }
-                              />
-                              <AvatarFallback>
-                                {delivery.driver.name
-                                  .split(" ")
-                                  .map((n) => n[0])
-                                  .join("")}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="text-sm font-medium">
-                                {delivery.driver.name}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {delivery.driver.phone}
-                              </p>
-                            </div>
-                          </div>
-                        ) : (
-                          <Badge variant="outline">Non assigné</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={getStatusColor(delivery.status)}>
-                          {delivery.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={getPriorityColor(delivery.priority)}>
-                          {delivery.priority}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <p className="text-sm">{delivery.scheduledTime}</p>
-                          {delivery.estimatedArrival && (
-                            <p className="text-xs text-muted-foreground">
-                              ETA: {delivery.estimatedArrival}
+          {deliveryData.isLoading ? (
+            <Loading status={"loading"} />
+          ) : deliveryData.isError ? (
+            <Loading status={"failed"} />
+          ) : deliveryData.isSuccess ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Livraisons ({filteredDeliveries.length})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Livraison</TableHead>
+                      <TableHead>Client</TableHead>
+                      <TableHead>Zone</TableHead>
+                      <TableHead>Livreur</TableHead>
+                      <TableHead>Statut</TableHead>
+                      <TableHead>Priorité</TableHead>
+                      <TableHead>Heure prévue</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredDeliveries.map((delivery) => (
+                      <TableRow key={delivery.id}>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{delivery.id}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {delivery.orderId}
                             </p>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setSelectedDelivery(delivery)}
-                            >
-                              Détails
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-2xl">
-                            <DialogHeader>
-                              <DialogTitle>
-                                Détails de la livraison {selectedDelivery.id}
-                              </DialogTitle>
-                              <DialogDescription>
-                                Informations complètes sur la livraison
-                              </DialogDescription>
-                            </DialogHeader>
-
-                            <div className="space-y-6">
-                              <div className="grid gap-4 md:grid-cols-2">
-                                <div>
-                                  <h4 className="font-medium mb-2 flex items-center gap-2">
-                                    <Package className="h-4 w-4" />
-                                    Informations commande
-                                  </h4>
-                                  <div className="space-y-2 text-sm">
-                                    <div className="flex justify-between">
-                                      <span>Commande:</span>
-                                      <span className="font-medium">
-                                        {selectedDelivery.orderId}
-                                      </span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span>Code suivi:</span>
-                                      <span className="font-mono">
-                                        {selectedDelivery.trackingCode}
-                                      </span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span>Poids:</span>
-                                      <span>{selectedDelivery.weight}kg</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span>Articles:</span>
-                                      <span>
-                                        {selectedDelivery.items} produits
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                <div>
-                                  <h4 className="font-medium mb-2 flex items-center gap-2">
-                                    <MapPin className="h-4 w-4" />
-                                    Adresse de livraison
-                                  </h4>
-                                  <div className="space-y-2 text-sm">
-                                    <div>
-                                      <p className="font-medium">
-                                        {selectedDelivery.customer}
-                                      </p>
-                                      <p>{selectedDelivery.address}</p>
-                                      <p className="text-muted-foreground">
-                                        {selectedDelivery.zone}
-                                      </p>
-                                    </div>
-                                  </div>
-                                </div>
+                            <p className="text-xs text-muted-foreground">
+                              {delivery.trackingCode}
+                            </p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">
+                              {delivery.order?.user.name}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              {delivery.order?.address?.local}
+                            </p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {delivery.order?.address?.zone?.name}
+                        </TableCell>
+                        <TableCell>
+                          {delivery.agent ? (
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-6 w-6">
+                                <AvatarImage
+                                  src={
+                                    delivery.agent.user?.imageUrl ||
+                                    "/placeholder.png"
+                                  }
+                                />
+                                <AvatarFallback>
+                                  {delivery.agent.user?.name
+                                    .split(" ")
+                                    .map((n) => n[0])
+                                    .join("")}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="text-sm font-medium">
+                                  {delivery.agent.user?.name}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {delivery.agent.user?.tel}
+                                </p>
                               </div>
+                            </div>
+                          ) : (
+                            <Badge variant="outline">Non assigné</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={getStatusColor(delivery.status)}>
+                            {delivery.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={getPriorityColor(delivery.priority)}>
+                            {delivery.priority}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <p className="text-sm">
+                              {new Date(
+                                delivery.scheduledTime
+                              ).toLocaleDateString()}
+                            </p>
+                            {delivery.estimatedArrival && (
+                              <p className="text-xs text-muted-foreground">
+                                ETA:{" "}
+                                {new Date(
+                                  delivery.estimatedArrival
+                                ).toLocaleDateString()}
+                              </p>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSelectedDelivery(delivery)}
+                              >
+                                Détails
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-2xl">
+                              <DialogHeader>
+                                <DialogTitle>
+                                  Détails de la livraison {selectedDelivery?.id}
+                                </DialogTitle>
+                                <DialogDescription>
+                                  Informations complètes sur la livraison
+                                </DialogDescription>
+                              </DialogHeader>
 
-                              {selectedDelivery.driver && (
-                                <div className="border-t pt-4">
-                                  <h4 className="font-medium mb-2 flex items-center gap-2">
-                                    <User className="h-4 w-4" />
-                                    Livreur assigné
-                                  </h4>
-                                  <div className="flex items-center gap-3">
-                                    <Avatar className="h-10 w-10">
-                                      <AvatarImage
-                                        src={
-                                          selectedDelivery.driver.avatar ||
-                                          "/placeholder.svg"
-                                        }
-                                      />
-                                      <AvatarFallback>
-                                        {selectedDelivery.driver.name
-                                          .split(" ")
-                                          .map((n) => n[0])
-                                          .join("")}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                      <p className="font-medium">
-                                        {selectedDelivery.driver.name}
-                                      </p>
-                                      <p className="text-sm text-muted-foreground">
-                                        {selectedDelivery.driver.phone}
-                                      </p>
-                                      <div className="flex items-center gap-1 mt-1">
-                                        <span className="text-xs">
-                                          Note: {selectedDelivery.driver.rating}
-                                          /5
+                              <div className="space-y-6">
+                                <div className="grid gap-4 md:grid-cols-2">
+                                  <div>
+                                    <h4 className="font-medium mb-2 flex items-center gap-2">
+                                      <Package className="h-4 w-4" />
+                                      Informations commande
+                                    </h4>
+                                    <div className="space-y-2 text-sm">
+                                      <div className="flex justify-between">
+                                        <span>Commande:</span>
+                                        <span className="font-medium">
+                                          {selectedDelivery?.orderId}
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span>Code suivi:</span>
+                                        <span className="font-mono">
+                                          {selectedDelivery?.trackingCode}
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span>Poids:</span>
+                                        <span>
+                                          {selectedDelivery?.order?.weight}kg
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span>Articles:</span>
+                                        <span>
+                                          {
+                                            selectedDelivery?.order?.orderItems
+                                              ?.length
+                                          }{" "}
+                                          produits
                                         </span>
                                       </div>
                                     </div>
                                   </div>
-                                </div>
-                              )}
 
-                              <div className="border-t pt-4">
-                                <h4 className="font-medium mb-2 flex items-center gap-2">
-                                  <Clock className="h-4 w-4" />
-                                  Horaires
-                                </h4>
-                                <div className="space-y-2 text-sm">
-                                  <div className="flex justify-between">
-                                    <span>Heure prévue:</span>
-                                    <span>
-                                      {selectedDelivery.scheduledTime}
-                                    </span>
+                                  <div>
+                                    <h4 className="font-medium mb-2 flex items-center gap-2">
+                                      <MapPin className="h-4 w-4" />
+                                      Adresse de livraison
+                                    </h4>
+                                    <div className="space-y-2 text-sm">
+                                      <div>
+                                        <p className="font-medium">
+                                          {selectedDelivery?.order?.user.name}
+                                        </p>
+                                        <p>
+                                          {
+                                            selectedDelivery?.order?.address
+                                              ?.local
+                                          }
+                                        </p>
+                                        <p className="text-muted-foreground">
+                                          {
+                                            selectedDelivery?.order?.address
+                                              ?.zone?.name
+                                          }
+                                        </p>
+                                      </div>
+                                    </div>
                                   </div>
-                                  {selectedDelivery.estimatedArrival && (
+                                </div>
+
+                                {selectedDelivery?.agent && (
+                                  <div className="border-t pt-4">
+                                    <h4 className="font-medium mb-2 flex items-center gap-2">
+                                      <User className="h-4 w-4" />
+                                      Livreur assigné
+                                    </h4>
+                                    <div className="flex items-center gap-3">
+                                      <Avatar className="h-10 w-10">
+                                        <AvatarImage
+                                          src={
+                                            selectedDelivery?.agent.user
+                                              ?.imageUrl || "/placeholder.png"
+                                          }
+                                        />
+                                        <AvatarFallback>
+                                          {selectedDelivery?.agent.user?.name
+                                            .split(" ")
+                                            .map((n) => n[0])
+                                            .join("")}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      <div>
+                                        <p className="font-medium">
+                                          {selectedDelivery?.agent.user?.name}
+                                        </p>
+                                        <p className="text-sm text-muted-foreground">
+                                          {selectedDelivery?.agent.user?.tel}
+                                        </p>
+                                        <div className="flex items-center gap-1 mt-1">
+                                          <span className="text-xs">
+                                            Note: {selectedDelivery?.agent.code}
+                                            /5
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+
+                                <div className="border-t pt-4">
+                                  <h4 className="font-medium mb-2 flex items-center gap-2">
+                                    <Clock className="h-4 w-4" />
+                                    Horaires
+                                  </h4>
+                                  <div className="space-y-2 text-sm">
                                     <div className="flex justify-between">
-                                      <span>Arrivée estimée:</span>
+                                      <span>Heure prévue:</span>
                                       <span>
-                                        {selectedDelivery.estimatedArrival}
+                                        {new Date(
+                                          selectedDelivery
+                                            ? selectedDelivery.scheduledTime
+                                            : ""
+                                        ).toLocaleString()}
                                       </span>
                                     </div>
-                                  )}
-                                  {selectedDelivery.deliveredTime && (
-                                    <div className="flex justify-between">
-                                      <span>Livré à:</span>
-                                      <span className="text-green-600">
-                                        {selectedDelivery.deliveredTime}
-                                      </span>
-                                    </div>
+                                    {selectedDelivery?.estimatedArrival && (
+                                      <div className="flex justify-between">
+                                        <span>Arrivée estimée:</span>
+                                        <span>
+                                          {new Date(
+                                            selectedDelivery.estimatedArrival
+                                          ).toLocaleString()}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {selectedDelivery?.deliveredTime && (
+                                      <div className="flex justify-between">
+                                        <span>Livré à:</span>
+                                        <span className="text-green-600">
+                                          {new Date(
+                                            selectedDelivery.deliveredTime ?? ""
+                                          )?.toLocaleString()}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+
+                                <div className="flex gap-2">
+                                  <Button>
+                                    <Navigation className="mr-2 h-4 w-4" />
+                                    Suivre en temps réel
+                                  </Button>
+                                  <Button variant="outline">
+                                    <Phone className="mr-2 h-4 w-4" />
+                                    Contacter livreur
+                                  </Button>
+                                  {!selectedDelivery?.agent && (
+                                    <Button variant="outline">
+                                      Assigner livreur
+                                    </Button>
                                   )}
                                 </div>
                               </div>
-
-                              <div className="flex gap-2">
-                                <Button>
-                                  <Navigation className="mr-2 h-4 w-4" />
-                                  Suivre en temps réel
-                                </Button>
-                                <Button variant="outline">
-                                  <Phone className="mr-2 h-4 w-4" />
-                                  Contacter livreur
-                                </Button>
-                                {!selectedDelivery.driver && (
-                                  <Button variant="outline">
-                                    Assigner livreur
-                                  </Button>
-                                )}
-                              </div>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+                            </DialogContent>
+                          </Dialog>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          ) : (
+            <Loading />
+          )}
         </>
       ) : (
         /* Drivers Tab */
@@ -625,19 +578,19 @@ export default function DeliveriesPage() {
                     <div className="flex items-center gap-3 mb-3">
                       <Avatar className="h-10 w-10">
                         <AvatarImage
-                          src={driver.avatar || "/placeholder.svg"}
+                          src={driver.user?.imageUrl || "/placeholder.svg"}
                         />
                         <AvatarFallback>
-                          {driver.name
+                          {driver.user?.name
                             .split(" ")
                             .map((n) => n[0])
                             .join("")}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
-                        <p className="font-medium">{driver.name}</p>
+                        <p className="font-medium">{driver.user?.name}</p>
                         <p className="text-sm text-muted-foreground">
-                          {driver.phone}
+                          {driver.user?.tel}
                         </p>
                       </div>
                       <div className="flex gap-1">
@@ -659,7 +612,7 @@ export default function DeliveriesPage() {
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Zone:</span>
-                        <span>{driver.zone}</span>
+                        <span>{driver.zone.name}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span>Statut:</span>
@@ -669,15 +622,38 @@ export default function DeliveriesPage() {
                       </div>
                       <div className="flex justify-between text-sm">
                         <span>En cours:</span>
-                        <span>{driver.currentDeliveries} livraisons</span>
+                        <span>
+                          {
+                            driver.delivery?.filter(
+                              (x) =>
+                                x.status !== "COMPLETED" &&
+                                x.status !== "PENDING"
+                            ).length
+                          }{" "}
+                          livraisons
+                        </span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span>Aujourd'hui:</span>
-                        <span>{driver.todayDeliveries} livrées</span>
+                        <span>
+                          {
+                            driver.delivery?.filter((x) => {
+                              const today = new Date();
+                              const deliveryDate = new Date(x.scheduledTime);
+                              return (
+                                deliveryDate.getFullYear() ===
+                                  today.getFullYear() &&
+                                deliveryDate.getMonth() === today.getMonth() &&
+                                deliveryDate.getDate() === today.getDate()
+                              );
+                            }).length
+                          }
+                          livrées
+                        </span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span>Note:</span>
-                        <span>{driver.rating}/5 ⭐</span>
+                        <span>{driver.code}/5 ⭐</span>
                       </div>
                     </div>
                     <div className="flex gap-2 mt-3">
@@ -836,7 +812,7 @@ export default function DeliveriesPage() {
                 <Label htmlFor="edit-name">Nom complet</Label>
                 <Input
                   id="edit-name"
-                  defaultValue={selectedDriver.name}
+                  defaultValue={selectedDriver.user?.name}
                   placeholder="Ex: Ibrahima Sarr"
                 />
               </div>
@@ -844,13 +820,13 @@ export default function DeliveriesPage() {
                 <Label htmlFor="edit-phone">Téléphone</Label>
                 <Input
                   id="edit-phone"
-                  defaultValue={selectedDriver.phone}
+                  defaultValue={selectedDriver.user?.tel ?? undefined}
                   placeholder="Ex: +221 77 123 45 67"
                 />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="edit-zone">Zone de couverture</Label>
-                <Select defaultValue={selectedDriver.zone}>
+                <Select defaultValue={selectedDriver.zone.name}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>

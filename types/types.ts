@@ -41,8 +41,10 @@ export type Agent = {
   id: number;
   userId: number;
   code: string;
+  status: string;
   user?: User;
   delivery?: Delivery[];
+  zone: Zone;
 };
 
 export type Category = {
@@ -57,11 +59,16 @@ export type Category = {
 export type Delivery = {
   id: number;
   status: string;
+  trackingCode: string;
+  priority: string;
   agentId: number | null;
   orderId: number;
   orderItem?: OrderItem[];
   agent?: Agent;
   order?: Order;
+  scheduledTime: Date;
+  deliveredTime?: Date;
+  estimatedArrival?: Date;
 };
 
 export type Log = {
