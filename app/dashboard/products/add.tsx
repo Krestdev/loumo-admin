@@ -42,13 +42,12 @@ function AddProduct({categories, isOpen, openChange}:Props) {
             name: values.name,
             status: values.status,
             categoryId: Number(values.category),
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            weight: 0
+            weight: 0,
         }),
         onSuccess: ()=> {
-            queryClient.invalidateQueries({queryKey: ["products"], refetchType: "active"})
-            queryClient.invalidateQueries({queryKey: ["categories"], refetchType: "active"})
+            queryClient.invalidateQueries({queryKey: ["products"], refetchType: "active"});
+            queryClient.invalidateQueries({queryKey: ["categories"], refetchType: "active"});
+            form.reset();
             openChange(false);
         },
     });
