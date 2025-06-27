@@ -2,16 +2,18 @@ import { LucideProps } from "lucide-react";
 import React, { ForwardRefExoticComponent, RefAttributes } from "react";
 
 export interface navigationHeader {
-    title:string;
-    header:string;
-    description?:string;
-    url: string;
-    icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>;
+  title: string;
+  header: string;
+  description?: string;
+  url: string;
+  icon: ForwardRefExoticComponent<
+    Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>
+  >;
 }
 
 export interface sidebarItemGroup {
-    title: string;
-    items: navigationHeader[];
+  title: string;
+  items: navigationHeader[];
 }
 export type Address = {
   street: string;
@@ -82,12 +84,19 @@ export type NotificationT = {
 
 export type Order = {
   id: number;
+  user: User;
   userId: number;
   note: string;
+  status: string;
+  weight: number;
+  total: number;
+  deliveryFee: number;
+  address?: Address;
   addressId: number;
   orderItems?: OrderItem[];
-  payment?: Payment[];
+  payment?: Payment;
   delivery?: Delivery[];
+  createdAt: string;
 };
 
 export type OrderItem = {
@@ -180,7 +189,7 @@ export type User = {
   id: number;
   email: string;
   password: string;
-  name: string | null;
+  name: string;
   passwordResetOtp: string | null;
   passwordResetOtpExpires: Date | null;
   tel: string | null;
