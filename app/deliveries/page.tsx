@@ -50,6 +50,7 @@ import DeliveryQuery from "@/queries/delivery";
 import { useQuery } from "@tanstack/react-query";
 import Loading from "@/components/setup/loading";
 import AgentQuery from "@/queries/agent";
+import ZoneQuery from "@/queries/zone";
 
 export default function DeliveriesPage() {
   const deliveriesQuery = new DeliveryQuery();
@@ -60,8 +61,14 @@ export default function DeliveriesPage() {
 
   const agentQuery = new AgentQuery();
   const agentData = useQuery({
-    queryKey: ["deliveryData"],
+    queryKey: ["agentData"],
     queryFn: agentQuery.getAll,
+  });
+
+  const zoneQuery = new ZoneQuery();
+  const zoneData = useQuery({
+    queryKey: ["zoneData"],
+    queryFn: zoneQuery.getAll,
   });
 
   const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(
@@ -156,57 +163,77 @@ export default function DeliveriesPage() {
   return (
     <main className="flex-1 overflow-auto p-4 space-y-6">
       {/* Delivery Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">En cours</CardTitle>
-            <Truck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">Livraisons actives</p>
-          </CardContent>
-        </Card>
+      {deliveryData.isSuccess && agentData.isSuccess && (
+        <div className="grid gap-4 md:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">En cours</CardTitle>
+              <Truck className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {
+                  deliveryData.data.filter((x) =>
+                    x.status.toLowerCase().includes("pending")
+                  ).length
+                }
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Livraisons actives
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Livrées aujourd'hui
-            </CardTitle>
-            <Package className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">47</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-green-600">+8</span> vs hier
-            </p>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Livrées aujourd'hui
+              </CardTitle>
+              <Package className="h-4 w-4 text-green-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">47</div>
+              <p className="text-xs text-muted-foreground">
+                <span className="text-green-600">+8</span> vs hier
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Temps moyen</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">42min</div>
-            <p className="text-xs text-muted-foreground">Temps de livraison</p>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Temps moyen</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">42min</div>
+              <p className="text-xs text-muted-foreground">
+                Temps de livraison
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Livreurs actifs
-            </CardTitle>
-            <User className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">8</div>
-            <p className="text-xs text-muted-foreground">Sur 12 disponibles</p>
-          </CardContent>
-        </Card>
-      </div>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Livreurs actifs
+              </CardTitle>
+              <User className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {
+                  agentData.data.filter((x) =>
+                    x.status.toLowerCase().includes("active")
+                  ).length
+                }
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Sur {agentData.data.length} disponibles
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {activeTab === "deliveries" ? (
         <>
@@ -252,6 +279,14 @@ export default function DeliveriesPage() {
                     </SelectItem>
                     <SelectItem value="Almadies">Almadies</SelectItem>
                     <SelectItem value="Yoff">Yoff</SelectItem>
+                    {zoneData.isSuccess &&
+                      zoneData.data.map((zone) => {
+                        return (
+                          <SelectItem key={zone.id} value={zone.name}>
+                            {zone.name}
+                          </SelectItem>
+                        );
+                      })}
                   </SelectContent>
                 </Select>
               </div>
