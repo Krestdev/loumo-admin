@@ -2,7 +2,7 @@ import api from "@/providers/axios";
 import { Delivery } from "@/types/types";
 
 export default class DeliveryQuery {
-  route = "/deliverys";
+  route = "/deliveries";
   create = async (
     data: Omit<Delivery, "id" | "agentId"> & {
       deliveryId: number;
