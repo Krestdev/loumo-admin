@@ -42,6 +42,7 @@ import { Edit, PlusCircle, Search, Trash2 } from "lucide-react";
 import React, { useMemo, useState } from "react";
 import EditProduct from "./edit";
 import AddProduct from "./add";
+import DeleteProduct from "./delete";
 
 export default function ProductsPage() {
   const queryClient = useQueryClient();
@@ -101,6 +102,7 @@ export default function ProductsPage() {
   const [bulkEditOpen, setBulkEditOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>();
 
   const filteredProducts = useMemo(
@@ -349,7 +351,6 @@ export default function ProductsPage() {
                             setEditingProduct(product);
                             setIsEditDialogOpen(true);
                           }}
-                          disabled={deletingProductId === product.id}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -357,9 +358,9 @@ export default function ProductsPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            deleteProduct.mutate(product.id);
+                            setEditingProduct(product);
+                            setIsDeleteDialogOpen(true);
                           }}
-                          disabled={deletingProductId === product.id}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -379,6 +380,7 @@ export default function ProductsPage() {
         openChange={setIsAddDialogOpen}
         categories={categories}
       />
+      {editingProduct && <DeleteProduct product={editingProduct} isOpen={isDeleteDialogOpen} openChange={setIsDeleteDialogOpen} />}
       {editingProduct && (
         <EditProduct
           product={editingProduct}
