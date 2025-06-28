@@ -38,11 +38,11 @@ export default class ProductQuery {
       .then((response) => response.data);
   };
 
-  bulckUpdate = async (data: {
+  bulckUpdate = async (ids: number[], p0: { categoryId: number | undefined; status: boolean; }, data: {
     product: Partial<Product>[];
     categoryId?: number;
     status?: boolean;
-  }): Promise<Product> => {
+}): Promise<Product> => {
     return api
       .post(`${this.route}/bulckupdate`, data)
       .then((response) => response.data);
@@ -54,7 +54,7 @@ export default class ProductQuery {
 
   bulckDelete = async (ids: number[]): Promise<Product> => {
     return api
-      .delete(`${this.route}/bulckdelete`, { data: ids })
+      .put(`${this.route}/delete/bulck`, { ids:ids })
       .then((response) => response.data);
   };
 }

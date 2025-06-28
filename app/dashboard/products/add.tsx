@@ -38,6 +38,10 @@ function AddProduct({categories, isOpen, openChange}:Props) {
     
     const actions = new ProductQuery();
     const queryClient = useQueryClient();
+     const onSubmit = (values:z.infer<typeof formSchema>)=>{
+            //console.log(values);
+            productAdd.mutate(values);
+        }
     const productAdd = useMutation({
         mutationFn: (values:z.infer<typeof formSchema>) => actions.create({
             name: values.name,
@@ -52,10 +56,6 @@ function AddProduct({categories, isOpen, openChange}:Props) {
             openChange(false);
         },
     });
-    const onSubmit = (values:z.infer<typeof formSchema>)=>{
-            //console.log(values);
-            productAdd.mutate(values);
-        }
         {/**Clean up the form */}
         React.useEffect(()=>{
             if(isOpen){

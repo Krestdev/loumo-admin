@@ -14,7 +14,7 @@ function DashboardHeader() {
         <SidebarTrigger className="-ml-1" />
         <div className="flex flex-1 items-center justify-between">
           <div>
-            <h1 className="text-lg font-semibold">{sidebarContent.flatMap(x=>x.items).find(y=>y.url === pathname)?.header || "Page Inconnue"}</h1>
+            <h1 className="text-lg font-semibold">{sidebarContent.flatMap(x=>x.items).find(y=>y.url === pathname)?.header || "Dashboard"}</h1>
             {sidebarContent.flatMap(x=>x.items).find(y=>y.url === pathname)?.description && 
             <p className="text-sm text-muted-foreground">{sidebarContent.flatMap(x=>x.items).find(y=>y.url === pathname)?.description}</p>
             }

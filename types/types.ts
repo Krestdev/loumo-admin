@@ -11,9 +11,13 @@ export interface navigationHeader {
   >;
 }
 
+export interface navigationElement extends navigationHeader {
+  display:boolean;
+}
+
 export interface sidebarItemGroup {
   title: string;
-  items: navigationHeader[];
+  items: navigationElement[];
 }
 export type Address = {
   street: string;
