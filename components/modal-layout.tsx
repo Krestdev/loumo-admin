@@ -16,6 +16,12 @@ type Props = {
 
 export default function ModalLayout({ children, isLoading, title, description }: Props) {
   const router = useRouter();
+  React.useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
 
   return (
     <AnimatePresence>

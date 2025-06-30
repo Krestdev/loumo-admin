@@ -1,6 +1,5 @@
 "use client";
 
-
 import PageLayout from "@/components/page-layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,18 +25,18 @@ import { useStore } from "@/providers/datastore";
 import CategoryQuery from "@/queries/category";
 import ProductQuery from "@/queries/product";
 import { Category, Product } from "@/types/types";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { formatRelative, subDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Edit, PlusCircle, Search, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useMemo, useState } from "react";
 import AddProduct from "./add";
 import DeleteProduct from "./delete";
 import EditProduct from "./edit";
 import GroupDelete from "./groupDelete";
 import GroupEdit from "./groupEdit";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -49,10 +48,6 @@ export default function ProductsPage() {
     }
   }, [open]);
 
-  const queryClient = useQueryClient();
-  const [deletingProductId, setDeletingProductId] = useState<number | null>(
-    null
-  );
   const product = new ProductQuery();
   const category = new CategoryQuery();
   const productData = useQuery({
@@ -65,19 +60,7 @@ export default function ProductsPage() {
     queryFn: () => category.getAll(),
     refetchOnWindowFocus: false,
   });
-  const deleteProduct = useMutation({
-    mutationFn: (id: number) => product.delete(id),
-    onMutate: (id) => {
-      setDeletingProductId(id);
-    },
-    onSettled: () => {
-      setDeletingProductId(null); // reset after success or error
-      queryClient.invalidateQueries({
-        queryKey: ["products"],
-        refetchType: "active",
-      });
-    },
-  });
+
   const { setLoading } = useStore();
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -293,6 +276,7 @@ export default function ProductsPage() {
                           ))}
                         </div>
                       )}
+                      {!product.variants || product.variants && product.variants.length === 0 && <p className="text-muted-foreground">{"Aucun"}</p>}
                     </TableCell>
                     <TableCell>
                       <Badge

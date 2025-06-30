@@ -16,6 +16,11 @@ export const metadata: Metadata = {
     default: "Loumo Admin - Gestion de Loumo-Shop",
   },
   description: "Grocery e-commerce back office dashboard",
+  icons: {
+      icon: "/favicon.ico",
+      shortcut: "/favicon.ico",
+      apple: "/apple-touch-icon.png"
+    },
 };
 
 export default function RootLayout({
