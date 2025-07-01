@@ -51,7 +51,7 @@ export default function VariantsPage() {
   const {setLoading} = useStore();
 
   React.useEffect(()=>{
-    setLoading(variantsData.isLoading);
+    setLoading(variantsData.isLoading || productsData.isLoading || shopData.isLoading);
     if(variantsData.isSuccess){
       setVariants(variantsData.data);
     }
@@ -61,7 +61,7 @@ export default function VariantsPage() {
     if(shopData.isSuccess){
       setShops(shopData.data)
     }
-  },[variantsData.isSuccess, variantsData.data, variantsData.isLoading, setLoading, productsData.isSuccess, productsData.data, shopData.isSuccess, shopData.data, setShops])
+  },[variantsData.isSuccess, variantsData.data, variantsData.isLoading, setLoading, productsData.isSuccess, productsData.data, shopData.isSuccess, shopData.data, setShops, productsData.isLoading, shopData.isLoading])
 
   const [selectedVariant, setSelectedVariant] = useState(variants[0])
   const [searchTerm, setSearchTerm] = useState("")
@@ -111,8 +111,7 @@ const filteredVariants = React.useMemo(() => {
 
 
   return (
-    <PageLayout className="flex flex-col" isLoading={variantsData.isLoading || productsData.isLoading}>
-      <main className="flex-1 overflow-auto p-4 space-y-6">
+    <PageLayout className="flex-1 overflow-auto p-4 space-y-6" isLoading={variantsData.isLoading || productsData.isLoading}>
         {/* Variant Stats */}
         <div className="grid gap-4 md:grid-cols-4">
           <Card>
@@ -343,7 +342,6 @@ const filteredVariants = React.useMemo(() => {
             </Table>
           </CardContent>
         </Card>
-      </main>
       { activeVariant && <ViewVariant shops={shops} variant={activeVariant} products={products} isOpen={isDialogOpen} openChange={setIsDialogOpen}/>}
       { activeVariant && <EditVariant variant={activeVariant} products={products} isOpen={editDialog} openChange={setEditDialog}/>}
       {activeVariant && <DeleteVariant variant={activeVariant} products={products} isOpen={deleteDialog} openChange={setDeleteDialog}/>}

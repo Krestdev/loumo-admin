@@ -7,10 +7,13 @@ export default class CategoryQuery {
   create = async (
     data: Omit<Category, "id"> & { productIds?: number[] }
   ): Promise<Category> => {
-    return api.post(`${this.route}`, data).then((response) => {
-      toast.success(`Catégorie ${response.data.category.name} créée avec succès`);
-      return response.data;
-    });
+    const response = await api.post(`${this.route}`, data);
+    const category = response.data;
+
+    console.log("👉 Response complète :", category);
+    if (!category) throw new Error("Missing product in response");
+    toast.success(`Catégorie ${category.name} créée avec succès`);
+    return category;
   };
 
   getAll = async (): Promise<Category[]> => {
@@ -25,7 +28,7 @@ export default class CategoryQuery {
 
   update = async (
     id: number,
-    data: Partial<Omit<Category, "id">> & { productIds: number[] }
+    data: Partial<Omit<Category, "id">>
   ): Promise<Category> => {
     return api
       .put(`${this.route}/${id}`, data)
@@ -33,6 +36,6 @@ export default class CategoryQuery {
   };
 
   delete = async (id: number): Promise<Category> => {
-    return api.delete(`/${this.route}/${id}`).then((response) => response.data);
+    return api.delete(`${this.route}/${id}`).then((response) => response.data);
   };
 }

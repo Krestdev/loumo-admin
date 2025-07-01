@@ -56,7 +56,6 @@ export type Agent = {
 export type Category = {
   name: string;
   id: number;
-  weight: number;
   status: boolean;
   products?: Product[];
   imgUrl?: string;
@@ -144,6 +143,7 @@ export type Permission = {
 export type Product = {
   name: string;
   id: number;
+  description:string;
   createdAt: Date;
   updatedAt: Date;
   weight: number;

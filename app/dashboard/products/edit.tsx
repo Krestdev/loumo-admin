@@ -80,7 +80,7 @@ function EditProduct({product, categories, isOpen, openChange}:Props) {
             {/* Basic Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium">{"Informations générales"}</h3>
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-2 place-items-start">
                     <FormField control={form.control} name="name" render={({field})=>(
                         <FormItem>
                             <FormLabel>{"Nom du Produit"}</FormLabel>

@@ -1,17 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { Loader, X } from "lucide-react";
-import React from "react";
+import ModalLayout from "@/components/modal-layout";
 import { Button } from "@/components/ui/button";
-import z from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import ProductQuery from "@/queries/product";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import CategoryQuery from "@/queries/category";
-import PageLayout from "@/components/page-layout";
 import {
   Form,
   FormControl,
@@ -29,11 +19,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import ModalLayout from "@/components/modal-layout";
+import { Textarea } from "@/components/ui/textarea";
+import CategoryQuery from "@/queries/category";
+import ProductQuery from "@/queries/product";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Loader } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import z from "zod";
 
 const formSchema = z.object({
-  name: z.string({ message: "Veuillez entrer un nom" }),
+  name: z.string().min(3,{ message: "Veuillez entrer un nom" }),
   category: z.string({ message: "Veuillez sélectionner une catégorie" }),
+  description: z.string().min(10,{message: "Veuillez renseigner une description"}),
   status: z.boolean(),
 });
 
@@ -46,6 +45,7 @@ export default function AddProductModal() {
       name: "",
       category: "",
       status: true,
+      description: ""
     },
   });
 
@@ -78,6 +78,7 @@ export default function AddProductModal() {
         status: values.status,
         categoryId: Number(values.category),
         weight: 0,
+        description: values.description,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -100,7 +101,7 @@ export default function AddProductModal() {
           {/* Basic Information */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium">{"Informations générales"}</h3>
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-2 place-items-start">
               <FormField
                 control={form.control}
                 name="name"
@@ -145,6 +146,19 @@ export default function AddProductModal() {
                 )}
               />
             </div>
+            <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{"Description"}</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} placeholder="Décrivez le produit..."/>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
           </div>
 
           {/* Status */}
