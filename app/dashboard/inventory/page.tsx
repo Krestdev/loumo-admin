@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   Card,
   CardContent,
@@ -11,7 +11,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
   Select,
   SelectContent,
@@ -42,47 +41,50 @@ import {
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import StockQuery from "@/queries/stock";
+import { useQuery } from "@tanstack/react-query";
+import ShopQuery from "@/queries/shop";
+import { Product, Shop, Stock } from "@/types/types";
+import { useStore } from "@/providers/datastore";
+import PageLayout from "@/components/page-layout";
+import ProductQuery from "@/queries/product";
 
-const inventoryData = [
-  {
-    id: 1,
-    product: "Riz Brisé 25kg",
-    category: "Céréales",
-    store: "Boutique Plateau",
-    currentStock: 5,
-    minThreshold: 20,
-    maxThreshold: 100,
-    lastRestock: "2024-01-15",
-    supplier: "Fournisseur A",
-    status: "critique",
-  },
-  {
-    id: 2,
-    product: "Huile Tournesol 5L",
-    category: "Huiles",
-    store: "Boutique Parcelles",
-    currentStock: 15,
-    minThreshold: 25,
-    maxThreshold: 80,
-    lastRestock: "2024-01-20",
-    supplier: "Fournisseur B",
-    status: "faible",
-  },
-  {
-    id: 3,
-    product: "Savon Marseille x12",
-    category: "Hygiène",
-    store: "Boutique Almadies",
-    currentStock: 45,
-    minThreshold: 30,
-    maxThreshold: 120,
-    lastRestock: "2024-01-18",
-    supplier: "Fournisseur C",
-    status: "normal",
-  },
-];
 
 export default function InventoryPage() {
+  const stockQuery = new StockQuery();
+  const shopQuery = new ShopQuery();
+  const productQuery = new ProductQuery();
+  const getStocks = useQuery({
+    queryKey: ["stocks"],
+    queryFn: () => stockQuery.getAll(),
+  });
+  const getShops = useQuery({
+    queryKey: ["shops"],
+    queryFn: () => shopQuery.getAll(),
+  });
+  const getProducts = useQuery({
+    queryKey: ["products"],
+    queryFn: () => productQuery.getAll(),
+  });
+
+  const { setLoading } = useStore();
+  const [stocks, setStocks] = useState<Stock[]>([]);
+  const [shops, setShops] = useState<Shop[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+
+  React.useEffect(()=>{
+    setLoading(getShops.isLoading || getStocks.isLoading || getProducts.isLoading);
+    if(getShops.isSuccess){
+      setShops(getShops.data);
+    }
+    if(getStocks.isSuccess){
+      setStocks(getStocks.data);
+    }
+    if(getProducts.isSuccess){
+      setProducts(getProducts.data)
+    }
+  }, [getShops.isLoading, getStocks.isLoading, getShops.isSuccess, getStocks.isSuccess, getShops.data, getStocks.data, getProducts.isLoading, getProducts.data, getProducts.isSuccess]);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProduct, setSelectedProduct] = useState("all");
   const [selectedThreshold, setSelectedThreshold] = useState("all");
@@ -102,26 +104,27 @@ export default function InventoryPage() {
     }
   };
 
-  const filteredData = inventoryData.filter((item) => {
+  const filteredData = stocks.filter((item) => {
+    const product = products.find((p) => p.variants?.find(z=>z.productId === item.productVariantId) ?? undefined);
     const matchesSearch =
-      item.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesProduct =
+      product?.name.includes(searchTerm) ||
+      product?.variants?.some(x=>x.name.includes(searchTerm))
+    /* const matchesProduct =
       selectedProduct === "all" || item.product === selectedProduct;
     const matchesThreshold =
-      selectedThreshold === "all" || item.status === selectedThreshold;
+      selectedThreshold === "all" || item.status === selectedThreshold; */
 
-    let matchesDate = true;
+    /* let matchesDate = true;
     if (dateFrom && dateTo) {
       const itemDate = new Date(item.lastRestock);
       matchesDate = itemDate >= dateFrom && itemDate <= dateTo;
-    }
+    } */
 
-    return matchesSearch && matchesProduct && matchesThreshold && matchesDate;
+    return matchesSearch //&& matchesProduct //&& matchesThreshold && matchesDate;
   });
 
   return (
-    <main className="flex-1 overflow-auto p-4 space-y-6">
+    <PageLayout isLoading={getShops.isLoading || getStocks.isLoading || getProducts.isLoading} className="flex-1 overflow-auto p-4 space-y-6">
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
@@ -299,14 +302,13 @@ export default function InventoryPage() {
       <Card>
         <CardHeader>
           <CardTitle>{"Stock par produit"}</CardTitle>
-          <CardDescription>{`${filteredData.length} produit(s) affiché(s)`}</CardDescription>
+          <CardDescription>{`${stocks.length} produit(s) affiché(s)`}</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>{"Produit"}</TableHead>
-                <TableHead>{"Catégorie"}</TableHead>
                 <TableHead>{"Boutique"}</TableHead>
                 <TableHead>{"Stock actuel"}</TableHead>
                 <TableHead>{"Seuil min"}</TableHead>
@@ -316,19 +318,19 @@ export default function InventoryPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredData.map((item) => (
+              {stocks.map((item) => (
                 <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.product}</TableCell>
-                  <TableCell>{item.category}</TableCell>
-                  <TableCell>{item.store}</TableCell>
-                  <TableCell>{item.currentStock}</TableCell>
-                  <TableCell>{item.minThreshold}</TableCell>
+                  <TableCell className="font-medium">{`${products.find(x=>x.variants?.some(y=>y.id === item.productVariantId))?.name ?? "Non défini"} - ${item.productVariant && item.productVariant.name}`}</TableCell>
+                  <TableCell>{shops.find(x=>x.id === item.shopId)?.name ?? "Non défini"}</TableCell>
+                  <TableCell>{item.quantity}</TableCell>
+                  <TableCell>{`A définir`}</TableCell>
                   <TableCell>
-                    {format(new Date(item.lastRestock), "dd/MM/yyyy", {
+                    {/* {format(new Date(item.lastRestock), "dd/MM/yyyy", {
                       locale: fr,
-                    })}
+                    })} */}
+                     {"A définir"}
                   </TableCell>
-                  <TableCell>{getStatusBadge(item.status)}</TableCell>
+                  <TableCell>{"A définir"}</TableCell>
                   <TableCell>
                     <Button variant="outline" size="sm">
                       {"Réapprovisionner"}
@@ -340,6 +342,6 @@ export default function InventoryPage() {
           </Table>
         </CardContent>
       </Card>
-    </main>
+    </PageLayout>
   );
 }
