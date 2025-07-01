@@ -4,24 +4,14 @@ import PageLayout from "@/components/page-layout"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { XAF } from "@/lib/utils"
 import { useStore } from "@/providers/datastore"
 import ProductQuery from "@/queries/product"
 import ProductVariantQuery from "@/queries/productVariant"
-import { Product, ProductVariant } from "@/types/types"
+import { Product, ProductVariant, Shop } from "@/types/types"
 import { useQuery } from "@tanstack/react-query"
 import { Edit, Eye, Layers, Package, Palette, PlusCircle, Search, Trash2, Weight } from "lucide-react"
 import Link from "next/link"
@@ -29,12 +19,15 @@ import React from "react"
 import { useState } from "react"
 import ViewVariant from "./view"
 import DeleteVariant from "./delete"
+import EditVariant from "./edit"
+import ShopQuery from "@/queries/shop"
 
 
 export default function VariantsPage() {
 
   const actions = new ProductVariantQuery();
   const productQuery = new ProductQuery();
+  const shopQuery = new ShopQuery();
   const variantsData = useQuery({
     queryKey: ["variants"],
     queryFn: () => actions.getAll(),
@@ -45,9 +38,15 @@ export default function VariantsPage() {
     queryFn: () => productQuery.getAll(),
     refetchOnWindowFocus: false
   });
+  const shopData = useQuery({
+    queryKey: ["shops"],
+    queryFn: ()=> shopQuery.getAll(),
+    refetchOnWindowFocus: false
+  })
 
   const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [shops, setShops] = useState<Shop[]>([]);
 
   const {setLoading} = useStore();
 
@@ -59,7 +58,10 @@ export default function VariantsPage() {
     if(productsData.isSuccess){
       setProducts(productsData.data);
     }
-  },[variantsData.isSuccess, variantsData.data, variantsData.isLoading, setLoading, productsData.isSuccess, productsData.data])
+    if(shopData.isSuccess){
+      setShops(shopData.data)
+    }
+  },[variantsData.isSuccess, variantsData.data, variantsData.isLoading, setLoading, productsData.isSuccess, productsData.data, shopData.isSuccess, shopData.data, setShops])
 
   const [selectedVariant, setSelectedVariant] = useState(variants[0])
   const [searchTerm, setSearchTerm] = useState("")
@@ -70,13 +72,29 @@ export default function VariantsPage() {
   const [deleteDialog, setDeleteDialog] = useState(false);
   const [editDialog, setEditDialog] = useState(false);
 
-  const filteredVariants = variants.filter((variant) => {
+const filteredVariants = React.useMemo(() => {
+  const normalize = (str: string) =>
+    str
+      .toLocaleLowerCase()
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, ""); // Supprime les accents
+
+  const term = normalize(searchTerm);
+
+  return variants.filter((variant) => {
+    const product = products.find((p) => p.id === variant.productId);
+
     const matchesSearch =
-      //variant.product?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      variant.name.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesProduct = productFilter === "all" || variant.productId.toString() === productFilter
-    return matchesSearch && matchesProduct
-  })
+      normalize(variant.name).includes(term) ||
+      (product && normalize(product.name).includes(term));
+
+    const matchesProduct =
+      productFilter === "all" ||
+      variant.productId.toString() === productFilter;
+
+    return matchesSearch && matchesProduct;
+  });
+}, [variants, products, searchTerm, productFilter]);
 
   const handleEdit = (variant:ProductVariant) => {
     setActiveVariant(variant);
@@ -93,7 +111,7 @@ export default function VariantsPage() {
 
 
   return (
-    <PageLayout className="flex h-screen flex-col" isLoading={variantsData.isLoading || productsData.isLoading}>
+    <PageLayout className="flex flex-col" isLoading={variantsData.isLoading || productsData.isLoading}>
       <main className="flex-1 overflow-auto p-4 space-y-6">
         {/* Variant Stats */}
         <div className="grid gap-4 md:grid-cols-4">
@@ -137,7 +155,7 @@ export default function VariantsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {variants.reduce((sum, variant) => sum + variant.stock.quantity, 0)}
+                {variants.reduce((sum, variant) => sum + (Array.isArray(variant.stock) ? variant.stock.reduce((s, stock) => s + stock.quantity, 0) : 0), 0)}
               </div>
               <p className="text-xs text-muted-foreground">{"Unités en stock"}</p>
             </CardContent>
@@ -195,7 +213,7 @@ export default function VariantsPage() {
                 <div className="relative">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Rechercher par produit, variante ou SKU..."
+                    placeholder="Rechercher par produit ou variante"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-8"
@@ -221,8 +239,7 @@ export default function VariantsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{"Tous les produits"}</SelectItem>
-                  {Array.from(new Set(variants.map((v) => ({ id: v.productId, name: products.find(x=>x.id === v.productId)?.name || "Non défini"})))).map(
-                    (product) => (
+                  {products.filter(x=> variants.some(y=>y.productId === x.id)).map(product => (
                       <SelectItem key={product.id} value={product.id.toString()}>
                         {product.name}
                       </SelectItem>
@@ -293,6 +310,17 @@ export default function VariantsPage() {
                         {`${variant.weight} g`}
                       </TableCell>
                       <TableCell>
+                        <div className="space-y-1">
+                          { variant.stock.length>0 && <div className="text-xs">{"Total :"} <span className="font-bold">{variant.stock.reduce((s, stock) => s + stock.quantity, 0)}</span></div> }
+                          { variant.stock.map(x=>
+                            <div key={x.id} className="flex gap-2 text-xs">
+                              <span>{shops.find(y=>y.id === x.id)?.name || "Undefined"}</span>
+                              <span className="font-semibold">{x.quantity}</span>
+                            </div>
+                          ) }
+                        </div>
+                      </TableCell>
+                      <TableCell>
                         <Badge variant={variant.status ? "default" : "secondary"}>
                           {variant.status ? "Actif" : "Désactivé"}
                         </Badge>
@@ -316,7 +344,8 @@ export default function VariantsPage() {
           </CardContent>
         </Card>
       </main>
-      { activeVariant && <ViewVariant variant={activeVariant} products={products} isOpen={isDialogOpen} openChange={setIsDialogOpen}/>}
+      { activeVariant && <ViewVariant shops={shops} variant={activeVariant} products={products} isOpen={isDialogOpen} openChange={setIsDialogOpen}/>}
+      { activeVariant && <EditVariant variant={activeVariant} products={products} isOpen={editDialog} openChange={setEditDialog}/>}
       {activeVariant && <DeleteVariant variant={activeVariant} products={products} isOpen={deleteDialog} openChange={setDeleteDialog}/>}
     </PageLayout>
   )

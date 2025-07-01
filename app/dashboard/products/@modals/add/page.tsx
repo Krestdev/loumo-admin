@@ -88,7 +88,7 @@ export default function AddProductModal() {
         queryKey: ["categories"],
         refetchType: "active",
       });
-      router.push("/dashboard/products");
+      router.back();
     },
   });
 

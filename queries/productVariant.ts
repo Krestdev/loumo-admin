@@ -5,13 +5,18 @@ import { toast } from "react-toastify";
 export default class ProductVariantQuery {
   route = "/productvariants";
   create = async (
-    data: Omit<ProductVariant, "id"> & { productId: number }
-  ): Promise<ProductVariant> => {
-    return api.post(`${this.route}`, data).then((response) => {
-      toast.success(`Welcome back ${response.data.productVariant.name}`);
-      return response.data;
-    });
-  };
+  data: Omit<ProductVariant, "id" | "stock"> & { productId: number }
+): Promise<Omit<ProductVariant, "stock">> => {
+  const response = await api.post(`${this.route}`, data);
+  const variant = response.data;
+
+  console.log("👉 Response complète :", variant);
+
+  if (!variant) throw new Error("Missing variant in response");
+
+  toast.success(`Variante ${variant.name} créée avec succès`);
+  return variant;
+};
 
   getAll = async (): Promise<ProductVariant[]> => {
     return api.get(`${this.route}`).then((response) => {

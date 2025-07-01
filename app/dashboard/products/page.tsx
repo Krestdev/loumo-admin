@@ -41,10 +41,10 @@ import GroupEdit from "./groupEdit";
 export default function ProductsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const open = searchParams.get('open');
+  const open = searchParams.get("open");
   React.useEffect(() => {
-    if (open === 'add') {
-      router.replace('/dashboard/products/add');
+    if (open === "add") {
+      router.replace("/dashboard/products/add");
     }
   }, [open]);
 
@@ -184,11 +184,17 @@ export default function ProductsPage() {
               <div className="flex gap-2">
                 <Select defaultValue="edit">
                   <SelectTrigger className="w-fit">
-                    <SelectValue placeholder="Action"/>
+                    <SelectValue placeholder="Action" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="edit" onClick={()=>setBulkEditOpen(true)}>{`Édition groupée (${selectedProducts.length})`}</SelectItem>
-                    <SelectItem value="delete" onClick={()=>setBulkDeleteOpen(true)}>{`Suppression groupée (${selectedProducts.length})`}</SelectItem>
+                    <SelectItem
+                      value="edit"
+                      onClick={() => setBulkEditOpen(true)}
+                    >{`Édition groupée (${selectedProducts.length})`}</SelectItem>
+                    <SelectItem
+                      value="delete"
+                      onClick={() => setBulkDeleteOpen(true)}
+                    >{`Suppression groupée (${selectedProducts.length})`}</SelectItem>
                   </SelectContent>
                 </Select>
                 {/* <Button variant="outline" onClick={() => setBulkEditOpen(true)}>
@@ -201,8 +207,17 @@ export default function ProductsPage() {
                     </Button> */}
               </div>
             )}
-            <GroupEdit isOpen={bulkEditOpen} openChange={setBulkEditOpen} ids={selectedProducts} categories={categories} />
-            <GroupDelete isOpen={bulkDeleteOpen} openChange={setBulkDeleteOpen} ids={selectedProducts} />
+            <GroupEdit
+              isOpen={bulkEditOpen}
+              openChange={setBulkEditOpen}
+              ids={selectedProducts}
+              categories={categories}
+            />
+            <GroupDelete
+              isOpen={bulkDeleteOpen}
+              openChange={setBulkDeleteOpen}
+              ids={selectedProducts}
+            />
           </div>
         </CardContent>
       </Card>
@@ -276,7 +291,10 @@ export default function ProductsPage() {
                           ))}
                         </div>
                       )}
-                      {!product.variants || product.variants && product.variants.length === 0 && <p className="text-muted-foreground">{"Aucun"}</p>}
+                      {!product.variants ||
+                        (product.variants && product.variants.length === 0 && (
+                          <p className="text-muted-foreground">{"Aucun"}</p>
+                        ))}
                     </TableCell>
                     <TableCell>
                       <Badge
@@ -287,11 +305,9 @@ export default function ProductsPage() {
                     </TableCell>
                     <TableCell>
                       {formatRelative(
-                        subDays(new Date(product.updatedAt), 2),
-                        new Date(),
-                        {
-                          locale: fr,
-                        }
+                        new Date(product.updatedAt), // ✅ date réelle
+                        new Date(), // maintenant
+                        { locale: fr }
                       )}
                     </TableCell>
                     <TableCell>
@@ -332,7 +348,13 @@ export default function ProductsPage() {
         openChange={setIsAddDialogOpen}
         categories={categories}
       />
-      {editingProduct && <DeleteProduct product={editingProduct} isOpen={isDeleteDialogOpen} openChange={setIsDeleteDialogOpen} />}
+      {editingProduct && (
+        <DeleteProduct
+          product={editingProduct}
+          isOpen={isDeleteDialogOpen}
+          openChange={setIsDeleteDialogOpen}
+        />
+      )}
       {editingProduct && (
         <EditProduct
           product={editingProduct}

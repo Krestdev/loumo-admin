@@ -53,7 +53,17 @@ function EditProduct({product, categories, isOpen, openChange}:Props) {
             queryClient.invalidateQueries({queryKey: ["categories"], refetchType: "active"})
             openChange(false);
         },
-    })
+    });
+
+    React.useEffect(() => {
+  if (isOpen && product) {
+    form.reset({
+      name: product.name,
+            category: String(product.categoryId),
+            status: product.status
+    });
+  }
+}, [product, isOpen]); 
   return (
     <Dialog open={isOpen} onOpenChange={openChange}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">

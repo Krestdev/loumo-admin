@@ -7,10 +7,13 @@ export default class ProductQuery {
   create = async (
     data: Omit<Product, "id" | "createdAt" | "updatedAt"> & { categoryId: number }
   ): Promise<Product> => {
-    return api.post(`${this.route}`, data).then((response) => {
-      toast.success(`Produit ${response.data.product.name} créé avec succès`);
-      return response.data.product;
-    });
+    const response = await api.post(`${this.route}`, data);
+    const product = response.data;
+
+    console.log("👉 Response complète :", product);
+    if (!product) throw new Error("Missing product in response");
+    toast.success(`Variante ${product.name} créée avec succès`);
+    return product;
   };
 
   getAll = async (): Promise<Product[]> => {

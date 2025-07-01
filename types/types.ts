@@ -162,7 +162,7 @@ export type ProductVariant = {
   price: number;
   productId: number;
   product?: Product;
-  stock: Stock;
+  stock: Stock[];
 };
 
 export type Promotion = {
