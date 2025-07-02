@@ -1,13 +1,18 @@
 "use client";
 
 import { DialogTrigger } from "@/components/ui/dialog";
-
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -23,48 +28,69 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Search,
-  Filter,
-  Eye,
-  Download,
-  MapPin,
-  User,
-  Package,
-  CreditCard,
-} from "lucide-react";
-import { UserPlus, CheckCircle } from "lucide-react";
-import { Label } from "@/components/ui/label";
-import { Order } from "@/types/types";
 import OrderQuery from "@/queries/order";
+import { Order, Zone } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
-import Loading from "@/components/setup/loading";
+import {
+  CheckCircle,
+  CreditCard,
+  Download,
+  Eye,
+  Filter,
+  MapPin,
+  Package,
+  Search,
+  User,
+  UserPlus,
+} from "lucide-react";
+import React, { useState } from "react";
+import PageLayout from "@/components/page-layout";
+import { XAF } from "@/lib/utils";
+import ZoneQuery from "@/queries/zone";
+import { useStore } from "@/providers/datastore";
+import ViewOrder from "./view";
 
 export default function OrdersPage() {
   const ordersQuery = new OrderQuery();
+  const zoneQuery = new ZoneQuery();
   const orderData = useQuery({
     queryKey: ["orderData"],
     queryFn: ordersQuery.getAll,
+    refetchOnWindowFocus: false
   });
 
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const getZones = useQuery({
+    queryKey: ["zones"],
+    queryFn: () => zoneQuery.getAll(),
+    refetchOnWindowFocus: false
+  })
+
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [zones, setZones] = useState<Zone[]>([]);
+  const { setLoading } = useStore();
+
+  const [selectedOrder, setSelectedOrder] = useState<Order | undefined>();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
   const [amountFilter, setAmountFilter] = useState("all");
   const [zoneFilter, setZoneFilter] = useState("all");
   const [paymentFilter, setPaymentFilter] = useState("all");
+  const [viewDialog, setViewDialog] = useState(false);
 
   const [isAssignDriverOpen, setIsAssignDriverOpen] = useState(false);
   const [selectedOrderForAssign, setSelectedOrderForAssign] =
     useState<Order | null>(null);
+
+    React.useEffect(()=>{
+      setLoading(orderData.isLoading || getZones.isLoading);
+      if(orderData.isSuccess){
+        setOrders(orderData.data);
+      }
+      if(getZones.isSuccess){
+        setZones(getZones.data);
+      }
+    },[setLoading, setZones, setOrders, getZones.data, getZones.isLoading, getZones.isSuccess, orderData.data, orderData.isLoading, orderData.isSuccess])
 
   const availableDrivers = [
     {
@@ -83,9 +109,7 @@ export default function OrdersPage() {
     { id: 4, name: "Fatou Mbaye", zone: "Almadies", status: "Disponible" },
   ];
 
-  let filteredOrders: Order[];
-  if (orderData.isSuccess) {
-    filteredOrders = orderData.data.filter((order) => {
+    const filteredOrders = orders.filter((order) => {
       const matchesSearch =
         order.user?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.id === parseInt(searchTerm.toLowerCase());
@@ -93,44 +117,19 @@ export default function OrdersPage() {
         statusFilter === "all" || order.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
-    console.log(filteredOrders, orderData.data);
-  } else {
-    filteredOrders = [];
-  }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Livré":
-        return "default";
-      case "En livraison":
-        return "secondary";
-      case "En cours":
-        return "outline";
-      case "Préparation":
-        return "outline";
-      default:
-        return "destructive";
+    const handleView = (order:Order) =>{
+      setSelectedOrder(order);
+      setViewDialog(true);
     }
-  };
 
-  const getPaymentStatusColor = (status: string) => {
-    switch (status) {
-      case "Payé":
-        return "default";
-      case "En attente":
-        return "secondary";
-      default:
-        return "destructive";
-    }
-  };
 
   return (
-    <div className="flex h-screen flex-col">
-      <main className="flex-1 overflow-auto p-4 space-y-6">
+    <PageLayout isLoading={orderData.isLoading || getZones.isLoading} className="flex-1 overflow-auto p-4 space-y-6">
         {/* Filters */}
         <Card>
           <CardHeader>
-            <CardTitle>Filtres</CardTitle>
+            <CardTitle>{"Filtres"}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -223,11 +222,7 @@ export default function OrdersPage() {
         </Card>
 
         {/* Orders Table */}
-        {orderData.isLoading ? (
-          <Loading status={"loading"} />
-        ) : orderData.isError ? (
-          <Loading status={"failed"} />
-        ) : orderData.isSuccess ? (
+        { orderData.isSuccess && (
           <Card>
             <CardHeader>
               <CardTitle>Commandes ({filteredOrders.length})</CardTitle>
@@ -236,14 +231,14 @@ export default function OrdersPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Commande</TableHead>
-                    <TableHead>Client</TableHead>
-                    <TableHead>Zone</TableHead>
-                    <TableHead>Montant</TableHead>
-                    <TableHead>Poids</TableHead>
-                    <TableHead>Statut</TableHead>
-                    <TableHead>Paiement</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{"Ref"}</TableHead>
+                    <TableHead>{"Client"}</TableHead>
+                    <TableHead>{"Zone"}</TableHead>
+                    <TableHead>{"Montant"}</TableHead>
+                    <TableHead>{"Poids"}</TableHead>
+                    <TableHead>{"Statut"}</TableHead>
+                    <TableHead>{"Paiement"}</TableHead>
+                    <TableHead>{"Actions"}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -258,219 +253,41 @@ export default function OrdersPage() {
                           </p>
                         </div>
                       </TableCell>
-                      <TableCell>{order.address?.zone?.name}</TableCell>
-                      <TableCell>€{order.payment?.total.toFixed(2)}</TableCell>
-                      <TableCell>{order.weight}kg</TableCell>
+                      <TableCell>{order.address && 
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium">{zones.find(x=>x.id === order.address?.id)?.name}</span>
+                          <span className="text-xs text-muted-foreground">{order.address.street}</span>
+                        </div>
+                        }</TableCell>
+                      <TableCell className="font-semibold">{XAF.format(order.total)}</TableCell>
+                      <TableCell>{`${order.weight} kg`}</TableCell>
                       <TableCell>
-                        <Badge variant={getStatusColor(order.status)}>
+                        <Badge variant={order.status === "ACCEPTED" ? "default" : order.status === "REJECTED" ? "destructive" : order.status === "PENDING" ? "secondary" : order.status === "COMPLETED" ? "default" : "outline" }>
                           {order.status}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={getPaymentStatusColor(order.status)}>
-                          {order.status}
+                        <Badge variant={order.payment ? "outline" : "destructive"}>
+                          {order.payment ? "Payé" : "Non Payé"}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setSelectedOrder(order)}
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                              <DialogHeader>
-                                <DialogTitle>
-                                  Détails de la commande {selectedOrder?.id}
-                                </DialogTitle>
-                                <DialogDescription>
-                                  Informations complètes sur la commande
-                                </DialogDescription>
-                              </DialogHeader>
-
-                              <div className="grid gap-6 md:grid-cols-2">
-                                {/* Customer Info */}
-                                <Card>
-                                  <CardHeader>
-                                    <CardTitle className="flex items-center gap-2">
-                                      <User className="h-4 w-4" />
-                                      Informations client
-                                    </CardTitle>
-                                  </CardHeader>
-                                  <CardContent className="space-y-2">
-                                    <p>
-                                      <strong>Nom:</strong>{" "}
-                                      {selectedOrder?.user?.name}
-                                    </p>
-                                    <p>
-                                      <strong>Email:</strong>{" "}
-                                      {selectedOrder?.user.email}
-                                    </p>
-                                    <p>
-                                      <strong>Téléphone:</strong>{" "}
-                                      {selectedOrder?.user.tel}
-                                    </p>
-                                  </CardContent>
-                                </Card>
-
-                                {/* Delivery Info */}
-                                <Card>
-                                  <CardHeader>
-                                    <CardTitle className="flex items-center gap-2">
-                                      <MapPin className="h-4 w-4" />
-                                      Livraison
-                                    </CardTitle>
-                                  </CardHeader>
-                                  <CardContent className="space-y-2">
-                                    <p>
-                                      <strong>Zone:</strong>{" "}
-                                      {selectedOrder?.address?.zone?.name}
-                                    </p>
-                                    <p>
-                                      <strong>Adresse:</strong>{" "}
-                                      {selectedOrder?.address?.local}
-                                    </p>
-                                    {/* <p>
-                                    <strong>Date prévue:</strong> {selectedOrder?.deliveryDate}
-                                  </p> */}
-                                    {/* <p>
-                                    <strong>Frais de livraison:</strong> €{selectedOrder?.deliveryFee.toFixed(2)}
-                                  </p> */}
-                                  </CardContent>
-                                </Card>
-
-                                {/* Order Items */}
-                                <Card className="md:col-span-2">
-                                  <CardHeader>
-                                    <CardTitle className="flex items-center gap-2">
-                                      <Package className="h-4 w-4" />
-                                      Produits commandés
-                                    </CardTitle>
-                                  </CardHeader>
-                                  <CardContent>
-                                    <Table>
-                                      <TableHeader>
-                                        <TableRow>
-                                          <TableHead>Produit</TableHead>
-                                          <TableHead>Quantité</TableHead>
-                                          <TableHead>Prix unitaire</TableHead>
-                                          <TableHead>Total</TableHead>
-                                        </TableRow>
-                                      </TableHeader>
-                                      <TableBody>
-                                        {selectedOrder?.orderItems?.map(
-                                          (item, index) => (
-                                            <TableRow key={index}>
-                                              <TableCell>
-                                                {item.productVariant?.name}
-                                              </TableCell>
-                                              <TableCell>
-                                                {item.quantity}
-                                              </TableCell>
-                                              <TableCell>
-                                                €
-                                                {item.productVariant?.price.toFixed(
-                                                  2
-                                                )}
-                                              </TableCell>
-                                              <TableCell>
-                                                €
-                                                {(
-                                                  item.quantity *
-                                                  (item.productVariant
-                                                    ? item.productVariant.price
-                                                    : 1)
-                                                ).toFixed(2)}
-                                              </TableCell>
-                                            </TableRow>
-                                          )
-                                        )}
-                                      </TableBody>
-                                    </Table>
-                                    <div className="mt-4 space-y-2 border-t pt-4">
-                                      <div className="flex justify-between">
-                                        <span>Sous-total:</span>
-                                        <span>
-                                          € 25
-                                          {/* {(
-                                            selectedOrder?.total -
-                                            selectedOrder?.deliveryFee
-                                          ).toFixed(2)} */}
-                                        </span>
-                                      </div>
-                                      <div className="flex justify-between">
-                                        <span>Frais de livraison:</span>
-                                        <span>
-                                          €
-                                          {selectedOrder?.deliveryFee.toFixed(
-                                            2
-                                          )}
-                                        </span>
-                                      </div>
-                                      <div className="flex justify-between font-bold">
-                                        <span>Total:</span>
-                                        <span>
-                                          €{selectedOrder?.total.toFixed(2)}
-                                        </span>
-                                      </div>
-                                    </div>
-                                  </CardContent>
-                                </Card>
-
-                                {/* Payment Info */}
-                                <Card className="md:col-span-2">
-                                  <CardHeader>
-                                    <CardTitle className="flex items-center gap-2">
-                                      <CreditCard className="h-4 w-4" />
-                                      Informations de paiement
-                                    </CardTitle>
-                                  </CardHeader>
-                                  <CardContent className="flex justify-between items-center">
-                                    <div>
-                                      <p>
-                                        <strong>Statut:</strong>{" "}
-                                        {selectedOrder?.status}
-                                      </p>
-                                      <p>
-                                        <strong>Montant:</strong> €
-                                        {selectedOrder?.total.toFixed(2)}
-                                      </p>
-                                      <p>
-                                        <strong>Date de commande:</strong>{" "}
-                                        {new Date(
-                                          selectedOrder
-                                            ? selectedOrder.createdAt
-                                            : "now"
-                                        ).toLocaleDateString()}
-                                      </p>
-                                    </div>
-                                    <Button>
-                                      <Download className="mr-2 h-4 w-4" />
-                                      Télécharger facture
-                                    </Button>
-                                  </CardContent>
-                                </Card>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
-
+                          <Button variant={"outline"} size={"icon"} onClick={()=>{handleView(order)}}>
+                            <Eye size={16}/>
+                          </Button>
                           <Button
                             variant="outline"
-                            size="sm"
+                            size="icon"
                             onClick={() => {
                               setSelectedOrderForAssign(order);
                               setIsAssignDriverOpen(true);
                             }}
                           >
-                            <UserPlus className="h-4 w-4" />
+                            <UserPlus size={16} />
                           </Button>
 
-                          {order.status !== "Livré" && (
+                          {order.status !== "COMPLETED" && (
                             <Button
                               variant="outline"
                               size="sm"
@@ -490,10 +307,7 @@ export default function OrdersPage() {
               </Table>
             </CardContent>
           </Card>
-        ) : (
-          <Loading />
         )}
-      </main>
 
       {/* Dialog Assigner Livreur */}
       <Dialog open={isAssignDriverOpen} onOpenChange={setIsAssignDriverOpen}>
@@ -570,6 +384,7 @@ export default function OrdersPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+      { selectedOrder && <ViewOrder order={selectedOrder} openChange={setViewDialog} isOpen={viewDialog} zones={zones}/> }
+    </PageLayout>
   );
 }
