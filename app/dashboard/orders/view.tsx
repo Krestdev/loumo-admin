@@ -196,6 +196,9 @@ function ViewOrder({ order, isOpen, openChange, zones }: Props) {
             </CardContent>
           </Card>
         </div>
+        <div className="flex justify-end gap-2">
+            <Button variant={"outline"} onClick={()=>openChange(false)}>{"Fermer"}</Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
