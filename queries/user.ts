@@ -20,6 +20,13 @@ export default class UserQuery {
         return response.data;
       });
   };
+  getAllClients = async (): Promise<User[]> => {
+    return api
+      .get(`${this.route}/?roleD=true&addressD=true&logD=true&notifD=true&clients=true`)
+      .then((response) => {
+        return response.data;
+      });
+  };
   getOne = async (id: number): Promise<User> => {
     return api.get(`${this.route}/${id}`).then((response) => response.data);
   };
@@ -40,9 +47,9 @@ export default class UserQuery {
   };
   update = async (
     id: number,
-    data: Partial<{ email: string; password: string; name: string }>
+    data: Partial<Omit<User, "id" | "createdAt">>
   ): Promise<User> => {
-    return api.put(`${this.route}/${id}`).then((response) => response.data);
+    return api.put(`${this.route}/${id}`, data).then((response) => response.data);
   };
   delete = async (id: number) => {
     return api.delete(`${this.route}/${id}`).then((response) => response);

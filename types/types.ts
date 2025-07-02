@@ -99,7 +99,7 @@ export type Order = {
   user: User;
   userId: number;
   note: string;
-  status: string;
+  status: "FAILED"|"COMPLETED"|"PROCESSING"|"REJECTED"|"ACCEPTED"|"PENDING";
   weight: number;
   total: number;
   deliveryFee: number;
@@ -209,6 +209,7 @@ export type User = {
   verified: boolean;
   verificationOtp: string | null;
   verificationOtpExpires: Date | null;
+  fidelity: number;
   active: boolean;
   imageUrl: string | null;
   roleId: number | null;

@@ -135,7 +135,7 @@ export default function InventoryPage() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{"1,247"}</div>
+            <div className="text-2xl font-bold">{products.filter(x=>x.variants?.filter(y=>y.stock.length > 0)?? false).length}</div>
             <p className="text-xs text-muted-foreground">{"+12% ce mois"}</p>
           </CardContent>
         </Card>

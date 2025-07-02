@@ -313,7 +313,7 @@ const filteredVariants = React.useMemo(() => {
                           { variant.stock.length>0 && <div className="text-xs">{"Total :"} <span className="font-bold">{variant.stock.reduce((s, stock) => s + stock.quantity, 0)}</span></div> }
                           { variant.stock.map(x=>
                             <div key={x.id} className="flex gap-2 text-xs">
-                              <span>{shops.find(y=>y.id === x.id)?.name || "Undefined"}</span>
+                              <span>{shops.find(y=>y.id === x.id)?.name ?? "Undefined"}</span>
                               <span className="font-semibold">{x.quantity}</span>
                             </div>
                           ) }
