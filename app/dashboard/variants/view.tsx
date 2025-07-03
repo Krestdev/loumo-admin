@@ -32,7 +32,7 @@ function ViewVariant({ isOpen, openChange, variant, products, shops }: Props) {
         <div className="space-y-6">
           <div className="flex items-center gap-4">
             <img
-              src={variant.imgUrl ? variant.imgUrl : "/images/placeholder.svg"}
+              src={!variant.imgUrl ? "/images/placeholder.svg" : variant.imgUrl.includes("http") ? variant.imgUrl : `${process.env.NEXT_PUBLIC_API_BASE_URL}${variant.imgUrl}`}
               alt={variant.name}
               className="h-20 w-20 rounded-md object-cover"
             />
@@ -89,9 +89,9 @@ function ViewVariant({ isOpen, openChange, variant, products, shops }: Props) {
               </div>
             </div>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline">{"Dupliquer"}</Button>
-            <Button variant="outline">{"Gérer stock"}</Button>
+          <div className="flex gap-2 justify-end">
+            <Button>{"Gérer stock"}</Button>
+            <Button variant={"outline"} onClick={(e)=>{e.preventDefault(); openChange(false)}}>{"Annuler"}</Button>
           </div>
         </div>
       </DialogContent>

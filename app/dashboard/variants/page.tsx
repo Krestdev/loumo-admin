@@ -278,7 +278,7 @@ const filteredVariants = React.useMemo(() => {
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <img
-                            src={variant.imgUrl || "/images/placeholder.svg"}
+                            src={!variant.imgUrl ? "/images/placeholder.svg" : variant.imgUrl.includes("http") ? variant.imgUrl : `${process.env.NEXT_PUBLIC_API_BASE_URL}${variant.imgUrl}`}
                             alt={variant.name}
                             className="h-10 w-10 rounded-md object-cover"
                           />

@@ -1,11 +1,10 @@
 import api from "@/providers/axios";
 import { Agent } from "@/types/types";
-import { toast } from "react-toastify";
 
 export default class AgentQuery {
   route = "/agents";
   create = async (
-    data: Omit<Agent, "id"> & {
+    data: Omit<Agent, "id" | "code" | "zone"> & {
       userId: number;
     }
   ): Promise<Agent> => {

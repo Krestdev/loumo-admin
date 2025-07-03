@@ -47,10 +47,11 @@ export type Agent = {
   id: number;
   userId: number;
   code: string;
-  status: string;
+  status: "AVAILABLE"|"SUSPENDED"|"FULL"|"UNAVAILABLE"|"UNVERIFIED";
   user?: User;
   delivery?: Delivery[];
   zone: Zone;
+  zoneId: number;
 };
 
 export type Category = {
@@ -127,7 +128,7 @@ export type OrderItem = {
 export type Payment = {
   name: string;
   id: number;
-  status: string;
+  status: "FAILED"|"COMPLETED"|"PROCESSING"|"REJECTED"|"ACCEPTED"|"PENDING";
   orderId: number;
   order?: Order[];
   total: number;

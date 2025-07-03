@@ -21,7 +21,14 @@ import ProductVariantQuery from "@/queries/productVariant";
 import { Order, Zone } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { CreditCard, Download, MapPin, Package, User } from "lucide-react";
+import {
+  CheckCircle,
+  CreditCard,
+  Download,
+  MapPin,
+  Package,
+  User,
+} from "lucide-react";
 import React from "react";
 
 type Props = {
@@ -32,21 +39,21 @@ type Props = {
 };
 
 function ViewOrder({ order, isOpen, openChange, zones }: Props) {
-    const variantQuery = new ProductVariantQuery();
-    const getVariants = useQuery({
-        queryKey: ["variants"],
-        queryFn: () => variantQuery.getAll(),
-        refetchOnWindowFocus: false
-    })
+  const variantQuery = new ProductVariantQuery();
+  const getVariants = useQuery({
+    queryKey: ["variants"],
+    queryFn: () => variantQuery.getAll(),
+    refetchOnWindowFocus: false,
+  });
   return (
     <Dialog open={isOpen} onOpenChange={openChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {`Détails de la commande de - ${order.user.name}`}
+            {`Détails de la commande de ${order.user.name}`}
           </DialogTitle>
           <DialogDescription>
-            {`Du ${format(order.createdAt, "dd/mm - HH:mm")}`}
+            {`Du ${format(order.createdAt, "dd/MM - HH:mm")}`}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-6">
@@ -90,15 +97,11 @@ function ViewOrder({ order, isOpen, openChange, zones }: Props) {
                 <strong>{"Zone:"}</strong>{" "}
                 {zones.find((x) => x.id === order.address?.id)?.name}
               </p>
-              <p>
-                <strong>{"Adresse:"}</strong> {order.address?.street}
-              </p>
-              {/* <p>
-                                    <strong>Date prévue:</strong> {selectedOrder?.deliveryDate}
-                                  </p> */}
-              {/* <p>
-                                    <strong>Frais de livraison:</strong> €{selectedOrder?.deliveryFee.toFixed(2)}
-                                  </p> */}
+              {order.address && (
+                <p>
+                  <strong>{"Adresse:"}</strong> {order.address?.street}
+                </p>
+              )}
             </CardContent>
           </Card>
 
@@ -111,50 +114,50 @@ function ViewOrder({ order, isOpen, openChange, zones }: Props) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {
-                getVariants.isSuccess &&
+              {getVariants.isSuccess && (
                 <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{"Produit"}</TableHead>
-                    <TableHead>{"Quantité"}</TableHead>
-                    <TableHead>{"Prix unitaire"}</TableHead>
-                    <TableHead>{"Total"}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {order.orderItems ? (
-                    order.orderItems.map((item, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{`${getVariants.data.find(x=>x.id === item.productVariantId)?.name}`}</TableCell>
-                        <TableCell>{item.quantity}</TableCell>
-                        <TableCell>
-                          {
-                            XAF.format(getVariants.data.find(x=>x.id === item.productVariantId)?.price ?? 0)}
-                        </TableCell>
-                        <TableCell>
-                          {
-                            XAF.format(
-                              item.total
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{"Produit"}</TableHead>
+                      <TableHead>{"Quantité"}</TableHead>
+                      <TableHead>{"Prix unitaire"}</TableHead>
+                      <TableHead>{"Total"}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {order.orderItems ? (
+                      order.orderItems.map((item, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{`${
+                            getVariants.data.find(
+                              (x) => x.id === item.productVariantId
+                            )?.name
+                          }`}</TableCell>
+                          <TableCell>{item.quantity}</TableCell>
+                          <TableCell>
+                            {XAF.format(
+                              getVariants.data.find(
+                                (x) => x.id === item.productVariantId
+                              )?.price ?? 0
                             )}
+                          </TableCell>
+                          <TableCell>{XAF.format(item.total)}</TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={4}>
+                          {"Aucun produit à afficher"}
                         </TableCell>
                       </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={4}>
-                        {"Aucun produit à afficher"}
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>}
+                    )}
+                  </TableBody>
+                </Table>
+              )}
               <div className="mt-4 space-y-2 border-t pt-4">
                 <div className="flex justify-between">
                   <span>{"Sous-total:"}</span>
-                  <span>
-                    {XAF.format(order.total)}
-                  </span>
+                  <span>{XAF.format(order.total)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>{"Frais de livraison:"}</span>
@@ -178,9 +181,18 @@ function ViewOrder({ order, isOpen, openChange, zones }: Props) {
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
               <div>
-                <p>
-                  <strong>{"Statut :"}</strong> {order.status}
-                </p>
+                <div className="flex gap-2 items-center">
+                  <strong>{"Statut :"}</strong>
+                    {!order.payment
+                      ? <span className="text-destructive">{"Non Payé"}</span>
+                      : order.payment.status === "ACCEPTED"
+                      ? "Accepté"
+                      : order.payment.status === "PENDING"
+                      ? "En cours"
+                      : order.payment.status === "COMPLETED"
+                      ? <span className="inline-flex gap-1 items-center font-semibold">{"Payé"} <CheckCircle size={12} className="text-green-600" /></span>
+                      : <span className="text-destructive">{"Non Payé"}</span>}
+                </div>
                 <p>
                   <strong>{"Montant :"}</strong> {XAF.format(order.total)}
                 </p>
@@ -197,7 +209,9 @@ function ViewOrder({ order, isOpen, openChange, zones }: Props) {
           </Card>
         </div>
         <div className="flex justify-end gap-2">
-            <Button variant={"outline"} onClick={()=>openChange(false)}>{"Fermer"}</Button>
+          <Button variant={"outline"} onClick={() => openChange(false)}>
+            {"Fermer"}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

@@ -15,7 +15,8 @@ import {
     Tag,
     Truck,
     Users,
-    Warehouse
+    Warehouse,
+    Bike
 } from "lucide-react";
 
 export const sidebarContent: sidebarItemGroup[] = [
@@ -110,6 +111,14 @@ export const sidebarContent: sidebarItemGroup[] = [
         description: "Gérez vos clients et leurs informations",
         url: "/dashboard/clients",
         icon: Users,
+        display: true
+      },
+      {
+        title: "Livreurs",
+        header: "Gestion des Livreurs",
+        description: "Gérez votre équipe de livreurs",
+        url: "/dashboard/drivers",
+        icon: Bike,
         display: true
       },
       {

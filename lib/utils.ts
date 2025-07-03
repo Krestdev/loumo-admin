@@ -1,3 +1,4 @@
+import { Order, Payment } from "@/types/types";
 import { clsx, type ClassValue } from "clsx"
 import { isAfter, subDays } from "date-fns";
 import { twMerge } from "tailwind-merge"
@@ -37,3 +38,18 @@ export function findLatestByDate<T>(
     return currentDate > latestDate ? current : latest;
   });
 }
+
+export const statusMap: Record<string, Order["status"][]> = {
+    "En cours": ["PENDING", "ACCEPTED"],
+    Préparation: ["PROCESSING"],
+    "En livraison": ["ACCEPTED"], // si tu différencies
+    Livré: ["COMPLETED"],
+    Annulé: ["REJECTED", "FAILED"],
+  };
+
+export const paymentStatusMap: Record<string, Payment["status"][]> = {
+    Payé: ["COMPLETED", "ACCEPTED"],
+    "En attente": ["PENDING", "PROCESSING"],
+    Échoué: ["FAILED"],
+    Rejeté: ["REJECTED"],
+  };

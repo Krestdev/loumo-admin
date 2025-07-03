@@ -39,7 +39,7 @@ export default class UserQuery {
       .then((response) => response.data);
   };
   register = async (
-    data: Omit<User, "id"> & {
+    data: Partial<User> & {
       addressList?: number[];
     }
   ): Promise<User> => {
