@@ -412,7 +412,7 @@ export default function ClientsPage() {
                           {"Voir"}
                         </Button>
                         <Button
-                          variant={client.active ? "destructive" : "default"}
+                          variant={client.active ? "delete" : "default"}
                           onClick={() => handleBan(client)}
                         >
                           {client.active ? "Bannir" : "Débannir"}
@@ -425,12 +425,12 @@ export default function ClientsPage() {
                 <TableRow>
                   <TableCell
                     colSpan={8}
-                    className="text-center text-gray-500 space-y-2 pt-5 sm:text-lg xl:text-xl"
+                    className="text-center text-gray-500 space-y-2 py-5 sm:text-lg xl:text-xl"
                   >
                     {"Aucun client trouvé"}
                     <img
-                      src={"/images/no-client.svg"}
-                      className="w-1/3 max-w-60 h-auto mx-auto opacity-20"
+                      src={"/images/search.png"}
+                      className="w-1/3 max-w-32 h-auto mx-auto mt-5 opacity-20"
                     />
                   </TableCell>
                 </TableRow>

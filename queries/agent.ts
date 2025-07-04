@@ -25,9 +25,9 @@ export default class AgentQuery {
 
   update = async (
     id: number,
-    data: Omit<Agent, "id"> & {
+    data: Partial<Omit<Agent, "id">>/*  & {
       userId: number;
-    }
+    } */
   ): Promise<Agent> => {
     return api
       .put(`${this.route}/${id}`, data)

@@ -1,4 +1,5 @@
 "use client";
+import { OrderInvoice } from "@/components/orderPDFTemplate";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -18,13 +19,14 @@ import {
 } from "@/components/ui/table";
 import { XAF } from "@/lib/utils";
 import ProductVariantQuery from "@/queries/productVariant";
-import { Order, Zone } from "@/types/types";
+import { Order, ProductVariant, Zone } from "@/types/types";
+import { PDFDownloadLink } from "@react-pdf/renderer";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import {
   CheckCircle,
   CreditCard,
-  Download,
+  Loader2,
   MapPin,
   Package,
   User,
@@ -45,6 +47,14 @@ function ViewOrder({ order, isOpen, openChange, zones }: Props) {
     queryFn: () => variantQuery.getAll(),
     refetchOnWindowFocus: false,
   });
+  const [variants, setVariants] = React.useState<ProductVariant[]>([]);
+
+  React.useEffect(() => {
+    if (getVariants.isSuccess) {
+      setVariants(getVariants.data);
+    }
+  }, [setVariants, getVariants.isSuccess, getVariants.data]);
+
   return (
     <Dialog open={isOpen} onOpenChange={openChange}>
       <DialogContent>
@@ -106,15 +116,15 @@ function ViewOrder({ order, isOpen, openChange, zones }: Props) {
           </Card>
 
           {/* Order Items */}
-          <Card className="md:col-span-2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Package className="h-4 w-4" />
-                {"Produits commandés"}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {getVariants.isSuccess && (
+          {getVariants.isSuccess ? (
+            <Card className="md:col-span-2">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-4 w-4" />
+                  {"Produits commandés"}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -129,14 +139,13 @@ function ViewOrder({ order, isOpen, openChange, zones }: Props) {
                       order.orderItems.map((item, index) => (
                         <TableRow key={index}>
                           <TableCell>{`${
-                            getVariants.data.find(
-                              (x) => x.id === item.productVariantId
-                            )?.name
+                            variants.find((x) => x.id === item.productVariantId)
+                              ?.name
                           }`}</TableCell>
                           <TableCell>{item.quantity}</TableCell>
                           <TableCell>
                             {XAF.format(
-                              getVariants.data.find(
+                              variants.find(
                                 (x) => x.id === item.productVariantId
                               )?.price ?? 0
                             )}
@@ -153,23 +162,29 @@ function ViewOrder({ order, isOpen, openChange, zones }: Props) {
                     )}
                   </TableBody>
                 </Table>
-              )}
-              <div className="mt-4 space-y-2 border-t pt-4">
-                <div className="flex justify-between">
-                  <span>{"Sous-total:"}</span>
-                  <span>{XAF.format(order.total)}</span>
+                <div className="mt-4 space-y-2 border-t pt-4">
+                  <div className="flex justify-between">
+                    <span>{"Sous-total:"}</span>
+                    <span>{XAF.format(order.total)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>{"Frais de livraison:"}</span>
+                    <span>{XAF.format(order.deliveryFee)}</span>
+                  </div>
+                  <div className="flex justify-between font-bold">
+                    <span>{"Total:"}</span>
+                    <span>{XAF.format(order.total)}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span>{"Frais de livraison:"}</span>
-                  <span>{XAF.format(order.deliveryFee)}</span>
-                </div>
-                <div className="flex justify-between font-bold">
-                  <span>{"Total:"}</span>
-                  <span>{XAF.format(order.total)}</span>
-                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            getVariants.isLoading && (
+              <div className="w-full h-12 flex items-center justify-center">
+                <Loader2 size={20} className="animate-spin text-green-600" />
               </div>
-            </CardContent>
-          </Card>
+            )
+          )}
 
           {/* Payment Info */}
           <Card className="md:col-span-2">
@@ -183,15 +198,20 @@ function ViewOrder({ order, isOpen, openChange, zones }: Props) {
               <div>
                 <div className="flex gap-2 items-center">
                   <strong>{"Statut :"}</strong>
-                    {!order.payment
-                      ? <span className="text-destructive">{"Non Payé"}</span>
-                      : order.payment.status === "ACCEPTED"
-                      ? "Accepté"
-                      : order.payment.status === "PENDING"
-                      ? "En cours"
-                      : order.payment.status === "COMPLETED"
-                      ? <span className="inline-flex gap-1 items-center font-semibold">{"Payé"} <CheckCircle size={12} className="text-green-600" /></span>
-                      : <span className="text-destructive">{"Non Payé"}</span>}
+                  {!order.payment ? (
+                    <span className="text-destructive">{"Non Payé"}</span>
+                  ) : order.payment.status === "ACCEPTED" ? (
+                    "Accepté"
+                  ) : order.payment.status === "PENDING" ? (
+                    "En cours"
+                  ) : order.payment.status === "COMPLETED" ? (
+                    <span className="inline-flex gap-1 items-center font-semibold">
+                      {"Payé"}{" "}
+                      <CheckCircle size={12} className="text-green-600" />
+                    </span>
+                  ) : (
+                    <span className="text-destructive">{"Non Payé"}</span>
+                  )}
                 </div>
                 <p>
                   <strong>{"Montant :"}</strong> {XAF.format(order.total)}
@@ -201,10 +221,25 @@ function ViewOrder({ order, isOpen, openChange, zones }: Props) {
                   {format(order.createdAt, "dd/MM/yyyy - HH:mm")}
                 </p>
               </div>
-              <Button>
-                <Download className="mr-2 h-4 w-4" />
-                {"Télécharger facture"}
-              </Button>
+              {getVariants.isSuccess && (
+                <PDFDownloadLink
+                  document={
+                    <OrderInvoice
+                      order={order}
+                      variants={variants}
+                      zones={zones}
+                      logoUrl="/logo.png"
+                    />
+                  }
+                  fileName={`facture-loumo-${order.id}.pdf`}
+                >
+                  {({ loading }) => (
+                    <Button>
+                      {loading ? "Génération..." : "Télécharger la facture"}
+                    </Button>
+                  )}
+                </PDFDownloadLink>
+              )}
             </CardContent>
           </Card>
         </div>

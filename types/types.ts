@@ -64,7 +64,7 @@ export type Category = {
 
 export type Delivery = {
   id: number;
-  status: string;
+  status: "NOTSTARTED"|"STARTED"|"COMPLETED"|"CANCELED";
   trackingCode: string;
   priority: string;
   agentId: number | null;

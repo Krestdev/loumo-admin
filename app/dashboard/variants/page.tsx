@@ -326,12 +326,12 @@ const filteredVariants = React.useMemo(() => {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button variant={"outline"} size={"icon"} onClick={()=>handleView(variant)}><Eye size={16}/></Button>
+                          <Button variant={"info"} size={"icon"} onClick={()=>handleView(variant)}><Eye size={16}/></Button>
                           <Button variant="outline" size="icon" onClick={() =>handleEdit(variant)}>
-                            <Edit className="h-4 w-4" />
+                            <Edit size={16} />
                           </Button>
-                          <Button variant="outline" size="icon" onClick={()=>handleDelete(variant)}>
-                            <Trash2 className="h-4 w-4" />
+                          <Button variant="delete" size="icon" onClick={()=>handleDelete(variant)}>
+                            <Trash2 size={16} />
                           </Button>
                         </div>
                       </TableCell>

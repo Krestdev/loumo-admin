@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import React from "react";
 import AddDriver from "./add";
+import EditDriver from "./edit";
+import DeleteDriver from "./delete";
 
 function Page() {
   const agentQuery = new AgentQuery();
@@ -49,6 +51,9 @@ function Page() {
   const [deliveries, setDeliveries] = React.useState<Delivery[]>([]);
   const [users, setUsers] = React.useState<User[]>([]);
   const [addDialog, setAddDialog] = React.useState(false);
+  const [selected, setSelected] = React.useState<Agent>();
+  const [editDialog, setEditDialog] = React.useState(false);
+  const [deleteDialog, setDeleteDialog] = React.useState(false);
   const { setLoading } = useStore();
 
   React.useEffect(() => {
@@ -77,6 +82,15 @@ function Page() {
     setDeliveries,
   ]);
 
+  const handleEdit = (agent: Agent) => {
+    setSelected(agent);
+    setEditDialog(true);
+  }
+  const handleDelete = (agent: Agent) => {
+    setSelected(agent);
+    setDeleteDialog(true);
+  }
+
   return (
     <PageLayout
       className="flex-1 overflow-auto p-4 space-y-6"
@@ -87,7 +101,7 @@ function Page() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">En cours</CardTitle>
+            <CardTitle className="text-sm font-medium">{"En cours"}</CardTitle>
             <Truck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -98,59 +112,59 @@ function Page() {
                 ).length
               }
             </div>
-            <p className="text-xs text-muted-foreground">Livraisons actives</p>
+            <p className="text-xs text-muted-foreground">{"Livraisons actives"}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Livrées aujourd'hui
+              {"Livrées aujourd'hui"}
             </CardTitle>
             <Package className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">47</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-bold">{deliveries.filter(x=>x.status==="COMPLETED" && !!x.deliveredTime).length}</div>
+            {/* <p className="text-xs text-muted-foreground">
               <span className="text-green-600">+8</span> vs hier
-            </p>
+            </p> */}
           </CardContent>
         </Card>
 
-        <Card>
+{/*         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Temps moyen</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">42min</div>
-            <p className="text-xs text-muted-foreground">Temps de livraison</p>
+            <p className="text-xs text-muted-foreground">{"Temps de livraison"}</p>
           </CardContent>
-        </Card>
+        </Card> */}
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Livreurs actifs
+              {"Livreurs actifs"}
             </CardTitle>
             <UserIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {
-                agents.filter((x) => x.status.toLowerCase().includes("active"))
+                agents.filter((x) => x.status !== "SUSPENDED")
                   .length
               }
             </div>
             <p className="text-xs text-muted-foreground">
-              Sur {agents.length} disponibles
+              {`Sur ${agents.filter(x=>x.status === "AVAILABLE").length} disponible(s)`}
             </p>
           </CardContent>
         </Card>
       </div>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Équipe de livraison</CardTitle>
+          <CardTitle>{"Équipe de livraison"}</CardTitle>
           <Button onClick={() =>setAddDialog(true)}>
             <Plus size={16} />
             {"Ajouter un livreur"}
@@ -193,11 +207,11 @@ function Page() {
                         )}
                     </div>
                     <div className="flex gap-1">
-                      <Button variant="outline" size="sm" onClick={() => {}}>
-                        <Edit className="h-3 w-3" />
+                      <Button variant="outline" size={"icon"} onClick={()=>handleEdit(driver)}>
+                        <Edit size={16} />
                       </Button>
-                      <Button variant="outline" size="sm">
-                        <Trash2 className="h-3 w-3" />
+                      <Button variant="delete" size={"icon"} onClick={()=>handleDelete(driver)}>
+                        <Trash2 size={16}/>
                       </Button>
                     </div>
                   </div>
@@ -215,12 +229,12 @@ function Page() {
                       </Badge>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span>En cours:</span>
-                      <span>{driver.delivery?.filter(z=>!!z.deliveredTime).length ?? 0} livraisons</span>
+                      <span>{"En cours:"}</span>
+                      <span>{`${driver.delivery?.filter(z=>!!z.deliveredTime).length ?? 0} livraisons`}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span>Aujourd'hui:</span>
-                      <span>{"driver.todayDeliveries"} livrées</span>
+                      <span>{"Aujourd'hui:"}</span>
+                      <span>{`${"driver.todayDeliveries"} livrées`}</span>
                     </div>
                     {/* <div className="flex justify-between text-sm">
                       <span>Note:</span>
@@ -229,13 +243,13 @@ function Page() {
                   </div>
                   <div className="flex gap-2 mt-3">
                     <a href={users.find(x=>x.id === driver.userId)?.tel ? `tel:${users.find(x=>x.id === driver.userId)?.tel}` : "#"}>
-                      <Button variant="outline" size="sm" className="flex-1" disabled={!!users.find(x=>x.id === driver.userId)?.tel}>
-                        <Phone className="mr-1 h-3 w-3" />
+                      <Button variant="outline" className="flex-1" disabled={!users.find(x=>x.id === driver.userId)?.tel}>
+                        <Phone size={16} />
                         {"Appeler"}
                       </Button>
                     </a>
-                    <Button variant="outline" size="sm" className="flex-1">
-                      Assigner
+                    <Button variant='default' className="flex-1">
+                      {"Assigner"}
                     </Button>
                   </div>
                 </CardContent>
@@ -245,6 +259,8 @@ function Page() {
         </CardContent>
       </Card>
       <AddDriver openChange={setAddDialog} isOpen={addDialog}/>
+      {selected && <EditDriver isOpen={editDialog} openChange={setEditDialog} agent={selected}/>}
+      {selected && <DeleteDriver isOpen={deleteDialog} openChange={setDeleteDialog} agent={selected}/>}
     </PageLayout>
   );
 }

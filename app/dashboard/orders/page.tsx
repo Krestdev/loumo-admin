@@ -50,6 +50,7 @@ import { paymentStatusMap, statusMap, XAF } from "@/lib/utils";
 import ZoneQuery from "@/queries/zone";
 import { useStore } from "@/providers/datastore";
 import ViewOrder from "./view";
+import AssignDriver from "./assign";
 
 export default function OrdersPage() {
   const ordersQuery = new OrderQuery();
@@ -79,7 +80,7 @@ export default function OrdersPage() {
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [viewDialog, setViewDialog] = useState(false);
 
-  const [isAssignDriverOpen, setIsAssignDriverOpen] = useState(false);
+  const [assignDriverDialog, setAssignDriverDialog] = useState(false);
   const [selectedOrderForAssign, setSelectedOrderForAssign] =
     useState<Order | null>(null);
 
@@ -205,6 +206,11 @@ export default function OrdersPage() {
     setSelectedOrder(order);
     setViewDialog(true);
   };
+
+  const handleAssign = (order: Order) => {
+    setSelectedOrder(order);
+    setAssignDriverDialog(true);
+  }
 
   return (
     <PageLayout
@@ -405,7 +411,7 @@ export default function OrdersPage() {
                     <TableCell>
                       <div className="flex gap-2">
                         <Button
-                          variant={"outline"}
+                          variant={"info"}
                           onClick={() => {
                             handleView(order);
                           }}
@@ -414,17 +420,14 @@ export default function OrdersPage() {
                         </Button>
                         <Button
                           variant="outline"
-                          onClick={() => {
-                            setSelectedOrderForAssign(order);
-                            setIsAssignDriverOpen(true);
-                          }}
+                          onClick={() => {handleAssign(order)}}
                         >
                           {"Assigner"}
                         </Button>
 
                         {order.status !== "COMPLETED" && (
                           <Button
-                            variant="default"
+                            variant="success"
                             size="default"
                             onClick={() => {
                               // Marquer comme livré
@@ -443,82 +446,6 @@ export default function OrdersPage() {
           </CardContent>
         </Card>
       )}
-
-      {/* Dialog Assigner Livreur */}
-      <Dialog open={isAssignDriverOpen} onOpenChange={setIsAssignDriverOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Assigner un livreur</DialogTitle>
-            <DialogDescription>
-              Sélectionnez un livreur pour la commande{" "}
-              {selectedOrderForAssign?.id}
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedOrderForAssign && (
-            <div className="space-y-4">
-              <div className="p-3 bg-muted rounded-lg">
-                <p className="font-medium">Détails de la commande</p>
-                <p className="text-sm text-muted-foreground">
-                  Client: {selectedOrderForAssign.user?.name}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Zone: {selectedOrderForAssign.address?.zone?.name}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Poids: {selectedOrderForAssign.weight}kg
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Livreurs disponibles</Label>
-                <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {availableDrivers
-                    .filter(
-                      (driver) =>
-                        driver.zone ===
-                          selectedOrderForAssign.address?.zone?.name ||
-                        driver.status === "Disponible"
-                    )
-                    .map((driver) => (
-                      <div
-                        key={driver.id}
-                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted cursor-pointer"
-                        onClick={() => {
-                          console.log(
-                            "Assigner livreur:",
-                            driver.name,
-                            "à commande:",
-                            selectedOrderForAssign.id
-                          );
-                          setIsAssignDriverOpen(false);
-                        }}
-                      >
-                        <div>
-                          <p className="font-medium">{driver.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {driver.zone}
-                          </p>
-                        </div>
-                        <Badge variant="outline">{driver.status}</Badge>
-                      </div>
-                    ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="flex gap-2 mt-6">
-            <Button
-              variant="outline"
-              onClick={() => setIsAssignDriverOpen(false)}
-              className="flex-1"
-            >
-              Annuler
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
       {selectedOrder && (
         <ViewOrder
           order={selectedOrder}
@@ -526,6 +453,9 @@ export default function OrdersPage() {
           isOpen={viewDialog}
           zones={zones}
         />
+      )}
+      {selectedOrder && getZones.isSuccess && (
+        <AssignDriver openChange={setAssignDriverDialog} isOpen={assignDriverDialog} order={selectedOrder} zones={zones}/>
       )}
     </PageLayout>
   );

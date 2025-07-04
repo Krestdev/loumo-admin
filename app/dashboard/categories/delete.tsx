@@ -31,7 +31,7 @@ function DeleteCategory({category, isOpen, openChange}:Props) {
                 <DialogDescription>{"Êtes-vous sûr de vouloir supprimer cette catégorie ?"}</DialogDescription>
             </DialogHeader>
             <div className='flex justify-end gap-2'>
-                <Button variant={"destructive"} onClick={()=>{deleteCategory.mutate(category.id)}} disabled={deleteCategory.isPending}>{ deleteCategory.isPending ? <Loader size={16}/> : <Trash2 size={16}/>} {"Supprimer"}</Button>
+                <Button variant={"destructive"} onClick={()=>{deleteCategory.mutate(category.id)}} disabled={deleteCategory.isPending}>{ deleteCategory.isPending ? <Loader size={16} className='animate-spin'/> : <Trash2 size={16}/>} {"Supprimer"}</Button>
                 <Button variant={"outline"} onClick={()=>openChange(false)}>{"Annuler"}</Button>
             </div>
         </DialogContent>

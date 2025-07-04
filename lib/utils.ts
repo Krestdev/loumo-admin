@@ -11,7 +11,14 @@ export const XAF = new Intl.NumberFormat('fr-FR',{
     style: "currency",
     currency: "XAF"
   });
-
+export function formatXAF(value?: number): string {
+  return typeof value === "number"
+    ? `${value.toLocaleString("fr-FR", {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      })} FCFA`
+    : "- FCFA";
+}
 
 export function filterByDate<T extends { createdAt?: Date | string }>(
   items: T[],

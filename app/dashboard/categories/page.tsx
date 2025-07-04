@@ -1,9 +1,15 @@
-"use client"
+"use client";
 
-import PageLayout from "@/components/page-layout"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import PageLayout from "@/components/page-layout";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -11,23 +17,36 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Textarea } from "@/components/ui/textarea"
-import { useStore } from "@/providers/datastore"
-import CategoryQuery from "@/queries/category"
-import { Category } from "@/types/types"
-import { useQuery } from "@tanstack/react-query"
-import { Edit, Eye, PlusCircle, Search, Tag, Trash2 } from "lucide-react"
-import React from "react"
-import { useState } from "react"
-import DeleteCategory from "./delete"
-import EditCategory from "./edit"
-import AddCategory from "./add"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
+import { useStore } from "@/providers/datastore";
+import CategoryQuery from "@/queries/category";
+import { Category } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
+import { Edit, Eye, PlusCircle, Search, Tag, Trash2 } from "lucide-react";
+import React from "react";
+import { useState } from "react";
+import DeleteCategory from "./delete";
+import EditCategory from "./edit";
+import AddCategory from "./add";
 
 const categoriesData = [
   {
@@ -80,170 +99,245 @@ const categoriesData = [
     parentId: 1,
     createdAt: "2024-01-19",
   },
-]
+];
 
 export default function CategoriesPage() {
-
   const { setLoading } = useStore();
   const categoryQuery = new CategoryQuery();
   const getCategories = useQuery({
     queryKey: ["categories"],
     queryFn: () => categoryQuery.getAll(),
-    refetchOnWindowFocus: false
-  })
+    refetchOnWindowFocus: false,
+  });
 
   const [categories, setCategories] = useState<Category[]>([]);
 
-  React.useEffect(()=>{
+  React.useEffect(() => {
     setLoading(getCategories.isLoading);
-    if(getCategories.isSuccess){
-      setCategories(getCategories.data)
+    if (getCategories.isSuccess) {
+      setCategories(getCategories.data);
     }
-  }, [getCategories.data, getCategories.isSuccess, getCategories.isLoading, setLoading])
+  }, [
+    getCategories.data,
+    getCategories.isSuccess,
+    getCategories.isLoading,
+    setLoading,
+  ]);
 
-  const [searchTerm, setSearchTerm] = useState("")
+  const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState(false);
   const [editDialog, setEditDialog] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<Category | undefined>();
+  const [selectedCategory, setSelectedCategory] = useState<
+    Category | undefined
+  >();
 
   const filteredCategories = categories.filter((category) => {
-    const matchesSearch =
-      category.name.toLowerCase().includes(searchTerm.toLowerCase()) //||
-      //category.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch = category.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase()); //||
+    //category.description?.toLowerCase().includes(searchTerm.toLowerCase())
 
-
-    return matchesSearch
-  })
+    return matchesSearch;
+  });
 
   const handleEdit = (category: Category) => {
-    setSelectedCategory(category)
-    setEditDialog(true)
-  }
+    setSelectedCategory(category);
+    setEditDialog(true);
+  };
 
-  const handleDelete = (category:Category) => {
-    setSelectedCategory(category)
-    setDeleteDialog(true)
-  }
+  const handleDelete = (category: Category) => {
+    setSelectedCategory(category);
+    setDeleteDialog(true);
+  };
 
   return (
-      <PageLayout isLoading={getCategories.isLoading} className="flex-1 overflow-auto p-4 space-y-6">
-        {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{"Total Catégories"}</CardTitle>
-              <Tag className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{categories.length}</div>
-              {/* <p className="text-xs text-muted-foreground">+2 ce mois</p> */}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{"Catégories Actives"}</CardTitle>
-              <Eye className="h-4 w-4 text-green-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{categories.filter((c) => c.status).length}</div>
-              <p className="text-xs text-muted-foreground">{"Visibles sur le site"}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{"Total Produits"}</CardTitle>
-              <Tag className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{categories.reduce((sum, cat) => sum + (cat.products?.length ?? 0), 0)}</div>
-              <p className="text-xs text-muted-foreground">{"Dans toutes les catégories"}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Affichées sur l'accueil</CardTitle>
-              <Tag className="h-4 w-4 text-blue-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
-                {categoriesData.filter((c) => c.showOnHomepage).length}
-              </div>
-              <p className="text-xs text-muted-foreground">Visibles sur la page d'accueil</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Search */}
+    <PageLayout
+      isLoading={getCategories.isLoading}
+      className="flex-1 overflow-auto p-4 space-y-6"
+    >
+      {/* Stats Cards */}
+      <div className="grid gap-4 md:grid-cols-4">
         <Card>
-          <CardHeader>
-                    <CardTitle>{"Filtres et actions"}</CardTitle>
-                  </CardHeader>
-          <CardContent>
-            <div className="flex sm:items-center gap-2 flex-col sm:flex-row">
-              <div className="relative w-full">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Rechercher une catégorie"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8"
-                />
-              </div>
-                <Button onClick={()=>setIsDialogOpen(true)}><PlusCircle size={16} className="mr-2"/> {"Ajouter"}</Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Categories Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{"Liste des catégories"}</CardTitle>
-            <CardDescription>{filteredCategories.length} {"catégorie(s) affichée(s)"}</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              {"Total Catégories"}
+            </CardTitle>
+            <Tag className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
+            <div className="text-2xl font-bold">{categories.length}</div>
+            {/* <p className="text-xs text-muted-foreground">+2 ce mois</p> */}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              {"Catégories Actives"}
+            </CardTitle>
+            <Eye className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {categories.filter((c) => c.status).length}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {"Visibles sur le site"}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              {"Total Produits"}
+            </CardTitle>
+            <Tag className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {categories.reduce(
+                (sum, cat) => sum + (cat.products?.length ?? 0),
+                0
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {"Dans toutes les catégories"}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Affichées sur l'accueil
+            </CardTitle>
+            <Tag className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">
+              {categoriesData.filter((c) => c.showOnHomepage).length}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Visibles sur la page d'accueil
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Search */}
+      <Card>
+        <CardHeader>
+          <CardTitle>{"Filtres et actions"}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex sm:items-center gap-2 flex-col sm:flex-row">
+            <div className="relative w-full">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Rechercher une catégorie"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+            <Button onClick={() => setIsDialogOpen(true)}>
+              <PlusCircle size={16} className="mr-2" /> {"Ajouter"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Categories Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>{"Liste des catégories"}</CardTitle>
+          <CardDescription>
+            {filteredCategories.length} {"catégorie(s) affichée(s)"}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{"Nom"}</TableHead>
+                <TableHead>{"Produits"}</TableHead>
+                <TableHead>{"Statut"}</TableHead>
+                <TableHead>{"Actions"}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredCategories.length === 0 ? (
                 <TableRow>
-                  <TableHead>{"Nom"}</TableHead>
-                  <TableHead>{"Produits"}</TableHead>
-                  <TableHead>{"Statut"}</TableHead>
-                  <TableHead>{"Actions"}</TableHead>
+                  <TableCell
+                    colSpan={8}
+                    className="text-center text-gray-500 py-5 sm:text-lg xl:text-xl"
+                  >
+                    {"Aucune catégorie trouvée"}
+                    <img
+                      src={"/images/search.png"}
+                      className="w-1/3 max-w-32 h-auto mx-auto mt-5 opacity-20"
+                    />
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredCategories.map((category) => (
+              ) : (
+                filteredCategories.map((category) => (
                   <TableRow key={category.id}>
                     <TableCell className="font-medium">
                       {category.name}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="secondary">{category.products?.length ?? 0}</Badge>
+                      <Badge variant="secondary">
+                        {category.products?.length ?? 0}
+                      </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={category.status ? "default" : "secondary"}>
+                      <Badge
+                        variant={category.status ? "default" : "secondary"}
+                      >
                         {category.status ? "Actif" : "Désactivé"}
                       </Badge>
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
-                        <Button variant="outline" size="icon" onClick={() => handleEdit(category)}>
-                          <Edit className="h-4 w-4" />
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleEdit(category)}
+                        >
+                          <Edit size={16} />
                         </Button>
-                        <Button variant="outline" size="icon" onClick={()=>{handleDelete(category)}}>
-                          <Trash2 className="h-4 w-4" />
+                        <Button
+                          variant="delete"
+                          size="icon"
+                          onClick={() => {
+                            handleDelete(category);
+                          }}
+                        >
+                          <Trash2 size={16} />
                         </Button>
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-        {selectedCategory && <EditCategory category={selectedCategory} isOpen={editDialog} openChange={setEditDialog} />}
-        {selectedCategory && <DeleteCategory category={selectedCategory} isOpen={deleteDialog} openChange={setDeleteDialog} />}
-        <AddCategory isOpen={isDialogOpen} openChange={setIsDialogOpen}/>
-      </PageLayout>
-  )
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+      {selectedCategory && (
+        <EditCategory
+          category={selectedCategory}
+          isOpen={editDialog}
+          openChange={setEditDialog}
+        />
+      )}
+      {selectedCategory && (
+        <DeleteCategory
+          category={selectedCategory}
+          isOpen={deleteDialog}
+          openChange={setDeleteDialog}
+        />
+      )}
+      <AddCategory isOpen={isDialogOpen} openChange={setIsDialogOpen} />
+    </PageLayout>
+  );
 }

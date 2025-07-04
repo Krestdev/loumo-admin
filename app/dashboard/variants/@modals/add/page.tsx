@@ -200,7 +200,7 @@ function PageAdd() {
     <FormItem>
       <FormLabel>{"Image de la variante"}</FormLabel>
       <FormControl>
-        <>
+        <div>
           <Input
             type="file"
             accept="image/*"
@@ -220,7 +220,7 @@ function PageAdd() {
               className="mt-2 h-32 rounded object-cover"
             />
           )}
-        </>
+        </div>
       </FormControl>
       <FormMessage />
     </FormItem>

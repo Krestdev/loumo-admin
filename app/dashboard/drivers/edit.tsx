@@ -23,20 +23,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+import { Skeleton } from "@/components/ui/skeleton";
 import AgentQuery from "@/queries/agent";
 import UserQuery from "@/queries/user";
 import ZoneQuery from "@/queries/zone";
-import { User, Zone } from "@/types/types";
+import { Agent, User, Zone } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader } from "lucide-react";
 import React from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "react-toastify";
-import { z } from "zod";
+import z from "zod";
 
 type Props = {
+  agent: Agent;
   isOpen: boolean;
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
 };
@@ -52,26 +52,36 @@ const agentStatus = [
 type AgentProps = {
   status: (typeof agentStatus)[number];
   zoneId: number;
-  userId: number;
 };
 
 const formSchema = z.object({
   email: z.string().email({ message: "Doit être une adresse mail" }),
-  //password: z.string(),
-  tel: z
-    .string()
-    .regex(/^\d{9}$/, {
-      message: "Le numéro doit contenir exactement 9 chiffres",
-    }),
+  tel: z.string().regex(/^\d{9}$/, {
+    message: "Le numéro doit contenir exactement 9 chiffres",
+  }),
   name: z.string().min(3, { message: "Trop court" }),
   imageUrl: z.string().optional(),
-  // roleId: z.number(), Make sure its fixed
-  //userId: z.number(), We get it from the first response
   status: z.enum(agentStatus),
   zoneId: z.string(), //inject here
 });
 
-function AddDriver({ isOpen, openChange }: Props) {
+function EditDriver({ agent, isOpen, openChange }: Props) {
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: agent.user?.email ?? "",
+      tel: agent.user?.tel ?? "",
+      name: agent.user?.name ?? "",
+      status: agent.status,
+      zoneId: String(agent.zoneId),
+    },
+  });
+
+  const driverSuccess = React.useRef(false);
+  const agentSuccess = React.useRef(false);
+
+  const userQuery = new UserQuery();
+  const agentQuery = new AgentQuery();
   const zoneQuery = new ZoneQuery();
   const queryClient = useQueryClient();
 
@@ -82,87 +92,75 @@ function AddDriver({ isOpen, openChange }: Props) {
   });
 
   const [zones, setZones] = React.useState<Zone[]>([]);
-
   React.useEffect(() => {
     if (getZones.isSuccess) {
       setZones(getZones.data);
     }
-  }, [setZones, getZones.data, getZones.isSuccess]);
+  }, [setZones, getZones.isSuccess, getZones.data]);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: "",
-      //password: "",
-      tel: "",
-      name: "",
-      status: "AVAILABLE",
-      zoneId: "",
-    },
-  });
-
-  const userQuery = new UserQuery();
-  const agentQuery = new AgentQuery();
-
-  const createAgent = useMutation({
-    mutationFn: ({ status, zoneId, userId }: AgentProps) =>
-      agentQuery.create({
+  const editAgent = useMutation({
+    mutationFn: ({ status, zoneId }: AgentProps) =>
+      agentQuery.update(agent.id, {
         status,
         zoneId,
-        userId,
       }),
-      onSuccess: ()=>{
-        queryClient.invalidateQueries({queryKey: ["agents"], refetchType: "active"});
+    onSuccess: () => {
+      agentSuccess.current = true;
+      if (driverSuccess.current) {
+        queryClient.invalidateQueries({queryKey:["agents"], refetchType: "active"});
         openChange(false);
         form.reset();
       }
+    },
   });
 
-  const createDriver = useMutation({
+  const editDriver = useMutation({
     mutationFn: (values: z.infer<typeof formSchema>) => {
-        return userQuery.register({
-          email: values.email,
-          name: values.name,
-          password: "Loumo123", //default password
-          tel: values.tel,
-        });
-    },
-    onSuccess: (data: User) => {
-      const { status, zoneId } = form.getValues();
-      createAgent.mutate({
-        userId: data.id,
-        status,
-        zoneId: Number(zoneId),
+      return userQuery.update(agent.userId, {
+        email: values.email,
+        name: values.name,
+        tel: values.tel,
       });
+    },
+    onSuccess: () => {
+      driverSuccess.current = true;
+      if (agentSuccess.current) {
+        queryClient.invalidateQueries({queryKey:["agents"], refetchType: "active"});
+        openChange(false);
+        form.reset();
+      }
     },
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    createDriver.mutate(values);
+    driverSuccess.current = false;
+    agentSuccess.current = false;
+    editDriver.mutate(values);
+    editAgent.mutate({
+      status: values.status,
+      zoneId: Number(values.zoneId),
+    });
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={openChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{"Ajouter un livreur"}</DialogTitle>
+          <DialogTitle>{`Modifier ${agent.user?.name}`}</DialogTitle>
           <DialogDescription>
-            {"Complétez le formulaire pour ajouter un livreur"}
+            {"Modifier les informations du Livreur"}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="grid grid-cols-1 ms:grid-cols-2 gap-6"
-          >
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{"Nom du Livreur"}</FormLabel>
+                  <FormLabel>{"Nom"}</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Nom" />
+                    <Input {...field} placeholder="Nom du livreur" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -175,7 +173,7 @@ function AddDriver({ isOpen, openChange }: Props) {
                 <FormItem>
                   <FormLabel>{"Adresse mail"}</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="ex. livreur@gmail.com" />
+                    <Input {...field} placeholder="Email" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -188,8 +186,9 @@ function AddDriver({ isOpen, openChange }: Props) {
                 <FormItem>
                   <FormLabel>{"Numéro de téléphone"}</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="ex. 695552211" />
+                    <Input {...field} placeholder="ex. 699442512" />
                   </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -220,43 +219,50 @@ function AddDriver({ isOpen, openChange }: Props) {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="zoneId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{"Zone desservie"}</FormLabel>
-                  <FormControl>
-                    <Select
-                      defaultValue={field.value}
-                      onValueChange={field.onChange}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder={"Sélectionner une zone"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {zones.map((x) => (
-                          <SelectItem key={x.id} value={String(x.id)}>
-                            {x.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage/>
-                </FormItem>
-              )}
-            />
+            {getZones.isLoading ? (
+              <Skeleton className="h-12 w-full" />
+            ) : (
+              getZones.isSuccess && (
+                <FormField
+                  control={form.control}
+                  name="zoneId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{"Zone desservie"}</FormLabel>
+                      <FormControl>
+                        <Select
+                          defaultValue={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue
+                              placeholder={"Sélectionner une zone"}
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {zones.map((x) => (
+                              <SelectItem key={x.id} value={String(x.id)}>
+                                {x.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )
+            )}
             <div className="flex justify-end gap-2">
               <Button
                 type="submit"
-                disabled={createDriver.isPending || createAgent.isPending}
+                disabled={editAgent.isPending || editDriver.isPending}
               >
-                {createDriver.isPending ||
-                  (createAgent.isPending && (
-                    <Loader size={16} className="animate-spin" />
-                  ))}{" "}
-                {"Créer un Livreur"}
+                {(editAgent.isPending || editDriver.isPending) && (
+                  <Loader className="animate-spin" size={16} />
+                )}
+                {"Modifier"}
               </Button>
               <Button
                 variant={"outline"}
@@ -276,4 +282,4 @@ function AddDriver({ isOpen, openChange }: Props) {
   );
 }
 
-export default AddDriver;
+export default EditDriver;

@@ -252,12 +252,12 @@ export default function ProductsPage() {
                 <TableRow>
                   <TableCell
                     colSpan={7}
-                    className="text-center text-gray-500 space-y-2 pt-5 sm:text-lg xl:text-xl"
+                    className="text-center text-gray-500 space-y-2 py-5 sm:text-lg xl:text-xl"
                   >
                     {"Aucun produit trouvé"}
                     <img
-                      src={"/images/no-order.png"}
-                      className="w-1/3 max-w-60 h-auto mx-auto opacity-50"
+                      src={"/images/search.png"}
+                      className="w-1/3 max-w-32 h-auto mx-auto mt-5 opacity-20"
                     />
                   </TableCell>
                 </TableRow>
@@ -314,23 +314,23 @@ export default function ProductsPage() {
                       <div className="flex gap-2">
                         <Button
                           variant="outline"
-                          size="sm"
+                          size="icon"
                           onClick={() => {
                             setEditingProduct(product);
                             setIsEditDialogOpen(true);
                           }}
                         >
-                          <Edit className="h-4 w-4" />
+                          <Edit size={16} />
                         </Button>
                         <Button
-                          variant="outline"
-                          size="sm"
+                          variant="delete"
+                          size="icon"
                           onClick={() => {
                             setEditingProduct(product);
                             setIsDeleteDialogOpen(true);
                           }}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 size={16} />
                         </Button>
                       </div>
                     </TableCell>
