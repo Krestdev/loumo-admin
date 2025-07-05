@@ -104,7 +104,6 @@ export default function OrdersPage() {
     orderData.isSuccess,
   ]);
 
-
   /**Period filter settings */
   function isWithinPeriod(date: Date | string, period: string): boolean {
     const createdAt = new Date(date);
@@ -210,7 +209,7 @@ export default function OrdersPage() {
   const handleAssign = (order: Order) => {
     setSelectedOrder(order);
     setAssignDriverDialog(true);
-  }
+  };
 
   return (
     <PageLayout
@@ -334,113 +333,132 @@ export default function OrdersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredOrders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-medium">{order.id}</TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">{order.user.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {order.user.email}
-                        </p>
-                      </div>
+                {filteredOrders.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={8}
+                      className="text-center text-gray-500 py-5 sm:text-lg xl:text-xl"
+                    >
+                      {"Aucune commande trouvée"}
+                      <img
+                        src={"/images/search.png"}
+                        className="w-1/3 max-w-32 h-auto mx-auto mt-5 opacity-20"
+                      />
                     </TableCell>
-                    <TableCell>
-                      {order.address && (
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium">
-                            {
-                              zones.find((x) => x.id === order.address?.id)
-                                ?.name
-                            }
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {order.address.street}
-                          </span>
+                  </TableRow>
+                ) : (
+                  filteredOrders.map((order) => (
+                    <TableRow key={order.id}>
+                      <TableCell className="font-medium">{order.id}</TableCell>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium">{order.user.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {order.user.email}
+                          </p>
                         </div>
-                      )}
-                    </TableCell>
-                    <TableCell className="font-semibold">
-                      {XAF.format(order.total)}
-                    </TableCell>
-                    <TableCell>{`${order.weight} kg`}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          order.status === "ACCEPTED"
-                            ? "default"
-                            : order.status === "PENDING"
-                            ? "info"
-                            : order.status === "COMPLETED"
-                            ? "default"
-                            : "destructive"
-                        }
-                      >
-                        {order.status === "ACCEPTED"
+                      </TableCell>
+                      <TableCell>
+                        {order.address && (
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium">
+                              {
+                                zones.find((x) => x.id === order.address?.id)
+                                  ?.name
+                              }
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {order.address.street}
+                            </span>
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="font-semibold">
+                        {XAF.format(order.total)}
+                      </TableCell>
+                      <TableCell>{`${order.weight} kg`}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            order.status === "ACCEPTED"
+                              ? "default"
+                              : order.status === "PENDING"
+                              ? "info"
+                              : order.status === "COMPLETED"
+                              ? "default"
+                              : "destructive"
+                          }
+                        >
+                          {order.status === "ACCEPTED"
                             ? "Accepté"
                             : order.status === "PENDING"
                             ? "En cours"
                             : order.status === "COMPLETED"
                             ? "Terminé"
                             : "Rejeté"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={!order.payment ? "destructive" :
-                          order.payment.status === "ACCEPTED"
-                            ? "default"
-                            : order.payment.status === "PENDING"
-                            ? "info"
-                            : order.payment.status === "COMPLETED"
-                            ? "default"
-                            : "destructive"
-                        }
-                      >
-                        {!order.payment ? "Non Payé" : 
-                        order.payment.status === "ACCEPTED"
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            !order.payment
+                              ? "destructive"
+                              : order.payment.status === "ACCEPTED"
+                              ? "default"
+                              : order.payment.status === "PENDING"
+                              ? "info"
+                              : order.payment.status === "COMPLETED"
+                              ? "default"
+                              : "destructive"
+                          }
+                        >
+                          {!order.payment
+                            ? "Non Payé"
+                            : order.payment.status === "ACCEPTED"
                             ? "Accepté"
                             : order.payment.status === "PENDING"
                             ? "En cours"
                             : order.payment.status === "COMPLETED"
                             ? "Payé"
-                            : "Non Payé"
-                      }
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          variant={"info"}
-                          onClick={() => {
-                            handleView(order);
-                          }}
-                        >
-                          {"Voir"}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          onClick={() => {handleAssign(order)}}
-                        >
-                          {"Assigner"}
-                        </Button>
-
-                        {order.status !== "COMPLETED" && (
+                            : "Non Payé"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
                           <Button
-                            variant="success"
-                            size="default"
+                            variant={"info"}
                             onClick={() => {
-                              // Marquer comme livré
-                              console.log("Marquer comme livré:", order.id);
+                              handleView(order);
                             }}
                           >
-                            {"Terminer"}
+                            {"Voir"}
                           </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              handleAssign(order);
+                            }}
+                          >
+                            {"Assigner"}
+                          </Button>
+
+                          {order.status !== "COMPLETED" && (
+                            <Button
+                              variant="success"
+                              size="default"
+                              onClick={() => {
+                                // Marquer comme livré
+                                console.log("Marquer comme livré:", order.id);
+                              }}
+                            >
+                              {"Terminer"}
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </CardContent>
@@ -455,7 +473,12 @@ export default function OrdersPage() {
         />
       )}
       {selectedOrder && getZones.isSuccess && (
-        <AssignDriver openChange={setAssignDriverDialog} isOpen={assignDriverDialog} order={selectedOrder} zones={zones}/>
+        <AssignDriver
+          openChange={setAssignDriverDialog}
+          isOpen={assignDriverDialog}
+          order={selectedOrder}
+          zones={zones}
+        />
       )}
     </PageLayout>
   );

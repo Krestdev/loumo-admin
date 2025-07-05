@@ -31,7 +31,10 @@ const formSchema = z.object({
   name: z
     .string({ message: "Veuillez renseigner un nom" })
     .min(2, { message: "Le nom doit comporter au moins 3 caractères" }),
-  weight: z.string({ message: "Veuillez renseigner le poids" }),
+  weight: z.string({ message: "Veuillez renseigner le poids" })
+  .refine((val) => !isNaN(Number(val)), {
+    message: "Le poids doit être un nombre",
+  }),
   status: z.boolean(),
   price: z.string({ message: "Veuillez renseigner un prix" }),
   productId: z.string({ message: "Veuillez sélectionner le produit parent" }),

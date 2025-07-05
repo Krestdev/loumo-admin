@@ -111,7 +111,7 @@ function AssignDriver({ order, isOpen, openChange, zones }: Props) {
                           {driver.zone.name}
                         </p>
                       </div>
-                      { (createDelivery.isPending && driver.id === selected ) ? <Loader size={16} className="animate-spin text-primary"/> : <Badge variant="default">{driver.status}</Badge>}
+                      <Button variant={"secondary"} size={"sm"} disabled={(createDelivery.isPending && driver.id === selected )}>{(createDelivery.isPending && driver.id === selected ) && <Loader size={16} className="animate-spin"/>} {"Assigner"}</Button>
                     </Button>
                   ))
               ) : (

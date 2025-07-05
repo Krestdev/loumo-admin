@@ -113,6 +113,7 @@ function AddDriver({ isOpen, openChange }: Props) {
       }),
       onSuccess: ()=>{
         queryClient.invalidateQueries({queryKey: ["agents"], refetchType: "active"});
+        queryClient.invalidateQueries({queryKey: ["users"], refetchType: "active"});
         openChange(false);
         form.reset();
       }

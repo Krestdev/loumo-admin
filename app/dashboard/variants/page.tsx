@@ -272,7 +272,22 @@ const filteredVariants = React.useMemo(() => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredVariants.map((variant) => {
+                {
+                  filteredVariants.length === 0 ? 
+                  <TableRow>
+                    <TableCell
+                    colSpan={8}
+                    className="text-center text-gray-500 py-5 sm:text-lg xl:text-xl"
+                    >
+                      {"Aucune variante de produit trouvée"}
+                    <img
+                      src={"/images/search.png"}
+                      className="w-1/3 max-w-32 h-auto mx-auto mt-5 opacity-20"
+                    />
+                    </TableCell>
+                  </TableRow>
+                   :
+                filteredVariants.map((variant) => {
                   return (
                     <TableRow key={variant.id}>
                       <TableCell>
