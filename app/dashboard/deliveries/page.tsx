@@ -1,11 +1,21 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import PageLayout from "@/components/page-layout";
+import Loading from "@/components/setup/loading";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -21,36 +31,27 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Search,
-  Truck,
-  MapPin,
-  Clock,
-  User,
-  Phone,
-  Package,
-  Navigation,
-  Plus,
-  Edit,
-  Trash2,
-} from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Agent, Delivery } from "@/types/types";
-import DeliveryQuery from "@/queries/delivery";
-import { useQuery } from "@tanstack/react-query";
-import Loading from "@/components/setup/loading";
+import { useStore } from "@/providers/datastore";
 import AgentQuery from "@/queries/agent";
+import DeliveryQuery from "@/queries/delivery";
 import ZoneQuery from "@/queries/zone";
+import { Agent, Delivery, Zone } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
+import {
+  Clock,
+  Edit,
+  MapPin,
+  Navigation,
+  Package,
+  Phone,
+  Plus,
+  Search,
+  Trash2,
+  Truck,
+  User,
+} from "lucide-react";
+import React, { useState } from "react";
 
 export default function DeliveriesPage() {
   const deliveriesQuery = new DeliveryQuery();
@@ -71,9 +72,12 @@ export default function DeliveriesPage() {
     queryFn: zoneQuery.getAll,
   });
 
-  const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(
-    null
-  );
+  const { setLoading } = useStore();
+
+  const [selectedDelivery, setSelectedDelivery] = useState<Delivery>();
+  const [drivers, setDrivers] = useState<Agent[]>([]);
+  const [zones, setZones] = useState<Zone[]>([]);
+  const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [zoneFilter, setZoneFilter] = useState("all");
@@ -92,32 +96,49 @@ export default function DeliveriesPage() {
     licenseNumber: "",
   });
 
-  let drivers: Agent[];
-  if (agentData.isSuccess) {
-    drivers = agentData.data;
-  } else {
-    drivers = [];
-  }
+  React.useEffect(() => {
+    setLoading(
+      zoneData.isLoading || deliveryData.isLoading || zoneData.isLoading
+    );
+    if (deliveryData.isSuccess) {
+      setDeliveries(deliveryData.data);
+    }
+    if (agentData.isSuccess) {
+      setDrivers(agentData.data);
+    }
+    if (zoneData.isSuccess) {
+      setZones(zoneData.data);
+    }
+  }, [
+    setLoading,
+    setDeliveries,
+    setDrivers,
+    setZones,
+    deliveryData.isSuccess,
+    deliveryData.data,
+    deliveryData.isLoading,
+    agentData.data,
+    agentData.isLoading,
+    agentData.isLoading,
+    zoneData.data,
+    zoneData.isLoading,
+    zoneData.isSuccess,
+  ]);
 
-  let filteredDeliveries: Delivery[];
-  if (deliveryData.isSuccess) {
-    filteredDeliveries = deliveryData.data.filter((delivery) => {
-      const matchesSearch =
-        delivery.order?.user.name
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        delivery.orderId === parseInt(searchTerm.toLowerCase()) ||
-        delivery.trackingCode.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus =
-        statusFilter === "all" || delivery.status === statusFilter;
-      const matchesZone =
-        zoneFilter === "all" ||
-        delivery.order?.address?.zone?.name === zoneFilter;
-      return matchesSearch && matchesStatus && matchesZone;
-    });
-  } else {
-    filteredDeliveries = [];
-  }
+  const filteredDeliveries = deliveries.filter((delivery) => {
+    const matchesSearch =
+      delivery.order?.user.name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      delivery.orderId === parseInt(searchTerm.toLowerCase()) ||
+      delivery.trackingCode.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      statusFilter === "all" || delivery.status === statusFilter;
+    const matchesZone =
+      zoneFilter === "all" ||
+      delivery.order?.address?.zone?.name === zoneFilter;
+    return matchesSearch && matchesStatus && matchesZone;
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -160,26 +181,41 @@ export default function DeliveriesPage() {
     }
   };
 
+  //Today deliveries logic
+  const today = new Date();
+  const todayDeliveries = deliveries.filter((x) => {
+    if (!x.deliveredTime) return false;
+    const delivered = new Date(x.deliveredTime);
+    return (
+      delivered.getDate() === today.getDate() &&
+      delivered.getMonth() === today.getMonth() &&
+      delivered.getFullYear() === today.getFullYear()
+    );
+  }).length;
+
   return (
-    <main className="flex-1 overflow-auto p-4 space-y-6">
+    <PageLayout
+      isLoading={
+        zoneData.isLoading || deliveryData.isLoading || zoneData.isLoading
+      }
+      className="flex-1 overflow-auto p-4 space-y-6"
+    >
       {/* Delivery Stats */}
       {deliveryData.isSuccess && agentData.isSuccess && (
         <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">En cours</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                {"En cours"}
+              </CardTitle>
               <Truck className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {
-                  deliveryData.data.filter((x) =>
-                    x.status.toLowerCase().includes("pending")
-                  ).length
-                }
+                {deliveries.filter((x) => x.status === "STARTED").length}
               </div>
               <p className="text-xs text-muted-foreground">
-                Livraisons actives
+                {"Livraisons actives"}
               </p>
             </CardContent>
           </Card>
@@ -187,15 +223,17 @@ export default function DeliveriesPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Livrées aujourd'hui
+                {"Livrées aujourd'hui"}
               </CardTitle>
               <Package className="h-4 w-4 text-green-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">47</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-2xl font-bold">
+                {todayDeliveries}
+              </div>
+              {/* <p className="text-xs text-muted-foreground">
                 <span className="text-green-600">+8</span> vs hier
-              </p>
+              </p> */}
             </CardContent>
           </Card>
 
@@ -215,15 +253,15 @@ export default function DeliveriesPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Livreurs actifs
+                {"Livreurs actifs"}
               </CardTitle>
               <User className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
                 {
-                  agentData.data.filter((x) =>
-                    x.status.toLowerCase().includes("active")
+                  agentData.data.filter(
+                    (x) => x.status === "AVAILABLE" || x.status === "FULL"
                   ).length
                 }
               </div>
@@ -240,7 +278,7 @@ export default function DeliveriesPage() {
           {/* Filters */}
           <Card>
             <CardHeader>
-              <CardTitle>Filtres</CardTitle>
+              <CardTitle>{"Filtres"}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex gap-4 flex-wrap">
@@ -272,21 +310,12 @@ export default function DeliveriesPage() {
                     <SelectValue placeholder="Zone" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Toutes les zones</SelectItem>
-                    <SelectItem value="Dakar Plateau">Dakar Plateau</SelectItem>
-                    <SelectItem value="Parcelles Assainies">
-                      Parcelles Assainies
-                    </SelectItem>
-                    <SelectItem value="Almadies">Almadies</SelectItem>
-                    <SelectItem value="Yoff">Yoff</SelectItem>
-                    {zoneData.isSuccess &&
-                      zoneData.data.map((zone) => {
-                        return (
-                          <SelectItem key={zone.id} value={zone.name}>
-                            {zone.name}
-                          </SelectItem>
-                        );
-                      })}
+                    <SelectItem value="all">{"Toutes les zones"}</SelectItem>
+                    {zones.map((x) => (
+                      <SelectItem key={x.id} value={x.name}>
+                        {x.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -301,20 +330,20 @@ export default function DeliveriesPage() {
           ) : deliveryData.isSuccess ? (
             <Card>
               <CardHeader>
-                <CardTitle>Livraisons ({filteredDeliveries.length})</CardTitle>
+                <CardTitle>{`Livraisons (${filteredDeliveries.length})`}</CardTitle>
               </CardHeader>
               <CardContent>
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Livraison</TableHead>
-                      <TableHead>Client</TableHead>
-                      <TableHead>Zone</TableHead>
-                      <TableHead>Livreur</TableHead>
-                      <TableHead>Statut</TableHead>
-                      <TableHead>Priorité</TableHead>
-                      <TableHead>Heure prévue</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead>{"Référence"}</TableHead>
+                      <TableHead>{"Client"}</TableHead>
+                      <TableHead>{"Zone"}</TableHead>
+                      <TableHead>{"Livreur"}</TableHead>
+                      <TableHead>{"Statut"}</TableHead>
+                      <TableHead>{"Priorité"}</TableHead>
+                      <TableHead>{"Heure prévue"}</TableHead>
+                      <TableHead>{"Actions"}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -322,11 +351,7 @@ export default function DeliveriesPage() {
                       <TableRow key={delivery.id}>
                         <TableCell>
                           <div>
-                            <p className="font-medium">{delivery.id}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {delivery.orderId}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-xs">
                               {delivery.trackingCode}
                             </p>
                           </div>
@@ -334,45 +359,20 @@ export default function DeliveriesPage() {
                         <TableCell>
                           <div>
                             <p className="font-medium">
-                              {delivery.order?.user.name}
+                              {delivery.order?.user.name ?? "Non renseigné"}
                             </p>
                             <p className="text-sm text-muted-foreground">
-                              {delivery.order?.address?.local}
+                              {delivery.order?.address?.street ?? "Non renseigné"}
                             </p>
                           </div>
                         </TableCell>
                         <TableCell>
-                          {delivery.order?.address?.zone?.name}
+                          {delivery.order?.address?.zone?.name ?? "Non défini"}
                         </TableCell>
                         <TableCell>
-                          {delivery.agent ? (
-                            <div className="flex items-center gap-2">
-                              <Avatar className="h-6 w-6">
-                                <AvatarImage
-                                  src={
-                                    delivery.agent.user?.imageUrl ||
-                                    "/placeholder.png"
-                                  }
-                                />
-                                <AvatarFallback>
-                                  {delivery.agent.user?.name
-                                    .split(" ")
-                                    .map((n) => n[0])
-                                    .join("")}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="text-sm font-medium">
-                                  {delivery.agent.user?.name}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {delivery.agent.user?.tel}
-                                </p>
-                              </div>
-                            </div>
-                          ) : (
-                            <Badge variant="outline">Non assigné</Badge>
-                          )}
+                          {
+                            delivery.agent?.user?.name ?? "Non renseigné"
+                          }
                         </TableCell>
                         <TableCell>
                           <Badge variant={getStatusColor(delivery.status)}>
@@ -662,7 +662,7 @@ export default function DeliveriesPage() {
                             driver.delivery?.filter(
                               (x) =>
                                 x.status !== "COMPLETED" &&
-                                x.status !== "PENDING"
+                                x.status !== "CANCELED"
                             ).length
                           }{" "}
                           livraisons
@@ -909,6 +909,6 @@ export default function DeliveriesPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </main>
+    </PageLayout>
   );
 }

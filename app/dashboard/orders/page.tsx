@@ -428,7 +428,7 @@ export default function OrdersPage() {
                             {"Voir"}
                           </Button>
                           {
-                            !order.delivery &&
+                            (order.status === "PENDING" || order.status === "ACCEPTED")  &&
                             <Button
                             variant="outline"
                             onClick={() => {
@@ -438,7 +438,7 @@ export default function OrdersPage() {
                             {"Assigner"}
                           </Button>}
 
-                          {order.status !== "COMPLETED" && (
+                          {(order.status === "ACCEPTED" || order.status === "PENDING" || order.status === "PROCESSING") && (
                             <Button
                               variant="success"
                               size="default"
