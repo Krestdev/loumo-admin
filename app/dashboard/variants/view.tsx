@@ -63,7 +63,7 @@ function ViewVariant({ isOpen, openChange, variant, products, shops }: Props) {
                     {XAF.format(variant.price)}
                   </span>
                 </div>
-                <div className="flex justify-between">
+                <div className="grid gap-1">
                   <span>
                     {variant.stock.length > 0 && (
                       <div className="text-xs">

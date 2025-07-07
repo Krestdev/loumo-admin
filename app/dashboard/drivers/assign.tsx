@@ -14,6 +14,8 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { z } from "zod";
+import { deliverySchema } from "../orders/assign";
+import { Input } from "@/components/ui/input";
 
 type Props = {
   driver:Agent;
@@ -21,16 +23,15 @@ type Props = {
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-const formSchema = z.object({
-  orderId: z.string().min(1, {message: "Veuillez sélectionner une commande"})
-})
 
 function AssignToDriver({driver, isOpen, openChange}:Props) {
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof deliverySchema>>({
+    resolver: zodResolver(deliverySchema),
     defaultValues: {
-      orderId: ""
+      orderId: "",
+      agentId: String(driver.id),
+      scheduledTime: ""
     }
   });
 
@@ -38,9 +39,10 @@ function AssignToDriver({driver, isOpen, openChange}:Props) {
   const orderQuery = new OrderQuery();
   const queryClient = useQueryClient();
   const createDelivery = useMutation({
-    mutationFn: (values: z.infer<typeof formSchema>) => queryDelivery.create({
-      agentId: driver.id,
-      orderId: Number(values.orderId)
+    mutationFn: (values: z.infer<typeof deliverySchema>) => queryDelivery.create({
+      agentId: Number(values.agentId),
+      orderId: Number(values.orderId),
+      scheduledTime: new Date(values.scheduledTime)
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({queryKey:["agents"], refetchType: "active"});
@@ -54,7 +56,9 @@ function AssignToDriver({driver, isOpen, openChange}:Props) {
     queryFn: () => orderQuery.getAll(),
   });
 
-  const onSubmit = (values:z.infer<typeof formSchema>) => {
+  const [orders, setOrders] = React.useState<Order[]>([]);
+
+  const onSubmit = (values:z.infer<typeof deliverySchema>) => {
     createDelivery.mutate(values);
   }
 
@@ -63,7 +67,10 @@ function AssignToDriver({driver, isOpen, openChange}:Props) {
       toast.error("Erreur lors du chargement des commandes")
       openChange(false)
     }
-  },[openChange, toast, getOrders.isError])
+    if(getOrders.isSuccess){
+      setOrders(getOrders.data)
+    }
+  },[openChange, toast, getOrders.isError, setOrders, getOrders.isSuccess, getOrders.data])
 
   return (
     <Dialog open={isOpen} onOpenChange={openChange}>
@@ -74,13 +81,6 @@ function AssignToDriver({driver, isOpen, openChange}:Props) {
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {
-              getOrders.isLoading ? 
-              <div className="py-5 w-full">
-                <Loader size={20} className="animate-spin text-green-600"/>
-              </div>
-              :
-              getOrders.isSuccess &&
               <FormField control={form.control} name="orderId" render={({field})=>(
               <FormItem>
                 <FormLabel>{"Commande"}</FormLabel>
@@ -90,7 +90,10 @@ function AssignToDriver({driver, isOpen, openChange}:Props) {
                       <SelectValue placeholder="Sélectionner une commande"/>
                     </SelectTrigger>
                     <SelectContent>
-                      {getOrders.data.filter(x=>x.address?.zoneId === driver.zoneId).map(y=> 
+                      { getOrders.isLoading ? 
+                      <SelectItem value="no-selection" disabled className="animate-ping">{"En cours de chargement ..."}</SelectItem>
+                      :
+                       orders.filter(x=>x.address?.zoneId === driver.zoneId).map(y=> 
                         <SelectItem key={y.id} value={String(y.id)}>
                           <div className="grid">
                             <p className="text-sm font-medium">{`Commande ${y.id} - de ${y.user.name}`}</p>
@@ -103,9 +106,27 @@ function AssignToDriver({driver, isOpen, openChange}:Props) {
                 </FormControl>
                 <FormMessage/>
               </FormItem>
-            )}/>}
+            )}/>
+            <FormField
+                control={form.control}
+                name="scheduledTime"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{"Date de livraison prévue"}</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="datetime-local"
+                        value={field.value}
+                        onChange={field.onChange}
+                        min={new Date().toISOString().slice(0, 16)} // empêche de choisir une date passée
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             <div className="flex justify-end gap-2">
-              <Button type="submit" disabled={createDelivery.isPending || getOrders.isLoading}>{createDelivery.isPending && <Loader size={16} className="animate-spin"/>} {"Assigner"}</Button>
+              <Button type="submit" disabled={createDelivery.isPending}>{createDelivery.isPending && <Loader size={16} className="animate-spin"/>} {"Assigner"}</Button>
             </div>
           </form>
         </Form>

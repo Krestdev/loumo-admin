@@ -48,6 +48,7 @@ import { Product, Shop, Stock } from "@/types/types";
 import { useStore } from "@/providers/datastore";
 import PageLayout from "@/components/page-layout";
 import ProductQuery from "@/queries/product";
+import { XAF } from "@/lib/utils";
 
 export default function InventoryPage() {
   const stockQuery = new StockQuery();
@@ -156,7 +157,7 @@ export default function InventoryPage() {
             <AlertTriangle className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{"23"}</div>
+            <div className={`text-2xl font-bold ${stocks.filter(x=>x.quantity <= x.threshold).length > 0 && "text-red-600"}`}>{stocks.filter(x=>x.quantity <= x.threshold).length}</div> 
             <p className="text-xs text-muted-foreground">
               {"Nécessite réapprovisionnement"}
             </p>
@@ -170,7 +171,7 @@ export default function InventoryPage() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{"€847,230"}</div>
+            <div className="text-2xl font-bold">{XAF.format(stocks.reduce((total, x)=> total + x.quantity * (x.productVariant?.price ?? 0), 0))}</div>
             <p className="text-xs text-muted-foreground">
               {"Toutes boutiques"}
             </p>
@@ -363,12 +364,12 @@ export default function InventoryPage() {
                     <TableCell>
                       <Badge variant={item.quantity === 0
                           ? "destructive"
-                          : item.quantity < 20
+                          : item.quantity <= item.threshold
                           ? "warning"
                           : "outline"}>
                         {item.quantity === 0
                           ? "Rupture"
-                          : item.quantity < 7
+                          : item.quantity <= item.threshold
                           ? "Critique"
                           : item.quantity < 20
                           ? "Attention"

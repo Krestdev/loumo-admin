@@ -46,7 +46,7 @@ import {
 } from "lucide-react";
 import React, { useState } from "react";
 import PageLayout from "@/components/page-layout";
-import { paymentStatusMap, statusMap, XAF } from "@/lib/utils";
+import { getOrderStatusLabel, paymentStatusMap, statusMap, XAF } from "@/lib/utils";
 import ZoneQuery from "@/queries/zone";
 import { useStore } from "@/providers/datastore";
 import ViewOrder from "./view";
@@ -389,13 +389,7 @@ export default function OrdersPage() {
                               : "destructive"
                           }
                         >
-                          {order.status === "ACCEPTED"
-                            ? "Accepté"
-                            : order.status === "PENDING"
-                            ? "En cours"
-                            : order.status === "COMPLETED"
-                            ? "Terminé"
-                            : "Rejeté"}
+                          {getOrderStatusLabel(order.status)}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -433,14 +427,16 @@ export default function OrdersPage() {
                           >
                             {"Voir"}
                           </Button>
-                          <Button
+                          {
+                            !order.delivery &&
+                            <Button
                             variant="outline"
                             onClick={() => {
                               handleAssign(order);
                             }}
                           >
                             {"Assigner"}
-                          </Button>
+                          </Button>}
 
                           {order.status !== "COMPLETED" && (
                             <Button

@@ -4,7 +4,7 @@ import { Delivery } from "@/types/types";
 export default class DeliveryQuery {
   route = "/deliveries";
   create = async (
-    data: {agentId: number; orderId: number}
+    data: Pick<Delivery, "orderId" | "agentId" | "scheduledTime">
   ): Promise<Delivery> => {
     return api.post(`${this.route}`, data).then((response) => response.data);
   };

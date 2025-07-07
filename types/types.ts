@@ -191,6 +191,7 @@ export type Shop = {
 export type Stock = {
   id: number;
   quantity: number;
+  threshold: number;
   productVariantId: number;
   productVariant?: ProductVariant;
   shopId: number;

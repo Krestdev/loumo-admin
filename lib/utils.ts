@@ -48,10 +48,10 @@ export function findLatestByDate<T>(
 
 export const statusMap: Record<string, Order["status"][]> = {
     "En cours": ["PENDING", "ACCEPTED"],
-    Préparation: ["PROCESSING"],
+    "En Préparation": ["PROCESSING"],
     "En livraison": ["ACCEPTED"], // si tu différencies
-    Livré: ["COMPLETED"],
-    Annulé: ["REJECTED", "FAILED"],
+    "Livré": ["COMPLETED"],
+    "Annulé": ["REJECTED", "FAILED"],
   };
 
 export const paymentStatusMap: Record<string, Payment["status"][]> = {
@@ -60,3 +60,22 @@ export const paymentStatusMap: Record<string, Payment["status"][]> = {
     Échoué: ["FAILED"],
     Rejeté: ["REJECTED"],
   };
+
+  export const getOrderStatusLabel = (status: Order["status"]): string => {
+  switch (status) {
+    case "PENDING":
+      return "En attente";
+    case "ACCEPTED":
+      return "Acceptée";
+    case "REJECTED":
+      return "Rejetée";
+    case "PROCESSING":
+      return "En cours de traitement";
+    case "COMPLETED":
+      return "Terminée";
+    case "FAILED":
+      return "Échouée";
+    default:
+      return "Statut inconnu";
+  }
+};
