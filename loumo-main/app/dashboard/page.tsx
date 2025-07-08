@@ -1,11 +1,8 @@
-import PageLayout from '@/components/page-layout'
-import React from 'react'
+import { redirect } from 'next/navigation'
 
 function Page() {
-  return (
-    <PageLayout isLoading={false}>
-      {null}
-    </PageLayout>
+  redirect(
+    "/dashboard/orders"
   )
 }
 

@@ -36,7 +36,6 @@ import { formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Edit, MoreHorizontal, PlusCircle, Search, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
 import React, { useMemo, useState } from "react";
 import AddProduct from "./add";
 import DeleteProduct from "./delete";
@@ -45,14 +44,6 @@ import GroupDelete from "./groupDelete";
 import GroupEdit from "./groupEdit";
 
 export default function ProductsPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const open = searchParams.get("open");
-  React.useEffect(() => {
-    if (open === "add") {
-      router.replace("/dashboard/products/add");
-    }
-  }, [open, router]);
 
   const product = new ProductQuery();
   const category = new CategoryQuery();

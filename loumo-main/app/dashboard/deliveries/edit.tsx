@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getPriorityName } from "@/lib/utils";
 import DeliveryQuery from "@/queries/delivery";
 import { Agent, Delivery } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -32,7 +33,6 @@ import { Loader } from "lucide-react";
 import React from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
-import { getPriorityName } from "./page";
 
 type Props = {
   isOpen: boolean;

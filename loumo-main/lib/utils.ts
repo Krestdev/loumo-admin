@@ -1,4 +1,4 @@
-import { Order, Payment } from "@/types/types";
+import { Delivery, Order, Payment } from "@/types/types";
 import { clsx, type ClassValue } from "clsx"
 import { isAfter, subDays } from "date-fns";
 import { twMerge } from "tailwind-merge"
@@ -77,5 +77,46 @@ export const paymentStatusMap: Record<string, Payment["status"][]> = {
       return "Échouée";
     default:
       return "Statut inconnu";
+  }
+};
+
+export const getPriorityName = (priority: Delivery["priority"]) => {
+  switch (priority) {
+    case "URGENT":
+      return "Urgent";
+    case "HIGH":
+      return "Haute";
+    case "LOW":
+      return "Faible";
+    default:
+      return "Normale";
+  }
+};
+
+export const getStatusColor = (status: Delivery["status"]) => {
+  switch (status) {
+    case "NOTSTARTED":
+      return "warning";
+    case "COMPLETED":
+      return "default";
+    case "STARTED":
+      return "info";
+    case "CANCELED":
+      return "destructive";
+    default:
+      return "outline";
+  }
+};
+
+export const getPriorityColor = (priority: Delivery["priority"]) => {
+  switch (priority) {
+    case "URGENT":
+      return "destructive";
+    case "HIGH":
+      return "warning";
+    case "LOW":
+      return "outline";
+    default:
+      return "info";
   }
 };
