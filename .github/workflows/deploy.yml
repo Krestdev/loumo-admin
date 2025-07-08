@@ -13,10 +13,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install deps
         run: npm ci
-        working-directory: ./loumo-ui
+        working-directory: ./loumo-main
       - name: Run linter
         run: npm run lint
-        working-directory: ./loumo-ui
+        working-directory: ./loumo-main
   
   build:
     name: Build API
@@ -26,10 +26,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install deps
         run: npm ci
-        working-directory: ./loumo-ui
+        working-directory: ./loumo-main
       - name: Build project
         run: npm run build
-        working-directory: ./loumo-ui
+        working-directory: ./loumo-main
   
   deploy:
     name: Deploy to VPS
@@ -51,7 +51,7 @@ jobs:
       - name: Create release folder on VPS
         run: |
           TIMESTAMP=$(date +"%Y%m%d-%H%M")
-          echo "RELEASE_DIR=~/deployments/loumo-shop/releases/$TIMESTAMP" >> $GITHUB_ENV
+          echo "RELEASE_DIR=~/deployments/loumo-main/releases/$TIMESTAMP" >> $GITHUB_ENV
           echo "DEPLOY_TIME=$TIMESTAMP" >> $GITHUB_ENV
 
       - name: Deploy to VPS
@@ -60,7 +60,7 @@ jobs:
             set -euo pipefail
 
             TIMESTAMP=${{ env.DEPLOY_TIME }}
-            RELEASE_DIR=~/deployments/loumo-shop/releases/$TIMESTAMP
+            RELEASE_DIR=~/deployments/loumo-main/releases/$TIMESTAMP
 
             mkdir -p $RELEASE_DIR
             cd $RELEASE_DIR
@@ -69,18 +69,20 @@ jobs:
             mv temp-clone/* temp-clone/.* . 2>/dev/null || true
             rm -rf temp-clone
 
-            cp ~/deployments/loumo-shop/shared/.env .env
+            # cp ~/deployments/loumo-admin/shared/.env .env
             export DOCKER_BUILDKIT=0
 
             # Remove any containers that might conflict
             docker rm -f loumo_ui 2>/dev/null || true
 
-            docker compose -f docker-compose.yml --env-file .env build
-            docker compose -f docker-compose.yml --env-file .env up -d
+            docker compose -f docker-compose.yml build
+            docker compose -f docker-compose.yml up -d
+            # docker compose -f docker-compose.yml --env-file .env build
+            # docker compose -f docker-compose.yml --env-file .env up -d
 
             # Health check loop
             for i in {1..10}; do
-              if curl --fail http://localhost:3000/api/health; then
+              if curl --fail http://localhost:3000; then
                 echo "✅ Health check passed"
                 break
               fi
@@ -88,16 +90,18 @@ jobs:
               sleep 12
             done
 
-            if curl --fail http://localhost:3000/api/health; then
-              ln -sfn $RELEASE_DIR ~/deployments/loumo-shop/current
+            if curl --fail http://localhost:3000; then
+              ln -sfn $RELEASE_DIR ~/deployments/loumo-admin/current
               echo "✅ Deployment successful"
             else
               echo "❌ Health check failed, rolling back"
-              if [ -L ~/deployments/loumo-shop/current ]; then
-                PREV=$(readlink ~/deployments/loumo-shop/current)
-                docker compose -f $RELEASE_DIR/docker-compose.yml --env-file .env down || true
-                ln -sfn $PREV ~/deployments/loumo-shop/current
-                docker compose -f $PREV/docker-compose.yml --env-file $PREV/.env up -d
+              if [ -L ~/deployments/loumo-admin/current ]; then
+                PREV=$(readlink ~/deployments/loumo-admin/current)
+                # docker compose -f $RELEASE_DIR/docker-compose.yml --env-file .env down || true
+                docker compose -f $RELEASE_DIR/docker-compose.yml down || true
+                ln -sfn $PREV ~/deployments/loumo-admin/current
+                # docker compose -f $PREV/docker-compose.yml --env-file $PREV/.env up -d
+                docker compose -f $PREV/docker-compose.yml up -d
               else
                 echo "⚠️ No previous release to roll back to"
               fi

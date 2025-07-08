@@ -209,6 +209,7 @@ export type User = {
   email: string;
   password: string;
   name: string;
+  fidelity: number;
   passwordResetOtp: string | null;
   passwordResetOtpExpires: Date | null;
   tel: string | null;

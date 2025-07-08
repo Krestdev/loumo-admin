@@ -30,11 +30,7 @@ import { Order, User, Zone } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
-import {
-  Search,
-  Star,
-  Users
-} from "lucide-react";
+import { Search, Star, Users } from "lucide-react";
 import React, { useState } from "react";
 import BanClient from "./ban";
 import ViewClient from "./view";
@@ -358,21 +354,21 @@ export default function ClientsPage() {
                       )}
                     </TableCell>
                     <TableCell>
-                      {
-                        findLatestByDate(
-                            orders.filter((x) => x.userId === client.id),
-                            "createdAt"
-                          )?.createdAt ?
-                      formatRelative(
-                        new Date(
-                          findLatestByDate(
-                            orders.filter((x) => x.userId === client.id),
-                            "createdAt"
-                          )?.createdAt ?? "2025-01-01"
-                        ), // ✅ date réelle
-                        new Date(), // maintenant
-                        { locale: fr }
-                      ) : "--"}
+                      {findLatestByDate(
+                        orders.filter((x) => x.userId === client.id),
+                        "createdAt"
+                      )?.createdAt
+                        ? formatRelative(
+                            new Date(
+                              findLatestByDate(
+                                orders.filter((x) => x.userId === client.id),
+                                "createdAt"
+                              )?.createdAt ?? "2025-01-01"
+                            ), // ✅ date réelle
+                            new Date(), // maintenant
+                            { locale: fr }
+                          )
+                        : "--"}
                     </TableCell>
                     <TableCell>
                       <Badge
