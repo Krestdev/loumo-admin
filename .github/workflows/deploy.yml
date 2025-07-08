@@ -69,7 +69,7 @@ jobs:
             mv temp-clone/* temp-clone/.* . 2>/dev/null || true
             rm -rf temp-clone
 
-            # cp ~/deployments/loumo-admin/shared/.env .env
+            # cp ~/deployments/loumo-main/shared/.env .env
             export DOCKER_BUILDKIT=0
 
             # Remove any containers that might conflict
@@ -91,15 +91,15 @@ jobs:
             done
 
             if curl --fail http://localhost:3001; then
-              ln -sfn $RELEASE_DIR ~/deployments/loumo-admin/current
+              ln -sfn $RELEASE_DIR ~/deployments/loumo-main/current
               echo "✅ Deployment successful"
             else
               echo "❌ Health check failed, rolling back"
-              if [ -L ~/deployments/loumo-admin/current ]; then
-                PREV=$(readlink ~/deployments/loumo-admin/current)
+              if [ -L ~/deployments/loumo-main/current ]; then
+                PREV=$(readlink ~/deployments/loumo-main/current)
                 # docker compose -f $RELEASE_DIR/docker-compose.yml --env-file .env down || true
                 docker compose -f $RELEASE_DIR/docker-compose.yml down || true
-                ln -sfn $PREV ~/deployments/loumo-admin/current
+                ln -sfn $PREV ~/deployments/loumo-main/current
                 # docker compose -f $PREV/docker-compose.yml --env-file $PREV/.env up -d
                 docker compose -f $PREV/docker-compose.yml up -d
               else
