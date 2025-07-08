@@ -5,14 +5,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -39,18 +31,13 @@ import { useQuery } from "@tanstack/react-query";
 import { formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
-  Calendar,
-  Mail,
-  MapPin,
-  Phone,
   Search,
-  ShoppingCart,
   Star,
-  Users,
+  Users
 } from "lucide-react";
 import React, { useState } from "react";
-import ViewClient from "./view";
 import BanClient from "./ban";
+import ViewClient from "./view";
 
 export default function ClientsPage() {
   const clientQuery = new UserQuery();
@@ -385,7 +372,12 @@ export default function ClientsPage() {
                       )}
                     </TableCell>
                     <TableCell>
-                      {formatRelative(
+                      {
+                        findLatestByDate(
+                            orders.filter((x) => x.userId === client.id),
+                            "createdAt"
+                          )?.createdAt ?
+                      formatRelative(
                         new Date(
                           findLatestByDate(
                             orders.filter((x) => x.userId === client.id),
@@ -394,7 +386,7 @@ export default function ClientsPage() {
                         ), // ✅ date réelle
                         new Date(), // maintenant
                         { locale: fr }
-                      )}
+                      ) : "--"}
                     </TableCell>
                     <TableCell>
                       <Badge

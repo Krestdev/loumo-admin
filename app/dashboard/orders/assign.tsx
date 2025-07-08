@@ -88,6 +88,7 @@ function AssignDriver({ order, isOpen, openChange, zones }: Props) {
         agentId: Number(values.agentId),
         orderId: Number(values.orderId),
         scheduledTime: new Date(values.scheduledTime),
+        status: "STARTED"
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({queryKey:["agents"], refetchType: "active"});

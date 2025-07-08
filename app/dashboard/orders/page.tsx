@@ -1,18 +1,10 @@
 "use client";
 
-import { DialogTrigger } from "@/components/ui/dialog";
+import PageLayout from "@/components/page-layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -28,29 +20,25 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import OrderQuery from "@/queries/order";
-import { Order, Payment, Zone } from "@/types/types";
-import { useQuery } from "@tanstack/react-query";
 import {
-  CheckCircle,
-  CreditCard,
-  Download,
-  Eye,
-  Filter,
-  MapPin,
-  Package,
-  Search,
-  Truck,
-  User,
-  UserPlus,
-} from "lucide-react";
-import React, { useState } from "react";
-import PageLayout from "@/components/page-layout";
-import { getOrderStatusLabel, paymentStatusMap, statusMap, XAF } from "@/lib/utils";
-import ZoneQuery from "@/queries/zone";
+  getOrderStatusLabel,
+  paymentStatusMap,
+  statusMap,
+  XAF,
+} from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import ViewOrder from "./view";
+import OrderQuery from "@/queries/order";
+import ZoneQuery from "@/queries/zone";
+import { Delivery, Order, Zone } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
+import { Download, Loader, Search } from "lucide-react";
+import React, { useState } from "react";
 import AssignDriver from "./assign";
+import ViewOrder from "./view";
+import DeliveryQuery from "@/queries/delivery";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import { OrdersPDFDocument } from "./pdf";
+import EndOrder from "./end";
 
 export default function OrdersPage() {
   const ordersQuery = new OrderQuery();
@@ -67,8 +55,15 @@ export default function OrdersPage() {
     refetchOnWindowFocus: false,
   });
 
+  const deliveryQuery = new DeliveryQuery();
+  const getDeliveries = useQuery({
+    queryKey: ["deliveries"],
+    queryFn: () => deliveryQuery.getAll(),
+  });
+
   const [orders, setOrders] = useState<Order[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
+  const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const { setLoading } = useStore();
 
   const [selectedOrder, setSelectedOrder] = useState<Order | undefined>();
@@ -79,29 +74,37 @@ export default function OrdersPage() {
   const [zoneFilter, setZoneFilter] = useState("all");
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [viewDialog, setViewDialog] = useState(false);
+  const [endDialog, setEndDialog] = useState(false);
 
   const [assignDriverDialog, setAssignDriverDialog] = useState(false);
-  const [selectedOrderForAssign, setSelectedOrderForAssign] =
-    useState<Order | null>(null);
 
   React.useEffect(() => {
-    setLoading(orderData.isLoading || getZones.isLoading);
+    setLoading(
+      orderData.isLoading || getZones.isLoading || getDeliveries.isLoading
+    );
     if (orderData.isSuccess) {
       setOrders(orderData.data);
     }
     if (getZones.isSuccess) {
       setZones(getZones.data);
     }
+    if (getDeliveries.isSuccess) {
+      setDeliveries(getDeliveries.data);
+    }
   }, [
     setLoading,
     setZones,
     setOrders,
+    setDeliveries,
     getZones.data,
     getZones.isLoading,
     getZones.isSuccess,
     orderData.data,
     orderData.isLoading,
     orderData.isSuccess,
+    getDeliveries.data,
+    getDeliveries.isLoading,
+    getDeliveries.isSuccess,
   ]);
 
   /**Period filter settings */
@@ -127,23 +130,6 @@ export default function OrdersPage() {
         return true;
     }
   }
-
-  const availableDrivers = [
-    {
-      id: 1,
-      name: "Ibrahima Sarr",
-      zone: "Dakar Plateau",
-      status: "Disponible",
-    },
-    {
-      id: 2,
-      name: "Moussa Diallo",
-      zone: "Parcelles Assainies",
-      status: "Disponible",
-    },
-    { id: 3, name: "Abdou Kane", zone: "Yoff", status: "Disponible" },
-    { id: 4, name: "Fatou Mbaye", zone: "Almadies", status: "Disponible" },
-  ];
 
   const filteredOrders = React.useMemo(() => {
     return orders.filter((order) => {
@@ -211,9 +197,16 @@ export default function OrdersPage() {
     setAssignDriverDialog(true);
   };
 
+  const handleEnd = (order: Order) => {
+    setSelectedOrder(order);
+    setEndDialog(true);
+  }
+
   return (
     <PageLayout
-      isLoading={orderData.isLoading || getZones.isLoading}
+      isLoading={
+        orderData.isLoading || getZones.isLoading || getDeliveries.isLoading
+      }
       className="flex-1 overflow-auto p-4 space-y-6"
     >
       {/* Filters */}
@@ -305,8 +298,15 @@ export default function OrdersPage() {
               {"Filtres avancés"}
             </Button>
  */}
-            <Button variant="secondary">
-              <Download size={16} /> {"Exporter"}
+            <Button>
+              <PDFDownloadLink
+                document={<OrdersPDFDocument orders={filteredOrders} />}
+                fileName="liste-commandes.pdf"
+              >
+                {({ loading }) =>
+                  loading ? <Loader size={16}/> : "Exporter en PDF"
+                }
+              </PDFDownloadLink>
             </Button>
           </div>
         </CardContent>
@@ -427,24 +427,25 @@ export default function OrdersPage() {
                           >
                             {"Voir"}
                           </Button>
-                          {
-                            (order.status === "PENDING" || order.status === "ACCEPTED")  &&
+                          {!deliveries.find((z) => z.orderId === order.id) && (
                             <Button
-                            variant="outline"
-                            onClick={() => {
-                              handleAssign(order);
-                            }}
-                          >
-                            {"Assigner"}
-                          </Button>}
+                              variant="outline"
+                              onClick={() => {
+                                handleAssign(order);
+                              }}
+                            >
+                              {"Assigner"}
+                            </Button>
+                          )}
 
-                          {(order.status === "ACCEPTED" || order.status === "PENDING" || order.status === "PROCESSING") && (
+                          {(order.status === "ACCEPTED" ||
+                            order.status === "PENDING" ||
+                            order.status === "PROCESSING") && (
                             <Button
                               variant="success"
                               size="default"
                               onClick={() => {
-                                // Marquer comme livré
-                                console.log("Marquer comme livré:", order.id);
+                                handleEnd(order)
                               }}
                             >
                               {"Terminer"}
@@ -474,6 +475,13 @@ export default function OrdersPage() {
           isOpen={assignDriverDialog}
           order={selectedOrder}
           zones={zones}
+        />
+      )}
+      {selectedOrder && (
+        <EndOrder
+          openChange={setEndDialog}
+          isOpen={endDialog}
+          order={selectedOrder}
         />
       )}
     </PageLayout>

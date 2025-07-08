@@ -42,7 +42,8 @@ function AssignToDriver({driver, isOpen, openChange}:Props) {
     mutationFn: (values: z.infer<typeof deliverySchema>) => queryDelivery.create({
       agentId: Number(values.agentId),
       orderId: Number(values.orderId),
-      scheduledTime: new Date(values.scheduledTime)
+      scheduledTime: new Date(values.scheduledTime),
+      status: "STARTED"
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({queryKey:["agents"], refetchType: "active"});

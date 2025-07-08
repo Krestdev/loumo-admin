@@ -19,6 +19,9 @@ export interface sidebarItemGroup {
   title: string;
   items: navigationElement[];
 }
+
+export type DeliveryPriority = "LOW" | "NORMAL" | "HIGH" | "URGENT";
+
 export type Address = {
   street: string;
   local: string;
@@ -66,7 +69,7 @@ export type Delivery = {
   id: number;
   status: "NOTSTARTED"|"STARTED"|"COMPLETED"|"CANCELED";
   trackingCode: string;
-  priority: string;
+  priority: DeliveryPriority;
   agentId: number | null;
   orderId: number;
   orderItem?: OrderItem[];
@@ -198,6 +201,7 @@ export type Stock = {
   shop?: Shop;
   promotionId: number | null;
   promotion?: Promotion;
+  restockDate?: Date;
 };
 
 export type User = {

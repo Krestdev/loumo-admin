@@ -23,7 +23,7 @@ export default class OrderQuery {
 
   update = async (
     id: number,
-    data: Partial<Omit<Order, "id">> & { addressId?: number }
+    data: Partial<Order> & { addressId?: number }
   ): Promise<Order> => {
     return api
       .put(`${this.route}/${id}`, data)

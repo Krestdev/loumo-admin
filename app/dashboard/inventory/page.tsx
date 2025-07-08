@@ -39,7 +39,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { format } from "date-fns";
+import { format, formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
 import StockQuery from "@/queries/stock";
 import { useQuery } from "@tanstack/react-query";
@@ -49,6 +49,7 @@ import { useStore } from "@/providers/datastore";
 import PageLayout from "@/components/page-layout";
 import ProductQuery from "@/queries/product";
 import { XAF } from "@/lib/utils";
+import Restock from "./add";
 
 export default function InventoryPage() {
   const stockQuery = new StockQuery();
@@ -102,6 +103,8 @@ export default function InventoryPage() {
   const [selectedThreshold, setSelectedThreshold] = useState("all");
   const [dateFrom, setDateFrom] = useState<Date>();
   const [dateTo, setDateTo] = useState<Date>();
+  const [selectedStock, setSelectedStock] = useState<Stock>();
+  const [addDialog, setAddDialog] = useState<boolean>(false);
 
   const filteredData = useMemo(() => {
     return stocks.filter((item) => {
@@ -122,6 +125,11 @@ export default function InventoryPage() {
       return matchesSearch && matchesProduct; //&& matchesThreshold && matchesDate;
     });
   }, [stocks, searchTerm, selectedProduct]);
+
+  const handleRestock = (item: Stock) => {
+    setSelectedStock(item);
+    setAddDialog(true);
+  }
 
   return (
     <PageLayout
@@ -272,6 +280,7 @@ export default function InventoryPage() {
                     mode="single"
                     selected={dateFrom}
                     onSelect={setDateFrom}
+                    disabled
                     initialFocus
                   />
                 </PopoverContent>
@@ -298,6 +307,7 @@ export default function InventoryPage() {
                     selected={dateTo}
                     onSelect={setDateTo}
                     initialFocus
+                    disabled
                   />
                 </PopoverContent>
               </Popover>
@@ -359,7 +369,7 @@ export default function InventoryPage() {
                       {/* {format(new Date(item.lastRestock), "dd/MM/yyyy", {
                       locale: fr,
                     })} */}
-                      {"A définir"}
+                      {item.restockDate ? formatRelative(new Date(item.restockDate), new Date(), {locale: fr}) : "--"}
                     </TableCell>
                     <TableCell>
                       <Badge variant={item.quantity === 0
@@ -377,7 +387,7 @@ export default function InventoryPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={()=>handleRestock(item)}>
                         {"Réapprovisionner"}
                       </Button>
                     </TableCell>
@@ -388,6 +398,9 @@ export default function InventoryPage() {
           </Table>
         </CardContent>
       </Card>
+      {
+        !!selectedStock && <Restock isOpen={addDialog} openChange={setAddDialog} products={products} stock={selectedStock} shops={shops} />
+      }
     </PageLayout>
   );
 }

@@ -89,11 +89,11 @@ function ViewDelivery({isOpen, openChange, delivery, agents}:Props) {
                     {agents.find(x=> x.id === delivery.agentId)?.user?.name}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {agents.find(x=> x.id === delivery.agentId)?.user?.tel ?? "Non renseigné"}
+                    {agents.find(x=> x.id === delivery.agentId)?.user?.tel ?? "Aucun numéro de téléphone"}
                   </p>
                   <div className="flex items-center gap-1 mt-1">
                     <span className="text-xs">
-                      {`Note: ${agents.find(x=> x.id === delivery.agentId)?.code}/5`}
+                      {`${agents.find(x=> x.id === delivery.agentId)?.code}`}
                     </span>
                   </div>
                 </div>
@@ -143,12 +143,14 @@ function ViewDelivery({isOpen, openChange, delivery, agents}:Props) {
               <Navigation size={16} />
               {"Suivre en temps réel"}
             </Button>
-            <a href={agents.find(x=> x.id === delivery.agentId)?.user?.tel ? `tel:${agents.find(x=> x.id === delivery.agentId)?.user?.tel}` : "#"}>
-            <Button variant="outline" disabled={!agents.find(x=> x.id === delivery.agentId)}>
+            {
+              !!agents.find(x=> x.id === delivery.agentId)?.user?.tel &&
+              <a href={`tel:${agents.find(x=> x.id === delivery.agentId)?.user?.tel}`}>
+            <Button variant="outline">
               <Phone size={16} />
               {"Contacter livreur"}
             </Button>
-            </a>
+            </a>}
           </div>
         </div>
       </DialogContent>

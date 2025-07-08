@@ -116,7 +116,7 @@ export const sidebarContent: sidebarItemGroup[] = [
     ],
   },
   {
-    title: "Utilisateurs",
+    title: "Marketing",
     items: [
       {
         title: "Clients",
@@ -126,27 +126,6 @@ export const sidebarContent: sidebarItemGroup[] = [
         icon: Users,
         display: true
       },
-      {
-        title: "Mon Equipe",
-        header: "Equipe Loumo",
-        description: "Gérez le personnel d'administration",
-        url: "/dashboard/staff",
-        icon: Users,
-        display: true
-      },
-      {
-        title: "Rôles & permissions",
-        header: "Rôles & permissions",
-        description: "Gérez les rôles et leurs permissions d'accès",
-        url: "/dashboard/roles",
-        icon: Shield,
-        display: true
-      },
-    ],
-  },
-  {
-    title: "Marketing",
-    items: [
       {
         title: "Promotions",
         header: "Gestion des Promotions",
@@ -161,6 +140,27 @@ export const sidebarContent: sidebarItemGroup[] = [
         description: "Gérez les points et les récompenses de vos clients",
         url: "/dashboard/loyalty",
         icon: Star,
+        display: true
+      },
+    ],
+  },
+  {
+    title: "Utilisateurs",
+    items: [
+      {
+        title: "Mon Equipe",
+        header: "Equipe Loumo",
+        description: "Gérez le personnel d'administration",
+        url: "/dashboard/staff",
+        icon: Users,
+        display: true
+      },
+      {
+        title: "Rôles & permissions",
+        header: "Rôles & permissions",
+        description: "Gérez les rôles et leurs permissions d'accès",
+        url: "/dashboard/roles",
+        icon: Shield,
         display: true
       },
     ],

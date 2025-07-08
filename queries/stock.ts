@@ -36,4 +36,7 @@ export default class StockQuery {
   delete = async (id: number): Promise<Stock> => {
     return api.delete(`${this.route}/${id}`).then((response) => response.data);
   };
+  restock = async (id: number, data:{quantity:number}): Promise<Stock> => {
+    return api.put(`${this.route}/restock/${id}`, data).then((response)=>response.data)
+  }
 }

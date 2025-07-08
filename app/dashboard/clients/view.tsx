@@ -167,7 +167,12 @@ function ViewClient({ client, isOpen, openChange, orders }: Props) {
                   {"Dernière commande:"}
                 </p>
                 <p className="font-medium">
-                  {formatRelative(
+                  {
+                    findLatestByDate(
+                        orders.filter((x) => x.userId === client.id),
+                        "createdAt"
+                      )?.createdAt ?
+                  formatRelative(
                     new Date(
                       findLatestByDate(
                         orders.filter((x) => x.userId === client.id),
@@ -176,7 +181,7 @@ function ViewClient({ client, isOpen, openChange, orders }: Props) {
                     ), // ✅ date réelle
                     new Date(), // maintenant
                     { locale: fr }
-                  )}
+                  ) : <span className="italic !font-normal">{"Aucune commande enregistrée"}</span>}
                 </p>
               </div>
             </CardContent>
