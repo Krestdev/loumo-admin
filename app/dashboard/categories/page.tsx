@@ -189,7 +189,7 @@ export default function CategoriesPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Affichées sur l'accueil
+              {"Affichées sur l'accueil"}
             </CardTitle>
             <Tag className="h-4 w-4 text-blue-500" />
           </CardHeader>
@@ -198,7 +198,7 @@ export default function CategoriesPage() {
               {categoriesData.filter((c) => c.showOnHomepage).length}
             </div>
             <p className="text-xs text-muted-foreground">
-              Visibles sur la page d'accueil
+              {"Visibles sur la page d'accueil"}
             </p>
           </CardContent>
         </Card>
@@ -255,6 +255,7 @@ export default function CategoriesPage() {
                     {"Aucune catégorie trouvée"}
                     <img
                       src={"/images/search.png"}
+                      alt="no-img"
                       className="w-1/3 max-w-32 h-auto mx-auto mt-5 opacity-20"
                     />
                   </TableCell>

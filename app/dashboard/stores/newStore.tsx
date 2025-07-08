@@ -103,7 +103,7 @@ function NewStore({ isOpen, openChange }: Props) {
     if (isOpen) {
       form.reset();
     }
-  }, [isOpen]);
+  }, [isOpen, form]);
 
   return (
     <Dialog open={isOpen} onOpenChange={openChange}>

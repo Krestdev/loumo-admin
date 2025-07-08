@@ -1,16 +1,14 @@
 "use client";
+import { Order, ProductVariant, Zone } from "@/types/types";
 import {
   Document,
-  Page,
-  Text,
-  View,
-  StyleSheet,
-  Font,
   Image,
+  Page,
+  StyleSheet,
+  Text,
+  View
 } from "@react-pdf/renderer";
-import { Order, ProductVariant, Zone } from "@/types/types";
 import { format } from "date-fns";
-import { formatXAF } from "@/lib/utils";
 
 // STYLES PDF
 const styles = StyleSheet.create({

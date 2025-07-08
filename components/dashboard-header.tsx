@@ -7,7 +7,7 @@ import { sidebarContent } from '@/data/navigation';
 function DashboardHeader() {
 
     const pathname = usePathname();
-    const paths = pathname.split('/').filter(path => path);
+    //const paths = pathname.split('/').filter(path => path);
 
   return (
     <header className="flex h-16 sticky top-0 z-10 shrink-0 items-center gap-2 border-b px-4 bg-white">

@@ -90,7 +90,7 @@ function EditVariant({ variant, isOpen, openChange, products }: Props) {
       imgUrl: variant.imgUrl,
     });
   }
-}, [variant, isOpen]); 
+}, [variant, isOpen, form]); 
 
   return (
     <Dialog open={isOpen} onOpenChange={openChange}>

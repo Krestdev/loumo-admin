@@ -71,7 +71,7 @@ function GroupEdit({ ids, isOpen, openChange, categories }: Props) {
                                         <SelectValue placeholder="Changer la catégorie" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                        {categories.map((cat, id) => (
+                                        {categories.map(cat => (
                                             <SelectItem key={cat.id} value={cat.name}>
                                             {cat.name}
                                             </SelectItem>

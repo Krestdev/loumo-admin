@@ -326,6 +326,7 @@ export default function DeliveriesPage() {
                     {"Aucune Livraison trouvée"}
                     <img
                       src={"/images/search.png"}
+                      alt="no-image"
                       className="w-1/3 max-w-32 h-auto mx-auto mt-5 opacity-20"
                     />
                   </TableCell>

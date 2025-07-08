@@ -78,6 +78,7 @@ export default function ClientsPage() {
       setOrders(getOrders.data);
     }
   }, [
+    setLoading,
     getUsers.data,
     getUsers.isLoading,
     getUsers.isSuccess,
@@ -96,7 +97,6 @@ export default function ClientsPage() {
   const [clientDialog, setClientDialog] = useState(false);
   const [banDialog, setBanDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [zoneFilter, setZoneFilter] = useState("all");
   const [periodFilter, setPeriodFilter] = useState("all");
 
@@ -129,10 +129,6 @@ export default function ClientsPage() {
         client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         client.email.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesStatus =
-        statusFilter === "all" ||
-        (statusFilter === "verified" && client.verified) ||
-        (statusFilter === "unverified" && !client.verified);
 
       const matchesZone =
         zoneFilter === "all" ||
@@ -142,9 +138,9 @@ export default function ClientsPage() {
         periodFilter === "all" ||
         isWithinPeriod(client.createdAt, periodFilter);
 
-      return matchesSearch && matchesStatus && matchesZone && matchesPeriod;
+      return matchesSearch && matchesZone && matchesPeriod;
     });
-  }, [users, searchTerm, statusFilter, zoneFilter, periodFilter]);
+  }, [users, searchTerm, zoneFilter, periodFilter]);
 
   const handleView = (element: User) => {
     setSelectedClient(element);
@@ -257,16 +253,6 @@ export default function ClientsPage() {
                 />
               </div>
             </div>
-            {/* <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Statut" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{"Tous"}</SelectItem>
-                <SelectItem value="Fidèle">{"Fidèle"}</SelectItem>
-                <SelectItem value="Nouveau">{"Nouveau"}</SelectItem>
-              </SelectContent>
-            </Select> */}
             <Select value={zoneFilter} onValueChange={setZoneFilter}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Zone" />
@@ -422,6 +408,7 @@ export default function ClientsPage() {
                     {"Aucun client trouvé"}
                     <img
                       src={"/images/search.png"}
+                      alt={"no-image"}
                       className="w-1/3 max-w-32 h-auto mx-auto mt-5 opacity-20"
                     />
                   </TableCell>

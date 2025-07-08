@@ -82,7 +82,7 @@ export default function StoresPage() {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const { setLoading } = useStore();
 
-  const [selectedStore, setSelectedStore] = useState(null);
+  //const [selectedStore, setSelectedStore] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   React.useEffect(() => {
@@ -205,7 +205,7 @@ export default function StoresPage() {
           <TabsTrigger value="overview">{"Vue d'ensemble"}</TabsTrigger>
           <TabsTrigger value="performance">{"Performance"}</TabsTrigger>
           <TabsTrigger value="coverage">{"Zones de couverture"}</TabsTrigger>
-          <TabsTrigger value="inventory">{"Stock par boutique"}</TabsTrigger>
+          {/* <TabsTrigger value="inventory">{"Stock par boutique"}</TabsTrigger> */}
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -417,7 +417,7 @@ export default function StoresPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="inventory" className="space-y-4">
+        {/* <TabsContent value="inventory" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Stock par Boutique</CardTitle>
@@ -515,7 +515,7 @@ export default function StoresPage() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabsContent> */}
       </Tabs>
       <NewStore isOpen={isDialogOpen} openChange={setIsDialogOpen}/>
     </PageLayout>

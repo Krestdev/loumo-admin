@@ -4,6 +4,12 @@ import PageLayout from "@/components/page-layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -24,6 +30,7 @@ import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import ProductQuery from "@/queries/product";
 import ProductVariantQuery from "@/queries/productVariant";
+import ShopQuery from "@/queries/shop";
 import { Product, ProductVariant, Shop } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -32,25 +39,15 @@ import {
   Layers,
   MoreHorizontal,
   Package,
-  Palette,
   PlusCircle,
   Search,
-  Trash2,
-  Weight,
+  Trash2
 } from "lucide-react";
 import Link from "next/link";
-import React from "react";
-import { useState } from "react";
-import ViewVariant from "./view";
+import React, { useState } from "react";
 import DeleteVariant from "./delete";
 import EditVariant from "./edit";
-import ShopQuery from "@/queries/shop";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import ViewVariant from "./view";
 
 export default function VariantsPage() {
   const actions = new ProductVariantQuery();
@@ -105,9 +102,9 @@ export default function VariantsPage() {
     shopData.isLoading,
   ]);
 
-  const [selectedVariant, setSelectedVariant] = useState(variants[0]);
+  //const [selectedVariant, setSelectedVariant] = useState(variants[0]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [typeFilter, setTypeFilter] = useState("all");
+  //const [typeFilter, setTypeFilter] = useState("all");
   const [productFilter, setProductFilter] = useState("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [activeVariant, setActiveVariant] = useState<
@@ -349,6 +346,7 @@ export default function VariantsPage() {
                     {"Aucune variante de produit trouvée"}
                     <img
                       src={"/images/search.png"}
+                      alt="no-image"
                       className="w-1/3 max-w-32 h-auto mx-auto mt-5 opacity-20"
                     />
                   </TableCell>

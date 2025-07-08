@@ -8,7 +8,7 @@ import {
   Text,
   View,
   StyleSheet,
-  Font
+  //Font
 } from "@react-pdf/renderer";
 import { Order } from "@/types/types";
 import { format } from "date-fns";

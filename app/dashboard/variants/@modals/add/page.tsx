@@ -219,7 +219,7 @@ function PageAdd() {
           {previewUrl && (
             <img
               src={previewUrl}
-              alt="Aperçu de l'image"
+              alt={value ?? "apercu"}
               className="mt-2 h-32 rounded object-cover"
             />
           )}

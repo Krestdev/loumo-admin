@@ -10,22 +10,21 @@ import DeliveryQuery from "@/queries/delivery";
 import UserQuery from "@/queries/user";
 import { Agent, Delivery, User } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
+import { isSameDay } from "date-fns";
 import {
-  Clock,
   Edit,
   Package,
   Phone,
   Plus,
   Trash2,
   Truck,
-  UserIcon,
+  UserIcon
 } from "lucide-react";
 import React from "react";
 import AddDriver from "./add";
-import EditDriver from "./edit";
-import DeleteDriver from "./delete";
-import { isSameDay } from "date-fns";
 import AssignToDriver from "./assign";
+import DeleteDriver from "./delete";
+import EditDriver from "./edit";
 
 function Page() {
   const agentQuery = new AgentQuery();

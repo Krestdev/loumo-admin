@@ -1,7 +1,6 @@
 "use client"
 
 import {
-  Box,
   LogOut,
   Settings
 } from "lucide-react"
@@ -52,7 +51,7 @@ export function AppSidebar() {
           )}
         </div> */}
         <Link href={"/dashboard"} className="flex">
-          { state === "collapsed" ? <img src={"/logo-mini.svg"} className="size-4"/> : <img src={"/logo.svg"} className="h-8 w-auto"/> }
+          { state === "collapsed" ? <img src={"/logo-mini.svg"} alt="logo" className="size-4"/> : <img src={"/logo.svg"} alt="logo" className="h-8 w-auto"/> }
         </Link>
       </SidebarHeader>
 

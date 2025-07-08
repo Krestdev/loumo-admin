@@ -56,7 +56,7 @@ export default function AddProductModal() {
   {
     /**Fetch all categories */
   }
-  const { data, isLoading, isSuccess } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["categories"],
     queryFn: () => categoriesQuery.getAll(),
   });

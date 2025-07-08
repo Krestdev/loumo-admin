@@ -23,7 +23,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import AgentQuery from "@/queries/agent";
 import UserQuery from "@/queries/user";
 import ZoneQuery from "@/queries/zone";
@@ -33,7 +32,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader } from "lucide-react";
 import React from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "react-toastify";
 import { z } from "zod";
 
 type Props = {
