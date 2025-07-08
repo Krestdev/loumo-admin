@@ -31,49 +31,11 @@ import { fr } from "date-fns/locale";
 import { CheckCircle, Clock, Package, Search, Truck, User } from "lucide-react";
 import React, { useState } from "react";
 import EditDelivery from "./edit";
-import ViewDelivery from "./view";
 import EndDelivery from "./end";
+import ViewDelivery from "./view";
+import { getPriorityColor, getStatusColor } from "@/lib/utils";
 
-export const getPriorityName = (priority: Delivery["priority"]) => {
-  switch (priority) {
-    case "URGENT":
-      return "Urgent";
-    case "HIGH":
-      return "Haute";
-    case "LOW":
-      return "Faible";
-    default:
-      return "Normale";
-  }
-};
 
-export const getStatusColor = (status: Delivery["status"]) => {
-  switch (status) {
-    case "NOTSTARTED":
-      return "warning";
-    case "COMPLETED":
-      return "default";
-    case "STARTED":
-      return "info";
-    case "CANCELED":
-      return "destructive";
-    default:
-      return "outline";
-  }
-};
-
-export const getPriorityColor = (priority: Delivery["priority"]) => {
-  switch (priority) {
-    case "URGENT":
-      return "destructive";
-    case "HIGH":
-      return "warning";
-    case "LOW":
-      return "outline";
-    default:
-      return "info";
-  }
-};
 
 export default function DeliveriesPage() {
   const deliveriesQuery = new DeliveryQuery();
@@ -326,6 +288,7 @@ export default function DeliveriesPage() {
                     {"Aucune Livraison trouvée"}
                     <img
                       src={"/images/search.png"}
+                      alt="no-image"
                       className="w-1/3 max-w-32 h-auto mx-auto mt-5 opacity-20"
                     />
                   </TableCell>

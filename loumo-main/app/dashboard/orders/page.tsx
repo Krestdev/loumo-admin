@@ -4,6 +4,13 @@ import PageLayout from "@/components/page-layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -27,33 +34,25 @@ import {
   XAF,
 } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
+import DeliveryQuery from "@/queries/delivery";
 import OrderQuery from "@/queries/order";
 import ZoneQuery from "@/queries/zone";
 import { Delivery, Order, Zone } from "@/types/types";
+import { PDFDownloadLink } from "@react-pdf/renderer";
 import { useQuery } from "@tanstack/react-query";
 import {
   CheckCircleIcon,
-  Download,
   Eye,
   Loader,
   MoreHorizontal,
   Search,
-  SquareChevronRight,
+  SquareChevronRight
 } from "lucide-react";
 import React, { useState } from "react";
 import AssignDriver from "./assign";
-import ViewOrder from "./view";
-import DeliveryQuery from "@/queries/delivery";
-import { PDFDownloadLink } from "@react-pdf/renderer";
-import { OrdersPDFDocument } from "./pdf";
 import EndOrder from "./end";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { OrdersPDFDocument } from "./pdf";
+import ViewOrder from "./view";
 
 export default function OrdersPage() {
   const ordersQuery = new OrderQuery();
@@ -357,6 +356,7 @@ export default function OrdersPage() {
                       {"Aucune commande trouvée"}
                       <img
                         src={"/images/search.png"}
+                        alt="no-image"
                         className="w-1/3 max-w-32 h-auto mx-auto mt-5 opacity-20"
                       />
                     </TableCell>

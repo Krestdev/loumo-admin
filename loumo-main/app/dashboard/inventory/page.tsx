@@ -1,6 +1,9 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import PageLayout from "@/components/page-layout";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import {
   Card,
   CardContent,
@@ -8,9 +11,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -26,29 +32,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Search,
-  Download,
-  AlertTriangle,
-  Package,
-  Calendar,
-} from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { XAF } from "@/lib/utils";
+import { useStore } from "@/providers/datastore";
+import ProductQuery from "@/queries/product";
+import ShopQuery from "@/queries/shop";
+import StockQuery from "@/queries/stock";
+import { Product, Shop, Stock } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
 import { format, formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
-import StockQuery from "@/queries/stock";
-import { useQuery } from "@tanstack/react-query";
-import ShopQuery from "@/queries/shop";
-import { Product, Shop, Stock } from "@/types/types";
-import { useStore } from "@/providers/datastore";
-import PageLayout from "@/components/page-layout";
-import ProductQuery from "@/queries/product";
-import { XAF } from "@/lib/utils";
+import {
+  AlertTriangle,
+  Calendar,
+  Package,
+  Search
+} from "lucide-react";
+import React, { useMemo, useState } from "react";
 import Restock from "./add";
 
 export default function InventoryPage() {
@@ -87,6 +86,7 @@ export default function InventoryPage() {
       setProducts(getProducts.data);
     }
   }, [
+    setLoading,
     getShops.isLoading,
     getStocks.isLoading,
     getShops.isSuccess,
@@ -100,7 +100,7 @@ export default function InventoryPage() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<string>("all");
-  const [selectedThreshold, setSelectedThreshold] = useState("all");
+  //const [selectedThreshold, setSelectedThreshold] = useState("all");
   const [dateFrom, setDateFrom] = useState<Date>();
   const [dateTo, setDateTo] = useState<Date>();
   const [selectedStock, setSelectedStock] = useState<Stock>();
@@ -345,6 +345,7 @@ export default function InventoryPage() {
                     {"Aucun produit trouvé"}
                     <img
                       src={"/images/search.png"}
+                      alt="no-image"
                       className="w-1/3 max-w-32 h-auto mx-auto mt-5 opacity-20"
                     />
                   </TableCell>

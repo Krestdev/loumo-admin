@@ -1,16 +1,13 @@
 "use client";
+import { Order, ProductVariant, Zone } from "@/types/types";
 import {
   Document,
   Page,
-  Text,
-  View,
   StyleSheet,
-  Font,
-  Image,
+  Text,
+  View
 } from "@react-pdf/renderer";
-import { Order, ProductVariant, Zone } from "@/types/types";
 import { format } from "date-fns";
-import { formatXAF } from "@/lib/utils";
 
 // STYLES PDF
 const styles = StyleSheet.create({
@@ -75,7 +72,7 @@ export const OrderInvoice = ({ order, variants, zones, logoUrl }: Props) => {
     <Document>
       <Page size="A5" style={styles.page}>
         <View style={styles.header}>
-          {logoUrl && <Image src={logoUrl} style={styles.logo} />}
+          {logoUrl && <img src={logoUrl} style={styles.logo} alt="logo" />}
           <Text style={styles.title}>FACTURE</Text>
           <Text>{`Commande #${order.id} du ${format(order.createdAt, "dd/MM/yyyy - HH:mm")}`}</Text>
         </View>

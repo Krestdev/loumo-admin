@@ -5,6 +5,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 import ProductQuery from '@/queries/product';
 import { Category, Product } from '@/types/types';
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,7 +25,8 @@ type Props = {
 const formSchema = z.object({
     name: z.string({message: "Veuillez entrer un nom"}),
     category: z.string({message: "Veuillez sélectionner une catégorie"}),
-    status: z.boolean()
+    status: z.boolean(),
+    description: z.string({message: "Veuillez renseigner une description du produit"}).min(12, {message: "Description trop courte"}).max(240,{message:"240 caractères maximum"})
 })
 
 function EditProduct({product, categories, isOpen, openChange}:Props) {
@@ -33,7 +35,8 @@ function EditProduct({product, categories, isOpen, openChange}:Props) {
         defaultValues: {
             name: product.name,
             category: String(product.categoryId),
-            status: product.status
+            status: product.status,
+            description: product.description,
         }
     });
     const onSubmit = (values:z.infer<typeof formSchema>)=>{
@@ -47,6 +50,7 @@ function EditProduct({product, categories, isOpen, openChange}:Props) {
             name: values.name,
             status: values.status,
             categoryId: Number(values.category),
+            description: values.description,
         }),
         onSuccess: ()=> {
             queryClient.invalidateQueries({queryKey: ["products"], refetchType: "active"})
@@ -63,7 +67,7 @@ function EditProduct({product, categories, isOpen, openChange}:Props) {
             status: product.status
     });
   }
-}, [product, isOpen]); 
+}, [product, isOpen, form]); 
   return (
     <Dialog open={isOpen} onOpenChange={openChange}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -107,6 +111,14 @@ function EditProduct({product, categories, isOpen, openChange}:Props) {
                         </FormControl>
                         <FormMessage/>
                     </FormItem>
+                )} />
+                <FormField control={form.control} name="description" render={({field})=>(
+                  <FormItem>
+                    <FormLabel>{"Description"}</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} placeholder="Description du produit"/>
+                    </FormControl>
+                  </FormItem>
                 )} />
               </div>
             </div>

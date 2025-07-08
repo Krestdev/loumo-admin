@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -6,13 +7,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Agent, Delivery, DeliveryPriority } from "@/types/types";
-import React from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import DeliveryQuery from "@/queries/delivery";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import z from "zod";
 import {
   Form,
   FormControl,
@@ -22,6 +16,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -29,10 +24,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getPriorityName } from "./page";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { getPriorityName } from "@/lib/utils";
+import DeliveryQuery from "@/queries/delivery";
+import { Agent, Delivery } from "@/types/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader } from "lucide-react";
+import React from "react";
+import { useForm } from "react-hook-form";
+import z from "zod";
 
 type Props = {
   isOpen: boolean;

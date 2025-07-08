@@ -27,7 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import AgentQuery from "@/queries/agent";
 import UserQuery from "@/queries/user";
 import ZoneQuery from "@/queries/zone";
-import { Agent, User, Zone } from "@/types/types";
+import { Agent, Zone } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader } from "lucide-react";

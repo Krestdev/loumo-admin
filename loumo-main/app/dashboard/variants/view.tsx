@@ -10,7 +10,6 @@ import {
 import { XAF } from "@/lib/utils";
 import { Product, ProductVariant, Shop } from "@/types/types";
 import { DialogTitle } from "@radix-ui/react-dialog";
-import { Edit } from "lucide-react";
 import React from "react";
 
 type Props = {

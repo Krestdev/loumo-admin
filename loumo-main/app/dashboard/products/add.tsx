@@ -5,6 +5,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import ProductQuery from "@/queries/product";
 import { Category } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,7 +24,8 @@ type Props = {
 const formSchema = z.object({
     name: z.string({message: "Veuillez entrer un nom"}),
     category: z.string({message: "Veuillez sélectionner une catégorie"}),
-    status: z.boolean()
+    status: z.boolean(),
+    description: z.string({message: "Veuillez renseigner une description du produit"}).min(12, {message: "Description trop courte"}).max(240,{message:"240 caractères maximum"})
 })
 
 function AddProduct({categories, isOpen, openChange}:Props) {
@@ -32,7 +34,8 @@ function AddProduct({categories, isOpen, openChange}:Props) {
             defaultValues: {
                 name: "",
                 category: "",
-                status: true
+                status: true,
+                description: "",
             }
         });
     
@@ -44,10 +47,11 @@ function AddProduct({categories, isOpen, openChange}:Props) {
         }
     const productAdd = useMutation({
         mutationFn: (values:z.infer<typeof formSchema>) => actions.create({
-            name: values.name,
-            status: values.status,
-            categoryId: Number(values.category),
-            weight: 0
+          name: values.name,
+          status: values.status,
+          categoryId: Number(values.category),
+          weight: 0,
+          description: values.description,
         }),
         onSuccess: ()=> {
             console.log("Produit ajouté avec succès");
@@ -61,7 +65,7 @@ function AddProduct({categories, isOpen, openChange}:Props) {
             if(isOpen){
                 form.reset();
             }
-        }, [isOpen]);
+        }, [isOpen, form]);
 
   return <Dialog open={isOpen} onOpenChange={openChange}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -105,6 +109,14 @@ function AddProduct({categories, isOpen, openChange}:Props) {
                         </FormControl>
                         <FormMessage/>
                     </FormItem>
+                )} />
+                <FormField control={form.control} name="description" render={({field})=>(
+                  <FormItem>
+                    <FormLabel>{"Description"}</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} placeholder="Description du produit"/>
+                    </FormControl>
+                  </FormItem>
                 )} />
               </div>
             </div>

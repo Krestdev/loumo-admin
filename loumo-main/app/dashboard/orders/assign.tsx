@@ -1,5 +1,4 @@
 "use client";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -8,16 +7,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import AgentQuery from "@/queries/agent";
-import DeliveryQuery from "@/queries/delivery";
-import { Agent, Order, Zone } from "@/types/types";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader, Loader2, Trash } from "lucide-react";
-import React from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import {
   Form,
   FormControl,
@@ -27,6 +16,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -34,7 +24,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
+import AgentQuery from "@/queries/agent";
+import DeliveryQuery from "@/queries/delivery";
+import { Agent, Order, Zone } from "@/types/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Loader } from "lucide-react";
+import React from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 type Props = {
   order: Order;
@@ -103,7 +101,7 @@ function AssignDriver({ order, isOpen, openChange, zones }: Props) {
   };
 
   const [drivers, setDrivers] = React.useState<Agent[]>([]);
-  const [selected, setSelected] = React.useState<number>();
+  //const [selected, setSelected] = React.useState<number>();
 
   React.useEffect(() => {
     if (getAgents.isSuccess) {
@@ -112,7 +110,7 @@ function AssignDriver({ order, isOpen, openChange, zones }: Props) {
     if(isOpen){
       form.reset();
     }
-  }, [setDrivers, getAgents.data, getAgents.isSuccess, isOpen, form.reset]);
+  }, [setDrivers, getAgents.data, getAgents.isSuccess, isOpen, form]);
 
   return (
     <Dialog open={isOpen} onOpenChange={openChange}>

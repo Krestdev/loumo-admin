@@ -58,7 +58,7 @@ function EditCategory({category, isOpen, openChange}:Props) {
           status: category.status
         });
       }
-    }, [category, isOpen]);
+    }, [category, isOpen, form]);
   return (
     <Dialog open={isOpen} onOpenChange={openChange}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">

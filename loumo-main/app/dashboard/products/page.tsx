@@ -5,6 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -26,33 +32,18 @@ import CategoryQuery from "@/queries/category";
 import ProductQuery from "@/queries/product";
 import { Category, Product } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
-import { formatRelative, subDays } from "date-fns";
+import { formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Edit, MoreHorizontal, PlusCircle, Search, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
 import React, { useMemo, useState } from "react";
 import AddProduct from "./add";
 import DeleteProduct from "./delete";
 import EditProduct from "./edit";
 import GroupDelete from "./groupDelete";
 import GroupEdit from "./groupEdit";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 export default function ProductsPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const open = searchParams.get("open");
-  React.useEffect(() => {
-    if (open === "add") {
-      router.replace("/dashboard/products/add");
-    }
-  }, [open]);
 
   const product = new ProductQuery();
   const category = new CategoryQuery();
@@ -263,6 +254,7 @@ export default function ProductsPage() {
                     {"Aucun produit trouvé"}
                     <img
                       src={"/images/search.png"}
+                      alt="no-image"
                       className="w-1/3 max-w-32 h-auto mx-auto mt-5 opacity-20"
                     />
                   </TableCell>
