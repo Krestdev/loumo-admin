@@ -73,7 +73,7 @@ jobs:
             export DOCKER_BUILDKIT=0
 
             # Remove any containers that might conflict
-            docker rm -f loumo_ui 2>/dev/null || true
+            docker rm -f loumo_main 2>/dev/null || true
 
             docker compose -f docker-compose.yml build
             docker compose -f docker-compose.yml up -d
