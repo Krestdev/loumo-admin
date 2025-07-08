@@ -65,7 +65,7 @@ function AddProduct({categories, isOpen, openChange}:Props) {
             if(isOpen){
                 form.reset();
             }
-        }, [isOpen]);
+        }, [isOpen, form]);
 
   return <Dialog open={isOpen} onOpenChange={openChange}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
