@@ -18,14 +18,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -37,6 +29,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
+import AddressQuery from "@/queries/address";
 import OrderQuery from "@/queries/order";
 import ShopQuery from "@/queries/shop";
 import { Address, Order, Shop } from "@/types/types";
@@ -53,7 +46,6 @@ import {
 } from "lucide-react";
 import React, { useState } from "react";
 import NewStore from "./newStore";
-import AddressQuery from "@/queries/address";
 
 export default function StoresPage() {
   const shopQuery = new ShopQuery();
@@ -111,54 +103,6 @@ export default function StoresPage() {
     getAllAddresses.data,
     getAllAddresses.isSuccess,
   ]);
-
-  const stores = [
-    {
-      id: 1,
-      name: "Oumoul Centre-Ville",
-      address: "123 Avenue Mohammed V, Casablanca",
-      phone: "+212 522 123 456",
-      manager: "Ahmed Benali",
-      status: "active",
-      type: "flagship",
-      openingHours: "08:00 - 22:00",
-      employees: 15,
-      monthlyRevenue: 450000,
-      totalOrders: 1250,
-      coverage: ["Maarif", "Centre-Ville", "Gauthier"],
-      coordinates: { lat: 33.5731, lng: -7.5898 },
-    },
-    {
-      id: 2,
-      name: "Oumoul Ain Sebaa",
-      address: "456 Boulevard Zerktouni, Ain Sebaa",
-      phone: "+212 522 789 012",
-      manager: "Fatima Alaoui",
-      status: "active",
-      type: "standard",
-      openingHours: "09:00 - 21:00",
-      employees: 8,
-      monthlyRevenue: 280000,
-      totalOrders: 890,
-      coverage: ["Ain Sebaa", "Hay Mohammadi"],
-      coordinates: { lat: 33.6061, lng: -7.5311 },
-    },
-    {
-      id: 3,
-      name: "Oumoul Hay Riad",
-      address: "789 Avenue Al Massira, Hay Riad",
-      phone: "+212 522 345 678",
-      manager: "Omar Tazi",
-      status: "maintenance",
-      type: "standard",
-      openingHours: "08:30 - 21:30",
-      employees: 12,
-      monthlyRevenue: 320000,
-      totalOrders: 1050,
-      coverage: ["Hay Riad", "Agdal", "Souissi"],
-      coordinates: { lat: 33.9716, lng: -6.8498 },
-    },
-  ];
 
 
   type monthlyRevenueProps = {
