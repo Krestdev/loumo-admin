@@ -47,12 +47,25 @@ export const sidebarContent: sidebarItemGroup[] = [
         icon: CreditCard,
         display: true
       },
+    ],
+  },
+  {
+    title: "Livraisons",
+    items: [
       {
         title: "Livraisons",
         header: "Gestion des Livraisons",
         description: "Suivez et assignez les livraisons",
         url: "/dashboard/deliveries",
         icon: Truck,
+        display: true
+      },
+      {
+        title: "Livreurs",
+        header: "Gestion des Livreurs",
+        description: "Gérez votre équipe de livreurs",
+        url: "/dashboard/drivers",
+        icon: Bike,
         display: true
       },
     ],
@@ -111,14 +124,6 @@ export const sidebarContent: sidebarItemGroup[] = [
         description: "Gérez vos clients et leurs informations",
         url: "/dashboard/clients",
         icon: Users,
-        display: true
-      },
-      {
-        title: "Livreurs",
-        header: "Gestion des Livreurs",
-        description: "Gérez votre équipe de livreurs",
-        url: "/dashboard/drivers",
-        icon: Bike,
         display: true
       },
       {
