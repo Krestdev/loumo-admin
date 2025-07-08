@@ -53,7 +53,17 @@ function EditProduct({product, categories, isOpen, openChange}:Props) {
             queryClient.invalidateQueries({queryKey: ["categories"], refetchType: "active"})
             openChange(false);
         },
-    })
+    });
+
+    React.useEffect(() => {
+  if (isOpen && product) {
+    form.reset({
+      name: product.name,
+            category: String(product.categoryId),
+            status: product.status
+    });
+  }
+}, [product, isOpen]); 
   return (
     <Dialog open={isOpen} onOpenChange={openChange}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -70,7 +80,7 @@ function EditProduct({product, categories, isOpen, openChange}:Props) {
             {/* Basic Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium">{"Informations générales"}</h3>
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-2 place-items-start">
                     <FormField control={form.control} name="name" render={({field})=>(
                         <FormItem>
                             <FormLabel>{"Nom du Produit"}</FormLabel>

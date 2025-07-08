@@ -40,7 +40,7 @@ export function AppSidebar() {
   return (
     <Sidebar className="border-r">
       <SidebarHeader className="border-b px-6 py-4">
-        <div className="flex items-center gap-2">
+        {/* <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <Box className="h-4 w-4" />
           </div>
@@ -50,7 +50,10 @@ export function AppSidebar() {
               <span className="text-xs text-muted-foreground">{"Back Office"}</span>
             </div>
           )}
-        </div>
+        </div> */}
+        <Link href={"/dashboard"} className="flex">
+          { state === "collapsed" ? <img src={"/logo-mini.svg"} className="size-4"/> : <img src={"/logo.svg"} className="h-8 w-auto"/> }
+        </Link>
       </SidebarHeader>
 
       <SidebarContent className="px-2">
@@ -59,7 +62,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>{item.title}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {item.items.map((subItem) => (
+              {item.items.filter(x=>x.display).map((subItem) => (
                 <SidebarMenuItem key={subItem.title}>
                   <SidebarMenuButton asChild isActive={pathname === subItem.url}>
                     <Link href={subItem.url}>

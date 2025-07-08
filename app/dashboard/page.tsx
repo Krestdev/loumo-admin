@@ -16,6 +16,7 @@ import {
   Truck,
   Users
 } from "lucide-react";
+import Link from "next/link";
 
 const kpis = [
   {
@@ -233,10 +234,12 @@ export default function Dashboard() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Button variant="outline" className="h-20 flex-col gap-2">
-              <Package className="h-6 w-6" />
-              <span className="text-sm">Ajouter produit</span>
-            </Button>
+            <Link href={"/dashboard/products?open=add"}>
+              <Button variant="outline" className="h-20 flex-col gap-2 w-full">
+                <Package className="h-6 w-6" />
+                <span className="text-sm">Ajouter produit</span>
+              </Button>
+            </Link>
             <Button variant="outline" className="h-20 flex-col gap-2">
               <ShoppingCart className="h-6 w-6" />
               <span className="text-sm">Nouvelle commande</span>

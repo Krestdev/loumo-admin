@@ -1,21 +1,11 @@
 "use client";
 
-import { DialogTrigger } from "@/components/ui/dialog";
-
 import PageLayout from "@/components/page-layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -35,19 +25,35 @@ import { useStore } from "@/providers/datastore";
 import CategoryQuery from "@/queries/category";
 import ProductQuery from "@/queries/product";
 import { Category, Product } from "@/types/types";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { formatRelative, subDays } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Edit, PlusCircle, Search, Trash2 } from "lucide-react";
+import { Edit, MoreHorizontal, PlusCircle, Search, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useMemo, useState } from "react";
-import EditProduct from "./edit";
 import AddProduct from "./add";
+import DeleteProduct from "./delete";
+import EditProduct from "./edit";
+import GroupDelete from "./groupDelete";
+import GroupEdit from "./groupEdit";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function ProductsPage() {
-  const queryClient = useQueryClient();
-  const [deletingProductId, setDeletingProductId] = useState<number | null>(
-    null
-  );
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const open = searchParams.get("open");
+  React.useEffect(() => {
+    if (open === "add") {
+      router.replace("/dashboard/products/add");
+    }
+  }, [open]);
+
   const product = new ProductQuery();
   const category = new CategoryQuery();
   const productData = useQuery({
@@ -60,19 +66,7 @@ export default function ProductsPage() {
     queryFn: () => category.getAll(),
     refetchOnWindowFocus: false,
   });
-  const deleteProduct = useMutation({
-    mutationFn: (id: number) => product.delete(id),
-    onMutate: (id) => {
-      setDeletingProductId(id);
-    },
-    onSettled: () => {
-      setDeletingProductId(null); // reset after success or error
-      queryClient.invalidateQueries({
-        queryKey: ["products"],
-        refetchType: "active",
-      });
-    },
-  });
+
   const { setLoading } = useStore();
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -99,8 +93,10 @@ export default function ProductsPage() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [bulkEditOpen, setBulkEditOpen] = useState(false);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>();
 
   const filteredProducts = useMemo(
@@ -185,71 +181,49 @@ export default function ProductsPage() {
               </SelectContent>
             </Select>
             {/**Add Product */}
-            <Button onClick={()=>{setIsAddDialogOpen(true)}}>
-              <PlusCircle size={16} /> {"Ajouter un produit"}
-            </Button>
+            <Link href={"/dashboard/products/add"}>
+              <Button /* onClick={()=>{setIsAddDialogOpen(true)}} */>
+                <PlusCircle size={16} /> {"Ajouter un produit"}
+              </Button>
+            </Link>
             {selectedProducts.length > 0 && (
-              <Dialog open={bulkEditOpen} onOpenChange={setBulkEditOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline">
-                    <Edit className="mr-2 h-4 w-4" />
-                    {`Édition groupée (${selectedProducts.length})`}
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>{"Édition groupée"}</DialogTitle>
-                    <DialogDescription>
-                      {"Modifiez plusieurs produits en même temps"}
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="bulk-category">{"Catégorie"}</Label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Changer la catégorie" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories.map((cat) => (
-                            <SelectItem key={cat.id} value={cat.name}>
-                              {cat.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="bulk-status">Statut</Label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Changer le statut" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="true">Actif</SelectItem>
-                          <SelectItem value="false">Inactif</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="bulk-discount">Remise (%)</Label>
-                      <Input id="bulk-discount" type="number" placeholder="0" />
-                    </div>
-                    <div className="flex gap-2">
-                      <Button onClick={() => setBulkEditOpen(false)}>
-                        {"Appliquer les modifications"}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => setBulkEditOpen(false)}
-                      >
-                        Annuler
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
+              <div className="flex gap-2">
+                <Select defaultValue="edit">
+                  <SelectTrigger className="w-fit">
+                    <SelectValue placeholder="Action" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem
+                      value="edit"
+                      onClick={() => setBulkEditOpen(true)}
+                    >{`Édition groupée (${selectedProducts.length})`}</SelectItem>
+                    <SelectItem
+                      value="delete"
+                      onClick={() => setBulkDeleteOpen(true)}
+                    >{`Suppression groupée (${selectedProducts.length})`}</SelectItem>
+                  </SelectContent>
+                </Select>
+                {/* <Button variant="outline" onClick={() => setBulkEditOpen(true)}>
+                      <Edit className="mr-2" size={16} />
+                      {`Édition groupée (${selectedProducts.length})`}
+                    </Button>
+                <Button variant="outline" onClick={() => setBulkDeleteOpen(true)}>
+                      <Trash2 className="mr-2" size={16} />
+                      {`Édition groupée (${selectedProducts.length})`}
+                    </Button> */}
+              </div>
             )}
+            <GroupEdit
+              isOpen={bulkEditOpen}
+              openChange={setBulkEditOpen}
+              ids={selectedProducts}
+              categories={categories}
+            />
+            <GroupDelete
+              isOpen={bulkDeleteOpen}
+              openChange={setBulkDeleteOpen}
+              ids={selectedProducts}
+            />
           </div>
         </CardContent>
       </Card>
@@ -284,12 +258,12 @@ export default function ProductsPage() {
                 <TableRow>
                   <TableCell
                     colSpan={7}
-                    className="text-center text-gray-500 space-y-2 pt-5 sm:text-lg xl:text-xl"
+                    className="text-center text-gray-500 space-y-2 py-5 sm:text-lg xl:text-xl"
                   >
                     {"Aucun produit trouvé"}
                     <img
-                      src={"/images/no-order.png"}
-                      className="w-1/3 max-w-60 h-auto mx-auto opacity-50"
+                      src={"/images/search.png"}
+                      className="w-1/3 max-w-32 h-auto mx-auto mt-5 opacity-20"
                     />
                   </TableCell>
                 </TableRow>
@@ -323,6 +297,10 @@ export default function ProductsPage() {
                           ))}
                         </div>
                       )}
+                      {!product.variants ||
+                        (product.variants && product.variants.length === 0 && (
+                          <p className="text-muted-foreground">{"Aucun"}</p>
+                        ))}
                     </TableCell>
                     <TableCell>
                       <Badge
@@ -333,37 +311,40 @@ export default function ProductsPage() {
                     </TableCell>
                     <TableCell>
                       {formatRelative(
-                        subDays(new Date(product.updatedAt), 2),
-                        new Date(),
-                        {
-                          locale: fr,
-                        }
+                        new Date(product.updatedAt), // ✅ date réelle
+                        new Date(), // maintenant
+                        { locale: fr }
                       )}
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setEditingProduct(product);
-                            setIsEditDialogOpen(true);
-                          }}
-                          disabled={deletingProductId === product.id}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            deleteProduct.mutate(product.id);
-                          }}
-                          disabled={deletingProductId === product.id}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant={"ghost"} size={"icon"}>
+                            <MoreHorizontal size={16} />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setEditingProduct(product);
+                              setIsEditDialogOpen(true);
+                            }}
+                          >
+                            <Edit size={16} />
+                            {"Modifier le produit"}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={() => {
+                              setEditingProduct(product);
+                              setIsDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 size={16} />
+                            {"Supprimer le produit"}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))
@@ -379,6 +360,13 @@ export default function ProductsPage() {
         openChange={setIsAddDialogOpen}
         categories={categories}
       />
+      {editingProduct && (
+        <DeleteProduct
+          product={editingProduct}
+          isOpen={isDeleteDialogOpen}
+          openChange={setIsDeleteDialogOpen}
+        />
+      )}
       {editingProduct && (
         <EditProduct
           product={editingProduct}

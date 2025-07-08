@@ -1,24 +1,15 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
+import PageLayout from "@/components/page-layout";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,26 +17,100 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import {
-  Store,
-  MapPin,
-  Phone,
-  Clock,
-  Users,
-  Package,
-  TrendingUp,
-  MoreHorizontal,
-  Plus,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { XAF } from "@/lib/utils";
+import { useStore } from "@/providers/datastore";
+import OrderQuery from "@/queries/order";
+import ShopQuery from "@/queries/shop";
+import { Address, Order, Shop } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
+import {
+  CirclePlus,
   Edit,
-  Trash2,
   Eye,
-  Settings,
-} from "lucide-react"
+  MapPin,
+  MoreHorizontal,
+  Package,
+  Store,
+  Trash2
+} from "lucide-react";
+import React, { useState } from "react";
+import NewStore from "./newStore";
+import AddressQuery from "@/queries/address";
 
 export default function StoresPage() {
-  const [selectedStore, setSelectedStore] = useState(null)
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const shopQuery = new ShopQuery();
+  const getShops = useQuery({
+    queryKey: ["shops"],
+    queryFn: () => shopQuery.getAll(),
+    refetchOnWindowFocus: false,
+  });
+
+  const orderQuery = new OrderQuery();
+  const getOrders = useQuery({
+    queryKey: ["orders"],
+    queryFn: () => orderQuery.getAll(),
+    refetchOnWindowFocus: false,
+  });
+
+   const addressQuery = new AddressQuery();
+    const getAllAddresses = useQuery({
+      queryKey: ["addresses"],
+      queryFn: () => addressQuery.getAll(),
+      refetchOnWindowFocus: false,
+    });
+
+  const [shops, setShops] = useState<Shop[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const { setLoading } = useStore();
+
+  const [selectedStore, setSelectedStore] = useState(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  React.useEffect(() => {
+    setLoading(getShops.isLoading || getOrders.isLoading || getAllAddresses.isLoading);
+    if (getShops.isSuccess) {
+      setShops(getShops.data);
+    }
+    if (getOrders.isSuccess) {
+      setOrders(getOrders.data);
+    }
+    if (getAllAddresses.isSuccess) {
+      setAddresses(getAllAddresses.data);
+    }
+  }, [
+    setLoading,
+    setShops,
+    setOrders,
+    setAddresses,
+    getShops.isLoading,
+    getShops.data,
+    getShops.isSuccess,
+    getOrders.isLoading,
+    getOrders.data,
+    getOrders.isSuccess,
+    getAllAddresses.isLoading,
+    getAllAddresses.data,
+    getAllAddresses.isSuccess,
+  ]);
 
   const stores = [
     {
@@ -93,143 +158,70 @@ export default function StoresPage() {
       coverage: ["Hay Riad", "Agdal", "Souissi"],
       coordinates: { lat: 33.9716, lng: -6.8498 },
     },
-  ]
+  ];
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "active":
-        return "bg-green-100 text-green-800"
-      case "maintenance":
-        return "bg-yellow-100 text-yellow-800"
-      case "closed":
-        return "bg-red-100 text-red-800"
-      default:
-        return "bg-gray-100 text-gray-800"
-    }
+
+  type monthlyRevenueProps = {
+    orders: Order[];
+    addressId?: number;
+    monthOffset?: number;
   }
 
-  const getTypeColor = (type) => {
-    switch (type) {
-      case "flagship":
-        return "bg-purple-100 text-purple-800"
-      case "standard":
-        return "bg-blue-100 text-blue-800"
-      case "mini":
-        return "bg-orange-100 text-orange-800"
-      default:
-        return "bg-gray-100 text-gray-800"
-    }
-  }
+  const getMonthlyRevenue = ({orders, addressId, monthOffset = 0}:monthlyRevenueProps):number =>{
+  const now = new Date();
+  const target = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
+
+  return orders
+    .filter((order) => {
+      const date = new Date(order.createdAt);
+      if(!!addressId){
+        return (
+          order.addressId === addressId &&
+          date.getMonth() === target.getMonth() &&
+          date.getFullYear() === target.getFullYear()
+        );
+      }
+      return (
+          date.getMonth() === target.getMonth() &&
+          date.getFullYear() === target.getFullYear()
+        );
+    })
+    .reduce((total, order) => total + order.total, 0);
+}
 
   return (
-    <div className="flex-1 space-y-4 p-4">
+    <PageLayout
+      isLoading={getShops.isLoading || getOrders.isLoading || getAllAddresses.isLoading}
+      className="flex-1 space-y-4 p-4"
+    >
       <div className="flex items-center justify-between space-y-2">
         <div className="flex items-center space-x-2">
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Nouvelle Boutique
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Créer une nouvelle boutique</DialogTitle>
-                <DialogDescription>Ajoutez une nouvelle boutique au réseau Oumoul</DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Nom de la boutique</Label>
-                    <Input id="name" placeholder="Oumoul..." />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="type">Type de boutique</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner le type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="flagship">Flagship</SelectItem>
-                        <SelectItem value="standard">Standard</SelectItem>
-                        <SelectItem value="mini">Mini</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="address">Adresse complète</Label>
-                  <Textarea id="address" placeholder="Adresse de la boutique..." />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Téléphone</Label>
-                    <Input id="phone" placeholder="+212 5XX XXX XXX" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="manager">Responsable</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner un responsable" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ahmed">Ahmed Benali</SelectItem>
-                        <SelectItem value="fatima">Fatima Alaoui</SelectItem>
-                        <SelectItem value="omar">Omar Tazi</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="opening">Horaires d'ouverture</Label>
-                    <Input id="opening" placeholder="08:00 - 22:00" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="employees">Nombre d'employés</Label>
-                    <Input id="employees" type="number" placeholder="10" />
-                  </div>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="submit">Créer la boutique</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <Button onClick={()=>{setIsDialogOpen(true)}}><CirclePlus size={16}/>{"Nouveau point de vente"}</Button>
         </div>
       </div>
 
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
-          <TabsTrigger value="performance">Performance</TabsTrigger>
-          <TabsTrigger value="coverage">Zones de couverture</TabsTrigger>
-          <TabsTrigger value="inventory">Stock par boutique</TabsTrigger>
+          <TabsTrigger value="overview">{"Vue d'ensemble"}</TabsTrigger>
+          <TabsTrigger value="performance">{"Performance"}</TabsTrigger>
+          <TabsTrigger value="coverage">{"Zones de couverture"}</TabsTrigger>
+          <TabsTrigger value="inventory">{"Stock par boutique"}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Boutiques</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  {"Total Boutiques"}
+                </CardTitle>
                 <Store className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">3</div>
-                <p className="text-xs text-muted-foreground">+1 ce mois</p>
+                <div className="text-2xl font-bold">{shops.length}</div>
               </CardContent>
             </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Boutiques Actives</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">2</div>
-                <p className="text-xs text-muted-foreground">66.7% du réseau</p>
-              </CardContent>
-            </Card>
-            <Card>
+            {/*             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Employés</CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
@@ -238,72 +230,61 @@ export default function StoresPage() {
                 <div className="text-2xl font-bold">35</div>
                 <p className="text-xs text-muted-foreground">Moyenne: 11.7 par boutique</p>
               </CardContent>
-            </Card>
+            </Card> */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Chiffre d'Affaires</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  {"Chiffre d'Affaires"}
+                </CardTitle>
                 <Package className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">1,05M MAD</div>
-                <p className="text-xs text-muted-foreground">+12% vs mois dernier</p>
+                <div className="text-2xl font-bold">{XAF.format(orders.filter(x=> !!x.payment).reduce((total, item)=>total + item.total,0))}</div>
+                {
+                  getMonthlyRevenue({orders:orders, monthOffset:-1}) !== 0 && 
+                  <p className={`text-xs ${(getMonthlyRevenue({orders:orders})-getMonthlyRevenue({orders:orders, monthOffset:-1}))> 0 ? "text-green-700" : "text-destructive"}`}>
+                  {`${((getMonthlyRevenue({orders:orders})-getMonthlyRevenue({orders:orders, monthOffset:-1}))/getMonthlyRevenue({orders:orders, monthOffset:-1}))*100}
+                   vs mois dernier`}
+                </p>}
               </CardContent>
             </Card>
           </div>
 
           <Card>
             <CardHeader>
-              <CardTitle>Liste des Boutiques</CardTitle>
-              <CardDescription>Gérez vos boutiques et leurs informations</CardDescription>
+              <CardTitle>{"Liste des Boutiques"}</CardTitle>
+              <CardDescription>
+                {"Gérez vos boutiques et leurs informations"}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Boutique</TableHead>
-                    <TableHead>Responsable</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Statut</TableHead>
-                    <TableHead>Employés</TableHead>
-                    <TableHead>CA Mensuel</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{"Boutique"}</TableHead>
+                    <TableHead>{"Statut"}</TableHead>
+                    <TableHead>{"CA Mensuel"}</TableHead>
+                    <TableHead className="text-right">{"Actions"}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {stores.map((store) => (
+                  {shops.map((store) => (
                     <TableRow key={store.id}>
                       <TableCell>
                         <div>
                           <div className="font-medium">{store.name}</div>
                           <div className="text-sm text-muted-foreground flex items-center">
                             <MapPin className="mr-1 h-3 w-3" />
-                            {store.address}
+                            {store.address?.street ?? "Adresse non définie"}
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div>
-                          <div className="font-medium">{store.manager}</div>
-                          <div className="text-sm text-muted-foreground flex items-center">
-                            <Phone className="mr-1 h-3 w-3" />
-                            {store.phone}
-                          </div>
-                        </div>
+                        <Badge variant={"info"}>{"Actif"}</Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge className={getTypeColor(store.type)}>{store.type}</Badge>
+                        {store.addressId ? XAF.format(getMonthlyRevenue({orders:orders, addressId:store.addressId})) : "--"}
                       </TableCell>
-                      <TableCell>
-                        <Badge className={getStatusColor(store.status)}>
-                          {store.status === "active"
-                            ? "Actif"
-                            : store.status === "maintenance"
-                              ? "Maintenance"
-                              : "Fermé"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{store.employees}</TableCell>
-                      <TableCell>{store.monthlyRevenue.toLocaleString()} MAD</TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -314,21 +295,17 @@ export default function StoresPage() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuItem>
-                              <Eye className="mr-2 h-4 w-4" />
-                              Voir détails
+                              <Eye size={16} />
+                              {"Voir détails"}
                             </DropdownMenuItem>
                             <DropdownMenuItem>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Modifier
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Settings className="mr-2 h-4 w-4" />
-                              Paramètres
+                              <Edit size={16} />
+                              {"Modifier"}
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem className="text-red-600">
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Supprimer
+                              <Trash2 size={16} />
+                              {"Supprimer"}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -343,35 +320,42 @@ export default function StoresPage() {
 
         <TabsContent value="performance" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-3">
-            {stores.map((store) => (
+            {shops.map((store) => (
               <Card key={store.id}>
                 <CardHeader>
                   <CardTitle className="text-lg">{store.name}</CardTitle>
-                  <CardDescription>Performance mensuelle</CardDescription>
+                  <CardDescription>{"Performance mensuelle"}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm">Chiffre d'affaires</span>
-                    <span className="font-bold">{store.monthlyRevenue.toLocaleString()} MAD</span>
+                    <span className="text-sm">{"Chiffre d'affaires"}</span>
+                    <span className="font-bold">
+                      {!!store.addressId ? XAF.format(getMonthlyRevenue({orders:orders, addressId: store.addressId})) : "--"}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm">Commandes</span>
-                    <span className="font-bold">{store.totalOrders}</span>
+                    <span className="text-sm">{"Commandes"}</span>
+                    <span className="font-bold">{orders.filter(x=>x.addressId === store.addressId).length}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm">Panier moyen</span>
-                    <span className="font-bold">{Math.round(store.monthlyRevenue / store.totalOrders)} MAD</span>
+                    <span className="text-sm">{"Panier moyen"}</span>
+                    <span className="font-bold">
+                      {XAF.format(Math.round((orders.filter(x=>x.addressId === store.addressId).reduce((total, el)=>total + el.total, 0))/orders.filter(x=>x.addressId === store.addressId).length))}
+                    </span>
                   </div>
-                  <div className="flex justify-between items-center">
+{/*                   <div className="flex justify-between items-center">
                     <span className="text-sm">Employés</span>
                     <span className="font-bold">{store.employees}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm">CA par employé</span>
                     <span className="font-bold">
-                      {Math.round(store.monthlyRevenue / store.employees).toLocaleString()} MAD
+                      {Math.round(
+                        store.monthlyRevenue / store.employees
+                      ).toLocaleString()}{" "}
+                      MAD
                     </span>
-                  </div>
+                  </div> */}
                 </CardContent>
               </Card>
             ))}
@@ -381,38 +365,47 @@ export default function StoresPage() {
         <TabsContent value="coverage" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Zones de Couverture</CardTitle>
-              <CardDescription>Zones desservies par chaque boutique</CardDescription>
+              <CardTitle>{"Zones de Couverture"}</CardTitle>
+              <CardDescription>
+                {"Zones desservies par chaque boutique"}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {stores.map((store) => (
+                {shops.map((store) => (
                   <div key={store.id} className="border rounded-lg p-4">
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="font-semibold">{store.name}</h3>
-                      <Badge className={getStatusColor(store.status)}>
-                        {store.status === "active" ? "Actif" : store.status === "maintenance" ? "Maintenance" : "Fermé"}
-                      </Badge>
+                      {/* <Badge className={getStatusColor(store.status)}>
+                        {store.status === "active"
+                          ? "Actif"
+                          : store.status === "maintenance"
+                          ? "Maintenance"
+                          : "Fermé"}
+                      </Badge> */}
                     </div>
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
-                        <span className="text-muted-foreground">Adresse:</span>
-                        <p>{store.address}</p>
+                        <span className="text-muted-foreground">{"Adresse:"}</span>
+                        {store.address?.street && <p>{store.address?.street}</p>}
+                        {store.address?.zone?.name && <p className="font-semibold">{store.address?.zone.name}</p>}
                       </div>
-                      <div>
+{/*                       <div>
                         <span className="text-muted-foreground">Horaires:</span>
                         <p className="flex items-center">
                           <Clock className="mr-1 h-3 w-3" />
                           {store.openingHours}
                         </p>
-                      </div>
+                      </div> */}
                     </div>
                     <div className="mt-3">
-                      <span className="text-muted-foreground text-sm">Zones desservies:</span>
+                      <span className="text-muted-foreground text-sm">
+                        {"Zones desservies:"}
+                      </span>
                       <div className="flex flex-wrap gap-2 mt-1">
-                        {store.coverage.map((zone) => (
-                          <Badge key={zone} variant="outline">
-                            {zone}
+                        {addresses.filter(x=>x.id === store.addressId).map((address) => (
+                          <Badge key={address.id} variant="outline">
+                            {address.street}
                           </Badge>
                         ))}
                       </div>
@@ -428,12 +421,17 @@ export default function StoresPage() {
           <Card>
             <CardHeader>
               <CardTitle>Stock par Boutique</CardTitle>
-              <CardDescription>Niveaux de stock dans chaque boutique</CardDescription>
+              <CardDescription>
+                Niveaux de stock dans chaque boutique
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="flex items-center space-x-2">
-                  <Input placeholder="Rechercher un produit..." className="max-w-sm" />
+                  <Input
+                    placeholder="Rechercher un produit..."
+                    className="max-w-sm"
+                  />
                   <Select>
                     <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder="Toutes les boutiques" />
@@ -464,40 +462,52 @@ export default function StoresPage() {
                     <TableRow>
                       <TableCell>
                         <div className="font-medium">Riz Basmati 5kg</div>
-                        <div className="text-sm text-muted-foreground">SKU: RIZ-BAS-5KG</div>
+                        <div className="text-sm text-muted-foreground">
+                          SKU: RIZ-BAS-5KG
+                        </div>
                       </TableCell>
                       <TableCell>45</TableCell>
                       <TableCell>23</TableCell>
                       <TableCell>67</TableCell>
                       <TableCell className="font-medium">135</TableCell>
                       <TableCell>
-                        <Badge className="bg-green-100 text-green-800">En stock</Badge>
+                        <Badge className="bg-green-100 text-green-800">
+                          En stock
+                        </Badge>
                       </TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell>
                         <div className="font-medium">Huile d'olive 1L</div>
-                        <div className="text-sm text-muted-foreground">SKU: HUILE-OLI-1L</div>
+                        <div className="text-sm text-muted-foreground">
+                          SKU: HUILE-OLI-1L
+                        </div>
                       </TableCell>
                       <TableCell>12</TableCell>
                       <TableCell>8</TableCell>
                       <TableCell>15</TableCell>
                       <TableCell className="font-medium">35</TableCell>
                       <TableCell>
-                        <Badge className="bg-yellow-100 text-yellow-800">Stock faible</Badge>
+                        <Badge className="bg-yellow-100 text-yellow-800">
+                          Stock faible
+                        </Badge>
                       </TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell>
                         <div className="font-medium">Pâtes Spaghetti 500g</div>
-                        <div className="text-sm text-muted-foreground">SKU: PAT-SPA-500G</div>
+                        <div className="text-sm text-muted-foreground">
+                          SKU: PAT-SPA-500G
+                        </div>
                       </TableCell>
                       <TableCell>0</TableCell>
                       <TableCell>5</TableCell>
                       <TableCell>12</TableCell>
                       <TableCell className="font-medium">17</TableCell>
                       <TableCell>
-                        <Badge className="bg-red-100 text-red-800">Rupture partielle</Badge>
+                        <Badge className="bg-red-100 text-red-800">
+                          Rupture partielle
+                        </Badge>
                       </TableCell>
                     </TableRow>
                   </TableBody>
@@ -507,6 +517,7 @@ export default function StoresPage() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
-  )
+      <NewStore isOpen={isDialogOpen} openChange={setIsDialogOpen}/>
+    </PageLayout>
+  );
 }

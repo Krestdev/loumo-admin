@@ -5,12 +5,15 @@ import { toast } from "react-toastify";
 export default class ProductQuery {
   route = "/products";
   create = async (
-    data: Omit<Product, "id"> & { categoryId: number }
+    data: Omit<Product, "id" | "createdAt" | "updatedAt"> & { categoryId: number }
   ): Promise<Product> => {
-    return api.post(`${this.route}`, data).then((response) => {
-      toast.success(`Welcome back ${response.data.product.name}`);
-      return response.data;
-    });
+    const response = await api.post(`${this.route}`, data);
+    const product = response.data;
+
+    console.log("👉 Response complète :", product);
+    if (!product) throw new Error("Missing product in response");
+    toast.success(`Variante ${product.name} créée avec succès`);
+    return product;
   };
 
   getAll = async (): Promise<Product[]> => {
@@ -38,11 +41,11 @@ export default class ProductQuery {
       .then((response) => response.data);
   };
 
-  bulckUpdate = async (data: {
+  bulckUpdate = async (ids: number[], p0: { categoryId: number | undefined; status: boolean; }, data: {
     product: Partial<Product>[];
     categoryId?: number;
     status?: boolean;
-  }): Promise<Product> => {
+}): Promise<Product> => {
     return api
       .post(`${this.route}/bulckupdate`, data)
       .then((response) => response.data);
@@ -54,7 +57,7 @@ export default class ProductQuery {
 
   bulckDelete = async (ids: number[]): Promise<Product> => {
     return api
-      .delete(`${this.route}/bulckdelete`, { data: ids })
+      .put(`${this.route}/delete/bulck`, { ids:ids })
       .then((response) => response.data);
   };
 }

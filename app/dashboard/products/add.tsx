@@ -1,3 +1,4 @@
+'use client'
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -37,24 +38,31 @@ function AddProduct({categories, isOpen, openChange}:Props) {
     
     const actions = new ProductQuery();
     const queryClient = useQueryClient();
+     const onSubmit = (values:z.infer<typeof formSchema>)=>{
+            //console.log(values);
+            productAdd.mutate(values);
+        }
     const productAdd = useMutation({
         mutationFn: (values:z.infer<typeof formSchema>) => actions.create({
             name: values.name,
             status: values.status,
             categoryId: Number(values.category),
-            weight: 0,
+            weight: 0
         }),
         onSuccess: ()=> {
+            console.log("Produit ajouté avec succès");
             queryClient.invalidateQueries({queryKey: ["products"], refetchType: "active"});
             queryClient.invalidateQueries({queryKey: ["categories"], refetchType: "active"});
-            form.reset();
             openChange(false);
         },
     });
-    const onSubmit = (values:z.infer<typeof formSchema>)=>{
-            //console.log(values);
-            productAdd.mutate(values);
-        }
+        {/**Clean up the form */}
+        React.useEffect(()=>{
+            if(isOpen){
+                form.reset();
+            }
+        }, [isOpen]);
+
   return <Dialog open={isOpen} onOpenChange={openChange}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -122,8 +130,8 @@ function AddProduct({categories, isOpen, openChange}:Props) {
 
             <div className="flex gap-2">
               <Button type='submit' disabled={productAdd.isPending}>
-                {"Ajouter"}
                 {productAdd.isPending && <Loader className='animate-spin' size={16}/>}
+                {"Ajouter"}
               </Button>
               <Button
                 variant="outline"

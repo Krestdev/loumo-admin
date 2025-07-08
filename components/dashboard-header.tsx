@@ -10,11 +10,11 @@ function DashboardHeader() {
     const paths = pathname.split('/').filter(path => path);
 
   return (
-    <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-white">
+    <header className="flex h-16 sticky top-0 z-10 shrink-0 items-center gap-2 border-b px-4 bg-white">
         <SidebarTrigger className="-ml-1" />
         <div className="flex flex-1 items-center justify-between">
           <div>
-            <h1 className="text-lg font-semibold">{sidebarContent.flatMap(x=>x.items).find(y=>y.url === pathname)?.header || "Page Inconnue"}</h1>
+            <h1 className="text-lg font-semibold">{sidebarContent.flatMap(x=>x.items).find(y=>y.url === pathname)?.header || "Dashboard"}</h1>
             {sidebarContent.flatMap(x=>x.items).find(y=>y.url === pathname)?.description && 
             <p className="text-sm text-muted-foreground">{sidebarContent.flatMap(x=>x.items).find(y=>y.url === pathname)?.description}</p>
             }

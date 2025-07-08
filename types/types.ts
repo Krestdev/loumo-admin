@@ -11,10 +11,17 @@ export interface navigationHeader {
   >;
 }
 
+export interface navigationElement extends navigationHeader {
+  display:boolean;
+}
+
 export interface sidebarItemGroup {
   title: string;
-  items: navigationHeader[];
+  items: navigationElement[];
 }
+
+export type DeliveryPriority = "LOW" | "NORMAL" | "HIGH" | "URGENT";
+
 export type Address = {
   street: string;
   local: string;
@@ -43,16 +50,16 @@ export type Agent = {
   id: number;
   userId: number;
   code: string;
-  status: string;
+  status: "AVAILABLE"|"SUSPENDED"|"FULL"|"UNAVAILABLE"|"UNVERIFIED";
   user?: User;
   delivery?: Delivery[];
   zone: Zone;
+  zoneId: number;
 };
 
 export type Category = {
   name: string;
   id: number;
-  weight: number;
   status: boolean;
   products?: Product[];
   imgUrl?: string;
@@ -60,9 +67,9 @@ export type Category = {
 
 export type Delivery = {
   id: number;
-  status: string;
+  status: "NOTSTARTED"|"STARTED"|"COMPLETED"|"CANCELED";
   trackingCode: string;
-  priority: string;
+  priority: DeliveryPriority;
   agentId: number | null;
   orderId: number;
   orderItem?: OrderItem[];
@@ -96,7 +103,7 @@ export type Order = {
   user: User;
   userId: number;
   note: string;
-  status: string;
+  status: "FAILED"|"COMPLETED"|"PROCESSING"|"REJECTED"|"ACCEPTED"|"PENDING";
   weight: number;
   total: number;
   deliveryFee: number;
@@ -124,7 +131,7 @@ export type OrderItem = {
 export type Payment = {
   name: string;
   id: number;
-  status: string;
+  status: "FAILED"|"COMPLETED"|"PROCESSING"|"REJECTED"|"ACCEPTED"|"PENDING";
   orderId: number;
   order?: Order[];
   total: number;
@@ -140,6 +147,7 @@ export type Permission = {
 export type Product = {
   name: string;
   id: number;
+  description:string;
   createdAt: Date;
   updatedAt: Date;
   weight: number;
@@ -158,7 +166,7 @@ export type ProductVariant = {
   price: number;
   productId: number;
   product?: Product;
-  stock: Stock;
+  stock: Stock[];
 };
 
 export type Promotion = {
@@ -186,12 +194,14 @@ export type Shop = {
 export type Stock = {
   id: number;
   quantity: number;
+  threshold: number;
   productVariantId: number;
   productVariant?: ProductVariant;
   shopId: number;
   shop?: Shop;
   promotionId: number | null;
   promotion?: Promotion;
+  restockDate?: Date;
 };
 
 export type User = {
@@ -206,6 +216,7 @@ export type User = {
   verified: boolean;
   verificationOtp: string | null;
   verificationOtpExpires: Date | null;
+  fidelity: number;
   active: boolean;
   imageUrl: string | null;
   roleId: number | null;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Card,
   CardContent,
@@ -11,7 +11,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
   Select,
   SelectContent,
@@ -40,88 +39,105 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { format } from "date-fns";
+import { format, formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
-
-const inventoryData = [
-  {
-    id: 1,
-    product: "Riz Brisé 25kg",
-    category: "Céréales",
-    store: "Boutique Plateau",
-    currentStock: 5,
-    minThreshold: 20,
-    maxThreshold: 100,
-    lastRestock: "2024-01-15",
-    supplier: "Fournisseur A",
-    status: "critique",
-  },
-  {
-    id: 2,
-    product: "Huile Tournesol 5L",
-    category: "Huiles",
-    store: "Boutique Parcelles",
-    currentStock: 15,
-    minThreshold: 25,
-    maxThreshold: 80,
-    lastRestock: "2024-01-20",
-    supplier: "Fournisseur B",
-    status: "faible",
-  },
-  {
-    id: 3,
-    product: "Savon Marseille x12",
-    category: "Hygiène",
-    store: "Boutique Almadies",
-    currentStock: 45,
-    minThreshold: 30,
-    maxThreshold: 120,
-    lastRestock: "2024-01-18",
-    supplier: "Fournisseur C",
-    status: "normal",
-  },
-];
+import StockQuery from "@/queries/stock";
+import { useQuery } from "@tanstack/react-query";
+import ShopQuery from "@/queries/shop";
+import { Product, Shop, Stock } from "@/types/types";
+import { useStore } from "@/providers/datastore";
+import PageLayout from "@/components/page-layout";
+import ProductQuery from "@/queries/product";
+import { XAF } from "@/lib/utils";
+import Restock from "./add";
 
 export default function InventoryPage() {
+  const stockQuery = new StockQuery();
+  const shopQuery = new ShopQuery();
+  const productQuery = new ProductQuery();
+  const getStocks = useQuery({
+    queryKey: ["stocks"],
+    queryFn: () => stockQuery.getAll(),
+  });
+  const getShops = useQuery({
+    queryKey: ["shops"],
+    queryFn: () => shopQuery.getAll(),
+  });
+  const getProducts = useQuery({
+    queryKey: ["products"],
+    queryFn: () => productQuery.getAll(),
+  });
+
+  const { setLoading } = useStore();
+  const [stocks, setStocks] = useState<Stock[]>([]);
+  const [shops, setShops] = useState<Shop[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+
+  React.useEffect(() => {
+    setLoading(
+      getShops.isLoading || getStocks.isLoading || getProducts.isLoading
+    );
+    if (getShops.isSuccess) {
+      setShops(getShops.data);
+    }
+    if (getStocks.isSuccess) {
+      setStocks(getStocks.data);
+    }
+    if (getProducts.isSuccess) {
+      setProducts(getProducts.data);
+    }
+  }, [
+    getShops.isLoading,
+    getStocks.isLoading,
+    getShops.isSuccess,
+    getStocks.isSuccess,
+    getShops.data,
+    getStocks.data,
+    getProducts.isLoading,
+    getProducts.data,
+    getProducts.isSuccess,
+  ]);
+
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedProduct, setSelectedProduct] = useState("all");
+  const [selectedProduct, setSelectedProduct] = useState<string>("all");
   const [selectedThreshold, setSelectedThreshold] = useState("all");
   const [dateFrom, setDateFrom] = useState<Date>();
   const [dateTo, setDateTo] = useState<Date>();
+  const [selectedStock, setSelectedStock] = useState<Stock>();
+  const [addDialog, setAddDialog] = useState<boolean>(false);
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "critique":
-        return <Badge variant="destructive">{"Critique"}</Badge>;
-      case "faible":
-        return <Badge variant="secondary">{"Faible"}</Badge>;
-      case "normal":
-        return <Badge variant="default">{"Normal"}</Badge>;
-      default:
-        return <Badge variant="outline">{"Inconnu"}</Badge>;
-    }
-  };
+  const filteredData = useMemo(() => {
+    return stocks.filter((item) => {
+      const matchesSearch = item.productVariant?.name.includes(searchTerm);
 
-  const filteredData = inventoryData.filter((item) => {
-    const matchesSearch =
-      item.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesProduct =
-      selectedProduct === "all" || item.product === selectedProduct;
-    const matchesThreshold =
-      selectedThreshold === "all" || item.status === selectedThreshold;
+      const matchesProduct =
+        selectedProduct === "all" ||
+        String(item.productVariant?.productId) === selectedProduct;
+      /* const matchesThreshold =
+      selectedThreshold === "all" || item.status === selectedThreshold; */
 
-    let matchesDate = true;
+      /* let matchesDate = true;
     if (dateFrom && dateTo) {
       const itemDate = new Date(item.lastRestock);
       matchesDate = itemDate >= dateFrom && itemDate <= dateTo;
-    }
+    } */
 
-    return matchesSearch && matchesProduct && matchesThreshold && matchesDate;
-  });
+      return matchesSearch && matchesProduct; //&& matchesThreshold && matchesDate;
+    });
+  }, [stocks, searchTerm, selectedProduct]);
+
+  const handleRestock = (item: Stock) => {
+    setSelectedStock(item);
+    setAddDialog(true);
+  }
 
   return (
-    <main className="flex-1 overflow-auto p-4 space-y-6">
+    <PageLayout
+      isLoading={
+        getShops.isLoading || getStocks.isLoading || getProducts.isLoading
+      }
+      className="flex-1 overflow-auto p-4 space-y-6"
+    >
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
@@ -132,7 +148,12 @@ export default function InventoryPage() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{"1,247"}</div>
+            <div className="text-2xl font-bold">
+              {
+                products.filter((x) => x.variants && x.variants.length > 0)
+                  .length
+              }
+            </div>
             <p className="text-xs text-muted-foreground">{"+12% ce mois"}</p>
           </CardContent>
         </Card>
@@ -144,7 +165,7 @@ export default function InventoryPage() {
             <AlertTriangle className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{"23"}</div>
+            <div className={`text-2xl font-bold ${stocks.filter(x=>x.quantity <= x.threshold).length > 0 && "text-red-600"}`}>{stocks.filter(x=>x.quantity <= x.threshold).length}</div> 
             <p className="text-xs text-muted-foreground">
               {"Nécessite réapprovisionnement"}
             </p>
@@ -158,7 +179,7 @@ export default function InventoryPage() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{"€847,230"}</div>
+            <div className="text-2xl font-bold">{XAF.format(stocks.reduce((total, x)=> total + x.quantity * (x.productVariant?.price ?? 0), 0))}</div>
             <p className="text-xs text-muted-foreground">
               {"Toutes boutiques"}
             </p>
@@ -190,7 +211,7 @@ export default function InventoryPage() {
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Rechercher un produit..."
+                  placeholder="Rechercher une variante par nom"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-8"
@@ -204,31 +225,29 @@ export default function InventoryPage() {
                 value={selectedProduct}
                 onValueChange={setSelectedProduct}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Tous les produits" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{"Tous les produits"}</SelectItem>
-                  <SelectItem value="Riz Brisé 25kg">
-                    {"Riz Brisé 25kg"}
-                  </SelectItem>
-                  <SelectItem value="Huile Tournesol 5L">
-                    {"Huile Tournesol 5L"}
-                  </SelectItem>
-                  <SelectItem value="Savon Marseille x12">
-                    {"Savon Marseille x12"}
-                  </SelectItem>
+                  {products
+                    .filter((z) => z.variants && z.variants.length > 0)
+                    .map((x) => (
+                      <SelectItem key={x.id} value={String(x.id)}>
+                        {x.name}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <label className="text-sm font-medium">{"Seuil de stock"}</label>
               <Select
                 value={selectedThreshold}
                 onValueChange={setSelectedThreshold}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Tous les seuils" />
                 </SelectTrigger>
                 <SelectContent>
@@ -240,7 +259,7 @@ export default function InventoryPage() {
                   <SelectItem value="normal">{"Normal (&gt;25%)"}</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
+            </div> */}
 
             <div className="space-y-2">
               <label className="text-sm font-medium">{"Date début"}</label>
@@ -261,6 +280,7 @@ export default function InventoryPage() {
                     mode="single"
                     selected={dateFrom}
                     onSelect={setDateFrom}
+                    disabled
                     initialFocus
                   />
                 </PopoverContent>
@@ -287,6 +307,7 @@ export default function InventoryPage() {
                     selected={dateTo}
                     onSelect={setDateTo}
                     initialFocus
+                    disabled
                   />
                 </PopoverContent>
               </Popover>
@@ -299,47 +320,87 @@ export default function InventoryPage() {
       <Card>
         <CardHeader>
           <CardTitle>{"Stock par produit"}</CardTitle>
-          <CardDescription>{`${filteredData.length} produit(s) affiché(s)`}</CardDescription>
+          <CardDescription>{`${stocks.length} produit(s) affiché(s)`}</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>{"Produit"}</TableHead>
-                <TableHead>{"Catégorie"}</TableHead>
                 <TableHead>{"Boutique"}</TableHead>
                 <TableHead>{"Stock actuel"}</TableHead>
-                <TableHead>{"Seuil min"}</TableHead>
+                {/* <TableHead>{"Seuil min"}</TableHead> */}
                 <TableHead>{"Dernier réappro"}</TableHead>
                 <TableHead>{"Statut"}</TableHead>
                 <TableHead>{"Actions"}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredData.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.product}</TableCell>
-                  <TableCell>{item.category}</TableCell>
-                  <TableCell>{item.store}</TableCell>
-                  <TableCell>{item.currentStock}</TableCell>
-                  <TableCell>{item.minThreshold}</TableCell>
-                  <TableCell>
-                    {format(new Date(item.lastRestock), "dd/MM/yyyy", {
-                      locale: fr,
-                    })}
-                  </TableCell>
-                  <TableCell>{getStatusBadge(item.status)}</TableCell>
-                  <TableCell>
-                    <Button variant="outline" size="sm">
-                      {"Réapprovisionner"}
-                    </Button>
+              {filteredData.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={7}
+                    className="text-center text-gray-500 py-5 sm:text-lg xl:text-xl"
+                  >
+                    {"Aucun produit trouvé"}
+                    <img
+                      src={"/images/search.png"}
+                      className="w-1/3 max-w-32 h-auto mx-auto mt-5 opacity-20"
+                    />
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                filteredData.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="font-medium">{`${
+                      products.find((x) =>
+                        x.variants?.some((y) => y.id === item.productVariantId)
+                      )?.name ?? "Non défini"
+                    } - ${
+                      item.productVariant && item.productVariant.name
+                    }`}</TableCell>
+                    <TableCell>
+                      {shops.find((x) => x.id === item.shopId)?.name ??
+                        "Non défini"}
+                    </TableCell>
+                    <TableCell>{item.quantity}</TableCell>
+                    {/* <TableCell>{`A définir seuil min`}</TableCell> */}
+                    <TableCell>
+                      {/* {format(new Date(item.lastRestock), "dd/MM/yyyy", {
+                      locale: fr,
+                    })} */}
+                      {item.restockDate ? formatRelative(new Date(item.restockDate), new Date(), {locale: fr}) : "--"}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={item.quantity === 0
+                          ? "destructive"
+                          : item.quantity <= item.threshold
+                          ? "warning"
+                          : "outline"}>
+                        {item.quantity === 0
+                          ? "Rupture"
+                          : item.quantity <= item.threshold
+                          ? "Critique"
+                          : item.quantity < 20
+                          ? "Attention"
+                          : "Normal"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Button variant={item.quantity <= item.threshold ? "default" : "outline"} size="sm" onClick={()=>handleRestock(item)}>
+                        {"Réapprovisionner"}
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
-    </main>
+      {
+        !!selectedStock && <Restock isOpen={addDialog} openChange={setAddDialog} products={products} stock={selectedStock} shops={shops} />
+      }
+    </PageLayout>
   );
 }
