@@ -10,24 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -36,17 +19,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Textarea } from "@/components/ui/textarea";
 import { useStore } from "@/providers/datastore";
 import CategoryQuery from "@/queries/category";
 import { Category } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { Edit, Eye, PlusCircle, Search, Tag, Trash2 } from "lucide-react";
-import React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
+import AddCategory from "./add";
 import DeleteCategory from "./delete";
 import EditCategory from "./edit";
-import AddCategory from "./add";
 
 const categoriesData = [
   {
@@ -300,19 +281,21 @@ export default function CategoriesPage() {
                       <div className="flex gap-2">
                         <Button
                           variant="outline"
-                          size="icon"
+                          size={"sm"}
                           onClick={() => handleEdit(category)}
                         >
                           <Edit size={16} />
+                          {"Modifier"}
                         </Button>
                         <Button
                           variant="delete"
-                          size="icon"
+                          size={"sm"}
                           onClick={() => {
                             handleDelete(category);
                           }}
                         >
                           <Trash2 size={16} />
+                          {"Supprimer"}
                         </Button>
                       </div>
                     </TableCell>

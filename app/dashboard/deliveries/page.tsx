@@ -28,14 +28,7 @@ import { Agent, Delivery, Zone } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
-import {
-  CheckCircle,
-  Clock,
-  Package,
-  Search,
-  Truck,
-  User
-} from "lucide-react";
+import { CheckCircle, Clock, Package, Search, Truck, User } from "lucide-react";
 import React, { useState } from "react";
 import EditDelivery from "./edit";
 import ViewDelivery from "./view";
@@ -168,10 +161,10 @@ export default function DeliveriesPage() {
     setEdit(true);
   };
 
-  const handleAction = (delivery:Delivery) => {
+  const handleAction = (delivery: Delivery) => {
     setSelected(delivery);
     setActionDialog(true);
-  }
+  };
 
   //Today deliveries logic
   const today = new Date();
@@ -324,96 +317,113 @@ export default function DeliveriesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredDeliveries.map((delivery) => (
-                <TableRow key={delivery.id}>
-                  <TableCell>
-                    <div>
-                      <p className="text-xs">{delivery.trackingCode}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <strong>
-                      {drivers.find((x) => x.id === delivery.agentId)?.user
-                        ?.name ?? "Introuvable"}
-                    </strong>
-                  </TableCell>
-                  <TableCell>
-                    <div>
-                      <p className="font-medium">
-                        {delivery.order?.user.name ?? "Non renseigné"}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {delivery.order?.address?.street ?? "Non renseigné"}
-                      </p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {delivery.order?.address?.zone?.name ?? "Non défini"}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusColor(delivery.status)}>
-                      {delivery.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={getPriorityColor(delivery.priority)}>
-                      {delivery.priority}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div>
-                      <p className="text-sm">
-                        {formatRelative(
-                          new Date(delivery.scheduledTime),
-                          new Date(), // maintenant
-                          { locale: fr }
-                        )}
-                      </p>
-                      {delivery.estimatedArrival && (
-                        <p className="text-xs text-muted-foreground">
-                          ETA:{" "}
-                          {new Date(
-                            delivery.estimatedArrival
-                          ).toLocaleDateString()}
-                        </p>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-1">
-                      <Button
-                        variant={"outline"}
-                        onClick={() => {
-                          handleView(delivery);
-                        }}
-                      >
-                        {"Voir"}
-                      </Button>
-                      {
-                        (delivery.status !== "CANCELED" && delivery.status !== "COMPLETED") &&
-                        <Button
-                        variant={"secondary"}
-                        onClick={() => {
-                          handleEdit(delivery);
-                        }}
-                      >
-                        {"Modifier"}
-                      </Button>}
-                      {
-                        (delivery.status !== "CANCELED" && delivery.status !== "COMPLETED") &&
-                        <Button
-                        variant={"success"}
-                        size={"icon"}
-                        onClick={() => {
-                          handleAction(delivery);
-                        }}
-                      >
-                        <CheckCircle size={16} />
-                      </Button>}
-                    </div>
+              {filteredDeliveries.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={8}
+                    className="text-center text-gray-500 py-5 sm:text-lg xl:text-xl"
+                  >
+                    {"Aucune Livraison trouvée"}
+                    <img
+                      src={"/images/search.png"}
+                      className="w-1/3 max-w-32 h-auto mx-auto mt-5 opacity-20"
+                    />
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                filteredDeliveries.map((delivery) => (
+                  <TableRow key={delivery.id}>
+                    <TableCell>
+                      <div>
+                        <p className="text-xs">{delivery.trackingCode}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <strong>
+                        {drivers.find((x) => x.id === delivery.agentId)?.user
+                          ?.name ?? "Introuvable"}
+                      </strong>
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium">
+                          {delivery.order?.user.name ?? "Non renseigné"}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {delivery.order?.address?.street ?? "Non renseigné"}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {delivery.order?.address?.zone?.name ?? "Non défini"}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={getStatusColor(delivery.status)}>
+                        {delivery.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={getPriorityColor(delivery.priority)}>
+                        {delivery.priority}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="text-sm">
+                          {formatRelative(
+                            new Date(delivery.scheduledTime),
+                            new Date(), // maintenant
+                            { locale: fr }
+                          )}
+                        </p>
+                        {delivery.estimatedArrival && (
+                          <p className="text-xs text-muted-foreground">
+                            ETA:{" "}
+                            {new Date(
+                              delivery.estimatedArrival
+                            ).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button
+                          variant={"outline"}
+                          onClick={() => {
+                            handleView(delivery);
+                          }}
+                        >
+                          {"Voir"}
+                        </Button>
+                        {delivery.status !== "CANCELED" &&
+                          delivery.status !== "COMPLETED" && (
+                            <Button
+                              variant={"secondary"}
+                              onClick={() => {
+                                handleEdit(delivery);
+                              }}
+                            >
+                              {"Modifier"}
+                            </Button>
+                          )}
+                        {delivery.status !== "CANCELED" &&
+                          delivery.status !== "COMPLETED" && (
+                            <Button
+                              variant={"success"}
+                              size={"icon"}
+                              onClick={() => {
+                                handleAction(delivery);
+                              }}
+                            >
+                              <CheckCircle size={16} />
+                            </Button>
+                          )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>

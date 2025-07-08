@@ -387,7 +387,7 @@ export default function InventoryPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Button variant="outline" size="sm" onClick={()=>handleRestock(item)}>
+                      <Button variant={item.quantity <= item.threshold ? "default" : "outline"} size="sm" onClick={()=>handleRestock(item)}>
                         {"Réapprovisionner"}
                       </Button>
                     </TableCell>

@@ -31,7 +31,15 @@ import OrderQuery from "@/queries/order";
 import ZoneQuery from "@/queries/zone";
 import { Delivery, Order, Zone } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
-import { Download, Loader, Search } from "lucide-react";
+import {
+  CheckCircleIcon,
+  Download,
+  Eye,
+  Loader,
+  MoreHorizontal,
+  Search,
+  SquareChevronRight,
+} from "lucide-react";
 import React, { useState } from "react";
 import AssignDriver from "./assign";
 import ViewOrder from "./view";
@@ -39,6 +47,13 @@ import DeliveryQuery from "@/queries/delivery";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { OrdersPDFDocument } from "./pdf";
 import EndOrder from "./end";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function OrdersPage() {
   const ordersQuery = new OrderQuery();
@@ -200,7 +215,7 @@ export default function OrdersPage() {
   const handleEnd = (order: Order) => {
     setSelectedOrder(order);
     setEndDialog(true);
-  }
+  };
 
   return (
     <PageLayout
@@ -304,7 +319,7 @@ export default function OrdersPage() {
                 fileName="liste-commandes.pdf"
               >
                 {({ loading }) =>
-                  loading ? <Loader size={16}/> : "Exporter en PDF"
+                  loading ? <Loader size={16} /> : "Exporter en PDF"
                 }
               </PDFDownloadLink>
             </Button>
@@ -418,40 +433,48 @@ export default function OrdersPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            variant={"info"}
-                            onClick={() => {
-                              handleView(order);
-                            }}
-                          >
-                            {"Voir"}
-                          </Button>
-                          {!deliveries.find((z) => z.orderId === order.id) && (
-                            <Button
-                              variant="outline"
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size={"icon"}>
+                              <MoreHorizontal size={16} />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
+                            <DropdownMenuItem
                               onClick={() => {
-                                handleAssign(order);
+                                handleView(order);
                               }}
                             >
-                              {"Assigner"}
-                            </Button>
-                          )}
-
-                          {(order.status === "ACCEPTED" ||
-                            order.status === "PENDING" ||
-                            order.status === "PROCESSING") && (
-                            <Button
-                              variant="success"
-                              size="default"
-                              onClick={() => {
-                                handleEnd(order)
-                              }}
-                            >
-                              {"Terminer"}
-                            </Button>
-                          )}
-                        </div>
+                              <Eye size={16} />
+                              {"Voir les détails"}
+                            </DropdownMenuItem>
+                            {!deliveries.find(
+                              (z) => z.orderId === order.id
+                            ) && (
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  handleAssign(order);
+                                }}
+                              >
+                                <SquareChevronRight size={16} />
+                                {"Assigner"}
+                              </DropdownMenuItem>
+                            )}
+                            {(order.status === "ACCEPTED" ||
+                              order.status === "PENDING" ||
+                              order.status === "PROCESSING") && (
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  handleEnd(order);
+                                }}
+                              >
+                                <CheckCircleIcon size={16} />
+                                {"Terminer"}
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))

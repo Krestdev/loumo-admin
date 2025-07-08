@@ -28,7 +28,7 @@ import { Category, Product } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { formatRelative, subDays } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Edit, PlusCircle, Search, Trash2 } from "lucide-react";
+import { Edit, MoreHorizontal, PlusCircle, Search, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useMemo, useState } from "react";
@@ -37,6 +37,12 @@ import DeleteProduct from "./delete";
 import EditProduct from "./edit";
 import GroupDelete from "./groupDelete";
 import GroupEdit from "./groupEdit";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -311,28 +317,34 @@ export default function ProductsPage() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => {
-                            setEditingProduct(product);
-                            setIsEditDialogOpen(true);
-                          }}
-                        >
-                          <Edit size={16} />
-                        </Button>
-                        <Button
-                          variant="delete"
-                          size="icon"
-                          onClick={() => {
-                            setEditingProduct(product);
-                            setIsDeleteDialogOpen(true);
-                          }}
-                        >
-                          <Trash2 size={16} />
-                        </Button>
-                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant={"ghost"} size={"icon"}>
+                            <MoreHorizontal size={16} />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setEditingProduct(product);
+                              setIsEditDialogOpen(true);
+                            }}
+                          >
+                            <Edit size={16} />
+                            {"Modifier le produit"}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={() => {
+                              setEditingProduct(product);
+                              setIsDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 size={16} />
+                            {"Supprimer le produit"}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))
