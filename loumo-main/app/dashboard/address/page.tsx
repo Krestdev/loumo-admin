@@ -50,6 +50,8 @@ import {
 } from "@/components/ui/select";
 import EditAddress from "./edit";
 import AddAddress from "./add";
+import { Badge } from "@/components/ui/badge";
+import ViewAddressDetails from "./view";
 
 export default function ZonesPage() {
   const zonesQuery = new ZoneQuery();
@@ -74,10 +76,12 @@ export default function ZonesPage() {
   const [addDialog, setAddDialog] = React.useState<boolean>(false);
   const [deleteDialog, setDeleteDialog] = React.useState<boolean>(false);
   const [editDialog, setEditDialog] = React.useState<boolean>(false);
+  const [view, setView] = React.useState<boolean>(false);
   const [selected, setSelected] = React.useState<Address>();
 
   const [searchTerm, setSearchTerm] = React.useState("");
   const [zoneFilter, setZoneFilter] = React.useState("all");
+  const [publishedFilter, setPublishedFilter] = React.useState("all");
 
   React.useEffect(() => {
     setLoading(getZones.isLoading || getAddresses.isLoading);
@@ -101,6 +105,11 @@ export default function ZonesPage() {
   const handleEdit = (address: Address) => {
     setSelected(address);
     setEditDialog(true);
+  };
+
+  const handleView = (address: Address) => {
+    setSelected(address);
+    setView(true);
   }
 
   const filteredAddresses = React.useMemo(() => {
@@ -112,9 +121,12 @@ export default function ZonesPage() {
       const matchesZone =
         zoneFilter === "all" || address.zoneId === Number(zoneFilter);
 
-      return matchesSearch && matchesZone;
+      const matchesStatus = 
+       publishedFilter === "all" || String(address.published) === publishedFilter;
+
+      return matchesSearch && matchesZone && matchesStatus;
     });
-  }, [addresses, searchTerm, zoneFilter]);
+  }, [addresses, searchTerm, zoneFilter, publishedFilter]);
 
   return (
     <PageLayout
@@ -159,7 +171,7 @@ export default function ZonesPage() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-            <div className="relative xl:col-span-2">
+            <div className="relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Rechercher par client ou numéro..."
@@ -179,6 +191,16 @@ export default function ZonesPage() {
                     {x.name}
                   </SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+            <Select value={publishedFilter} onValueChange={setPublishedFilter}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Statut du quartier" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{"Tous"}</SelectItem>
+                <SelectItem value={String(true)}>{"Actif"}</SelectItem>
+                <SelectItem value={String(false)}>{"Désactivé"}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -206,6 +228,7 @@ export default function ZonesPage() {
               <TableRow>
                 <TableHead>{"Quartier"}</TableHead>
                 <TableHead>{"Zone affectée"}</TableHead>
+                <TableHead>{"Statut"}</TableHead>
                 <TableHead>{"Actions"}</TableHead>
               </TableRow>
             </TableHeader>
@@ -213,7 +236,7 @@ export default function ZonesPage() {
               {filteredAddresses.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={3}
+                    colSpan={4}
                     className="text-center text-gray-500 py-5 sm:text-lg xl:text-xl"
                   >
                     {"Aucun quartier enregistré"}
@@ -241,6 +264,11 @@ export default function ZonesPage() {
                       )?.name ?? "--"}
                     </TableCell>
                     <TableCell>
+                      <Badge variant={item.published ? "outline" : "destructive"}>
+                        {item.published ? "Actif" : "Désactivé"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant={"ghost"} size={"icon"}>
@@ -248,7 +276,7 @@ export default function ZonesPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={()=>handleView(item)}>
                             <Eye size={16} />
                             {"Voir les détails"}
                           </DropdownMenuItem>
@@ -281,6 +309,7 @@ export default function ZonesPage() {
         />
       )}
       {selected && <EditAddress zones={zones} address={selected} openChange={setEditDialog} isOpen={editDialog}/>}
+      {selected && <ViewAddressDetails zones={zones} address={selected} openChange={setView} isOpen={view}/>}
       <AddAddress openChange={setAddDialog} isOpen={addDialog}/>
     </PageLayout>
   );
