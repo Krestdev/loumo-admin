@@ -65,7 +65,7 @@ export default function StoresPage() {
 
    const zonesQuery = new ZoneQuery();
     const getZones = useQuery({
-      queryKey: ["addresses"],
+      queryKey: ["zones"],
       queryFn: () => zonesQuery.getAll(),
       refetchOnWindowFocus: false,
     });
@@ -90,18 +90,11 @@ export default function StoresPage() {
       setZones(getZones.data);
     }
   }, [
-    setLoading,
-    setShops,
-    setOrders,
-    setZones,
     getShops.isLoading,
-    getShops.data,
     getShops.isSuccess,
     getOrders.isLoading,
-    getOrders.data,
     getOrders.isSuccess,
     getZones.isLoading,
-    getZones.data,
     getZones.isSuccess,
   ]);
 
