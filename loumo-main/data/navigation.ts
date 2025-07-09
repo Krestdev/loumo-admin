@@ -6,6 +6,7 @@ import {
     Home,
     Layers,
     MapPin,
+    Map,
     Package,
     Settings,
     Shield,
@@ -169,11 +170,19 @@ export const sidebarContent: sidebarItemGroup[] = [
     title: "Points de vente",
     items: [
       {
+        title: "Quartiers",
+        header: "Gestion des Quartiers",
+        description: "Gérez les quartiers affectés aux zones",
+        url: "/dashboard/address",
+        icon: MapPin,
+        display: true
+      },
+      {
         title: "Zones de livraison",
         header: "Gestion des Zones de livraison",
         description: "Gérez les zones de livraisons et les adresses",
         url: "/dashboard/zones",
-        icon: MapPin,
+        icon: Map,
         display: true
       },
       {

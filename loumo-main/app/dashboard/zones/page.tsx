@@ -94,16 +94,22 @@ export default function ZonesPage() {
     if (getShops.isSuccess) setShops(getShops.data);
     if (getOrders.isSuccess) setOrders(getOrders.data);
   }, [
+    setLoading,
     getZones.isSuccess,
+    getZones.data,
     getZones.isLoading,
     getDeliveries.isSuccess,
+    getDeliveries.data,
     getDeliveries.isLoading,
     getAddresses.isSuccess,
+    getAddresses.data,
     getAddresses.isLoading,
     getShops.isSuccess,
+    getShops.data,
     getShops.isLoading,
     getOrders.isLoading,
     getOrders.isSuccess,
+    getOrders.data,
   ]);
 
   const getMonthlyDeliveries = ({

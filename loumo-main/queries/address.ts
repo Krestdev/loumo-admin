@@ -16,7 +16,7 @@ export default class AddressQuery {
   };
 
   create = async (
-    data: Omit<Address, "id" | "createdAt"> & { zoneId?: number }
+    data: Omit<Address, "id" | "createdAt" | "updatedAt">
   ): Promise<Address> => {
     return api.post(`${this.route}`, data).then((response) => response.data);
   };

@@ -84,10 +84,13 @@ export default function ZonesPage() {
     if (getZones.isSuccess) setZones(getZones.data);
     if (getAddresses.isSuccess) setAddresses(getAddresses.data);
   }, [
+    setLoading,
     getZones.isSuccess,
     getZones.isLoading,
+    getZones.data,
     getAddresses.isSuccess,
     getAddresses.isLoading,
+    getAddresses.data,
   ]);
 
   const handleDelete = (address: Address) => {

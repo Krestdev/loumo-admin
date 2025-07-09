@@ -29,10 +29,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import AddressQuery from "@/queries/address";
 import OrderQuery from "@/queries/order";
 import ShopQuery from "@/queries/shop";
-import { Address, Order, Shop, Zone } from "@/types/types";
+import ZoneQuery from "@/queries/zone";
+import { Order, Shop, Zone } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import {
   CirclePlus,
@@ -46,7 +46,6 @@ import {
 } from "lucide-react";
 import React, { useState } from "react";
 import NewStore from "./newStore";
-import ZoneQuery from "@/queries/zone";
 
 export default function StoresPage() {
   const shopQuery = new ShopQuery();
@@ -90,12 +89,16 @@ export default function StoresPage() {
       setZones(getZones.data);
     }
   }, [
+    setLoading,
     getShops.isLoading,
     getShops.isSuccess,
+    getShops.data,
     getOrders.isLoading,
     getOrders.isSuccess,
+    getOrders.data,
     getZones.isLoading,
     getZones.isSuccess,
+    getZones.data,
   ]);
 
 

@@ -23,6 +23,7 @@ import AddressQuery from "@/queries/address";
 import { Address, Zone } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
+import { Loader } from "lucide-react";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -77,7 +78,7 @@ function EditAddress({ address, isOpen, openChange, zones }: Props) {
   })
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    //
+    updateAddress.mutate(values);
   };
 
   React.useEffect(() => {
@@ -189,7 +190,9 @@ function EditAddress({ address, isOpen, openChange, zones }: Props) {
               )}
             />
             <div className="flex justify-end gap-2">
-              <Button type="submit">{"Enregistrer les modifications"}</Button>
+              <Button type="submit" disabled={updateAddress.isPending}>
+                {updateAddress.isPending && <Loader size={16} className="animate-spin"/>}
+                {"Enregistrer les modifications"}</Button>
               <Button
                 variant={"outline"}
                 onClick={(e) => {

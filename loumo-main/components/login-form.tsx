@@ -1,17 +1,16 @@
 'use client'
-import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { z } from "zod"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import UserQuery from "@/queries/user"
-import { useMutation } from "@tanstack/react-query"
+import { cn } from "@/lib/utils"
 import { useStore } from "@/providers/datastore"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form"
+import UserQuery from "@/queries/user"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useMutation } from "@tanstack/react-query"
 import { Loader } from "lucide-react"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form"
 
 const loginSchema = z.object({
   email:z.string().email({message: "Email non valide"}),
