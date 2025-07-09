@@ -2,6 +2,7 @@ import api from "@/providers/axios";
 import { User } from "@/types/types";
 import { toast } from "react-toastify";
 
+const allowedAdminRoles = [1]; //Update if needed
 export default class UserQuery {
   route = "/users";
   login = async (data: {
@@ -13,6 +14,32 @@ export default class UserQuery {
       return response.data;
     });
   };
+
+  //custom config for backoffice
+  loginAdmin = async (data: {
+  email: string;
+  password: string;
+}): Promise<{ user: User; token: string }> => {
+  return api
+    .post(`${this.route}/login`, data)
+    .then((response) => {
+      const { user, token } = response.data;
+
+      if (!allowedAdminRoles.includes(user.roleId ?? -1)) {
+        throw new Error("Accès non autorisé pour ce rôle.");
+      }
+
+      toast.success(`Bienvenue ${user.name}`);
+      return { user, token };
+    })
+    .catch((error) => {
+      const message =
+        error?.response?.data?.message || error.message || "Erreur inconnue";
+      toast.error(message);
+      throw error; // on relance l'erreur pour permettre un catch externe
+    });
+};
+
   getAll = async (): Promise<User[]> => {
     return api
       .get(`${this.route}/?roleD=true&addressD=true&logD=true&notifD=true`)
