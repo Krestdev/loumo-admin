@@ -1,5 +1,5 @@
 import { LucideProps } from "lucide-react";
-import React, { ForwardRefExoticComponent, RefAttributes } from "react";
+import { ForwardRefExoticComponent, RefAttributes } from "react";
 
 export interface navigationHeader {
   title: string;
@@ -22,6 +22,8 @@ export interface sidebarItemGroup {
 
 export type DeliveryPriority = "LOW" | "NORMAL" | "HIGH" | "URGENT";
 
+export type ZoneStatus = "ACTIVE" | "INACTIVE" | "PENDING" | "DISABLED";
+
 export type Address = {
   street: string;
   local: string;
@@ -43,7 +45,7 @@ export type Zone = {
   price: number;
   addresses: Address[];
   description: string;
-  status: string;
+  status: ZoneStatus;
 };
 
 export type Agent = {

@@ -31,10 +31,12 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { sidebarContent } from "@/data/navigation"
+import { useStore } from "@/providers/datastore"
 
 export function AppSidebar() {
-  const pathname = usePathname()
-  const { state } = useSidebar()
+  const pathname = usePathname();
+  const { state } = useSidebar();
+  const { logout } = useStore();  
 
   return (
     <Sidebar className="border-r">
@@ -82,7 +84,7 @@ export function AppSidebar() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="w-full justify-start gap-2 px-2 h-auto py-2">
               <Avatar className="h-8 w-8">
-                <AvatarImage src="/placeholder-user.jpg" />
+                <AvatarImage src="/images/user.png" />
                 <AvatarFallback>{"AD"}</AvatarFallback>
               </Avatar>
               {state === "expanded" && (
@@ -97,16 +99,16 @@ export function AppSidebar() {
             <DropdownMenuLabel>{"Mon compte"}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
-              <Settings className="mr-2 h-4 w-4" />
+              <Settings className="mr-2" size={16} />
               {"Profil"}
             </DropdownMenuItem>
             <DropdownMenuItem>
-              <Settings className="mr-2 h-4 w-4" />
+              <Settings className="mr-2" size={16} />
               {"Paramètres"}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-red-600 focus:text-red-600">
-              <LogOut className="mr-2 h-4 w-4" />
+            <DropdownMenuItem variant="destructive" onClick={()=>{logout();}}>
+              <LogOut className="mr-2" size={16} />
               {"Déconnexion"}
             </DropdownMenuItem>
           </DropdownMenuContent>

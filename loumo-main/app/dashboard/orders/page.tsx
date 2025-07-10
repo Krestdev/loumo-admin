@@ -58,7 +58,7 @@ export default function OrdersPage() {
   const ordersQuery = new OrderQuery();
   const zoneQuery = new ZoneQuery();
   const orderData = useQuery({
-    queryKey: ["orderData"],
+    queryKey: ["orders"],
     queryFn: ordersQuery.getAll,
     refetchOnWindowFocus: false,
   });

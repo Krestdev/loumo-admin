@@ -29,10 +29,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import AddressQuery from "@/queries/address";
 import OrderQuery from "@/queries/order";
 import ShopQuery from "@/queries/shop";
-import { Address, Order, Shop } from "@/types/types";
+import ZoneQuery from "@/queries/zone";
+import { Order, Shop, Zone } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import {
   CirclePlus,
@@ -62,46 +62,43 @@ export default function StoresPage() {
     refetchOnWindowFocus: false,
   });
 
-   const addressQuery = new AddressQuery();
-    const getAllAddresses = useQuery({
-      queryKey: ["addresses"],
-      queryFn: () => addressQuery.getAll(),
+   const zonesQuery = new ZoneQuery();
+    const getZones = useQuery({
+      queryKey: ["zones"],
+      queryFn: () => zonesQuery.getAll(),
       refetchOnWindowFocus: false,
     });
 
   const [shops, setShops] = useState<Shop[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [zones, setZones] = useState<Zone[]>([]);
   const { setLoading } = useStore();
 
   //const [selectedStore, setSelectedStore] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   React.useEffect(() => {
-    setLoading(getShops.isLoading || getOrders.isLoading || getAllAddresses.isLoading);
+    setLoading(getShops.isLoading || getOrders.isLoading || getZones.isLoading);
     if (getShops.isSuccess) {
       setShops(getShops.data);
     }
     if (getOrders.isSuccess) {
       setOrders(getOrders.data);
     }
-    if (getAllAddresses.isSuccess) {
-      setAddresses(getAllAddresses.data);
+    if (getZones.isSuccess) {
+      setZones(getZones.data);
     }
   }, [
     setLoading,
-    setShops,
-    setOrders,
-    setAddresses,
     getShops.isLoading,
-    getShops.data,
     getShops.isSuccess,
+    getShops.data,
     getOrders.isLoading,
-    getOrders.data,
     getOrders.isSuccess,
-    getAllAddresses.isLoading,
-    getAllAddresses.data,
-    getAllAddresses.isSuccess,
+    getOrders.data,
+    getZones.isLoading,
+    getZones.isSuccess,
+    getZones.data,
   ]);
 
 
@@ -135,7 +132,7 @@ export default function StoresPage() {
 
   return (
     <PageLayout
-      isLoading={getShops.isLoading || getOrders.isLoading || getAllAddresses.isLoading}
+      isLoading={getShops.isLoading || getOrders.isLoading || getZones.isLoading}
       className="flex-1 space-y-4 p-4"
     >
       <div className="flex items-center justify-between space-y-2">
@@ -263,7 +260,7 @@ export default function StoresPage() {
         </TabsContent>
 
         <TabsContent value="performance" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 min-[1700px]:grid-cols-4">
             {shops.map((store) => (
               <Card key={store.id}>
                 <CardHeader>
@@ -344,15 +341,21 @@ export default function StoresPage() {
                     </div>
                     <div className="mt-3">
                       <span className="text-muted-foreground text-sm">
-                        {"Zones desservies:"}
+                        {"Zone desservie:"}
                       </span>
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        {addresses.filter(x=>x.id === store.addressId).map((address) => (
-                          <Badge key={address.id} variant="outline">
-                            {address.street}
-                          </Badge>
-                        ))}
+                        {zones.filter(x=>x.id === store.address?.zoneId).map((zone) => (
+                      <div key={zone.id} className="flex flex-col gap-3">
+                        <span className="font-semibold">{zone.name}</span>
+                        <div className="flex flex-wrap gap-2">
+                          {(!!zone.addresses && zone.addresses.length > 0) && 
+                          zone.addresses.map(y=>
+                            <Badge key={y.id} variant={"outline"}>
+                              {y.street ?? y.local}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
+                        ))}
                     </div>
                   </div>
                 ))}

@@ -1,5 +1,4 @@
-import NotificationProvider from "@/providers/notifications";
-import QueryProvider from "@/providers/queryProvider";
+import Providers from "@/providers/providers";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "react18-json-view/src/style.css";
@@ -29,14 +28,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr">
+    <html lang="fr" suppressHydrationWarning>
       <body className={`${inter.variable} antialiased`}>
-        <QueryProvider>
-          <NotificationProvider>
-            {/* <Notification /> */}
-            {children}
-          </NotificationProvider>
-        </QueryProvider>
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );
