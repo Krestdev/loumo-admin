@@ -35,6 +35,8 @@ import {
 import Link from "next/link";
 import React from "react";
 import {
+  Bar,
+  BarChart,
   CartesianGrid,
   Line,
   LineChart,
@@ -418,18 +420,15 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={getSalesByDay(orders)}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis tickFormatter={(value) => `${value / 1000}k`} />
-                <Tooltip formatter={(value) => XAF.format(Number(value))} />
-                <Line
-                  type="monotone"
-                  dataKey="total"
-                  stroke="#3b82f6"
-                  strokeWidth={2}
+              <BarChart data={getSalesByDay(orders)} barSize={30}>
+                <XAxis dataKey="date" tickLine={false} axisLine={true} />
+                {/* On supprime YAxis */}
+                <Tooltip
+                  formatter={(value) => XAF.format(Number(value))}
+                  labelFormatter={(label) => `Jour : ${label}`}
                 />
-              </LineChart>
+                <Bar dataKey="total" fill="#018e97" className="" radius={[4, 4, 0, 0]} />
+              </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
