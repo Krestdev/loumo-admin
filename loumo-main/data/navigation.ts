@@ -42,7 +42,7 @@ export const sidebarContent: sidebarItemGroup[] = [
       },
       {
         title: "Paiements",
-        header: "Gestion desPaiements",
+        header: "Gestion des Paiements",
         description: "Suivez les transactions et méthodes de paiement",
         url: "/dashboard/payments",
         icon: CreditCard,

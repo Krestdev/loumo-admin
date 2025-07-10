@@ -135,9 +135,10 @@ export type Payment = {
   id: number;
   status: "FAILED"|"COMPLETED"|"PROCESSING"|"REJECTED"|"ACCEPTED"|"PENDING";
   orderId: number;
-  order?: Order[];
+  order?: Order;
   total: number;
   ref: string;
+  method: "MTN_MOMO_CMR" | "ORANGE_CMR"| "CASH";
 };
 
 export type Permission = {
