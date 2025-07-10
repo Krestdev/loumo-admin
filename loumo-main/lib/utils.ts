@@ -1,4 +1,4 @@
-import { Delivery, Order, Payment } from "@/types/types";
+import { Delivery, Order, Payment, User } from "@/types/types";
 import { clsx, type ClassValue } from "clsx"
 import { isAfter, subDays } from "date-fns";
 import { twMerge } from "tailwind-merge"
@@ -120,3 +120,31 @@ export const getPriorityColor = (priority: Delivery["priority"]) => {
       return "info";
   }
 };
+
+export function getOrdersByDay(orders: Order[], dayOffset: number = 0): Order[] {
+  const now = new Date();
+  const targetDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + dayOffset);
+  const nextDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + dayOffset + 1);
+
+  return orders.filter((order) => {
+    const createdAt = new Date(order.createdAt);
+    return createdAt >= targetDay && createdAt < nextDay;
+  });
+}
+
+export function getClientsByDay(clients:User[], dayOffset: number = 0):User[] {
+  const now = new Date();
+  const targetDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + dayOffset);
+  const nextDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + dayOffset + 1);
+
+  return clients.filter((client)=> {
+    const createdAt = new Date(client.updatedAt);
+    return createdAt >= targetDay && createdAt < nextDay;
+  })
+}
+
+export function sortOrdersByNewest(orders: Order[]): Order[] {
+  return [...orders].sort((a, b) => {
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+}
