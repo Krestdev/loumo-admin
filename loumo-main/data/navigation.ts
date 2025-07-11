@@ -210,7 +210,7 @@ export const sidebarContent: sidebarItemGroup[] = [
         header: "Gestion des Avis",
         url: "/dashboard/reviews",
         icon: Star,
-        display: true
+        display: false
       },
       {
         title: "Paramètres",

@@ -16,11 +16,13 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import AddressQuery from "@/queries/address";
+import { Zone } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader } from "lucide-react";
 import React from "react";
 import { useForm } from "react-hook-form";
@@ -29,6 +31,7 @@ import { z } from "zod";
 type Props = {
   isOpen: boolean;
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
+  zones: Zone[];
 };
 
 const formSchema = z.object({
@@ -40,11 +43,14 @@ const formSchema = z.object({
     .string()
     .min(3, { message: "Veuillez donner le nom du quartier" })
     .max(40, { message: "Trop long" }),
-  description: z.string().optional(),
+  description: z.string(),
   published: z.boolean({ message: "Définissez le statut" }),
+  zoneId: z.string().refine((val) => !!val && !isNaN(Number(val)) && Number(val) > 0, {
+  message: "Renseignez une zone valide",
+})
 });
 
-function AddAddress({ isOpen, openChange }: Props) {
+function AddAddress({ isOpen, openChange, zones }: Props) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -52,9 +58,11 @@ function AddAddress({ isOpen, openChange }: Props) {
       local: "",
       description: "",
       published: true,
+      zoneId: ""
     },
   });
 
+  const queryClient = useQueryClient();
   const addressQuery = new AddressQuery();
   const createAddress = useMutation({
     mutationFn: (values: z.infer<typeof formSchema>) =>
@@ -62,9 +70,14 @@ function AddAddress({ isOpen, openChange }: Props) {
         street: values.street,
         local: values.local,
         published: values.published,
-        description: values.description ?? null,
-        zoneId: null,
+        description: values.description ?? "",
+        zoneId: Number(values.zoneId),
       }),
+      onSuccess: ()=>{
+        queryClient.invalidateQueries({queryKey: ["addresses"], refetchType: "active"});
+        queryClient.invalidateQueries({queryKey: ["zones"], refetchType: "active"});
+        openChange(false);
+      }
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
@@ -78,6 +91,7 @@ function AddAddress({ isOpen, openChange }: Props) {
         local: "",
         description: "",
         published: true,
+        zoneId: ""
       });
     }
   }, [isOpen, form]);
@@ -130,6 +144,31 @@ function AddAddress({ isOpen, openChange }: Props) {
                       {...field}
                       placeholder="Description du quartier..."
                     />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="zoneId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{"Zone associée"}</FormLabel>
+                  <FormControl>
+                    <Select defaultValue={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Sélectionner une zone"/>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {zones.length === 0 ?
+                        <p className="italic text-sm text-gray-600">{"Aucune zone enregistrée. Créez une zone pour ajouter une adresse"}</p>
+                      :
+                      zones.map(x=>
+                        <SelectItem key={x.id} value={String(x.id)}>{x.name}</SelectItem>
+                      )}
+                      </SelectContent>
+                    </Select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -27,6 +27,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
   DollarSign,
+  Package,
   ShoppingCart,
   TriangleAlert,
   UsersIcon,
@@ -288,7 +289,26 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {sortOrdersByNewest(orders)
+              {
+                orders.length === 0 ?
+                <div className="flex flex-col gap-4 items-center pt-7">
+                  <img
+                    src={"/images/cart-empty.png"}
+                    alt="cart empty"
+                    className="max-w-[120px] w-[5vw] h-auto opacity-40"
+                  />
+                  <p className="text-lg lg:text-xl text-muted-foreground italic text-center">
+                    {"Aucune commande enregistrée"}
+                  </p>
+                  <Link href={"/dashboard/products"}>
+                    <Button>
+                      <Package size={16} />
+                      {"Gérer les produits"}
+                    </Button>
+                  </Link>
+                </div>
+                :
+              sortOrdersByNewest(orders)
                 .slice(0, 4)
                 .map((order) => (
                   <div

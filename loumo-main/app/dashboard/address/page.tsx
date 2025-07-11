@@ -310,7 +310,7 @@ export default function ZonesPage() {
       )}
       {selected && <EditAddress zones={zones} address={selected} openChange={setEditDialog} isOpen={editDialog}/>}
       {selected && <ViewAddressDetails zones={zones} address={selected} openChange={setView} isOpen={view}/>}
-      <AddAddress openChange={setAddDialog} isOpen={addDialog}/>
+      <AddAddress openChange={setAddDialog} isOpen={addDialog} zones={zones}/>
     </PageLayout>
   );
 }

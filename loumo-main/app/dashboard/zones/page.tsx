@@ -32,6 +32,8 @@ import { CirclePlus, Edit, Eye, MapPin, MoreHorizontal, Store, Trash2, Truck } f
 import React from "react";
 import AddZone from "./add";
 import DeleteZone from "./delete";
+import EditZone from "./edit";
+import ViewZoneDetails from "./viewDetails";
 
 export default function ZonesPage() {
   const zonesQuery = new ZoneQuery();
@@ -78,6 +80,8 @@ export default function ZonesPage() {
 
   const [addDialog, setAddDialog] = React.useState<boolean>(false);
   const [deleteDialog, setDeleteDialog] = React.useState<boolean>(false);
+  const [editDialog, setEditDialog] = React.useState<boolean>(false);
+  const [viewDialog, setViewDialog] = React.useState<boolean>(false);
   const [selected, setSelected] = React.useState<Zone>();
 
   React.useEffect(() => {
@@ -134,6 +138,16 @@ export default function ZonesPage() {
   const handleDelete = (zone: Zone) => {
     setSelected(zone);
     setDeleteDialog(true);
+  }
+
+  const handleEdit = (zone: Zone) => {
+    setSelected(zone);
+    setEditDialog(true);
+  }
+
+  const handleView = (zone: Zone) => {
+    setSelected(zone);
+    setViewDialog(true);
   }
 
   return (
@@ -297,11 +311,11 @@ export default function ZonesPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={()=>handleView(zone)}>
                           <Eye size={16} />
                           {"Voir les détails"}
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={()=>handleEdit(zone)}>
                           <Edit size={16} />
                           {"Modifier"}
                         </DropdownMenuItem>
@@ -337,6 +351,8 @@ export default function ZonesPage() {
         </Card> */}
         <AddZone addresses={addresses} isOpen={addDialog} openChange={setAddDialog}/>
         {selected && <DeleteZone zone={selected} isOpen={deleteDialog} openChange={setDeleteDialog}/>}
+        {selected && <EditZone zone={selected} isOpen={editDialog} openChange={setEditDialog} addresses={addresses}/>}
+        {selected && <ViewZoneDetails isOpen={viewDialog} openChange={setViewDialog} zone={selected}/>}
     </PageLayout>
   );
 }

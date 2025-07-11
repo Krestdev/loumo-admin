@@ -16,13 +16,19 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import AddressQuery from "@/queries/address";
 import { Address, Zone } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader } from "lucide-react";
 import React from "react";
 import { useForm } from "react-hook-form";
@@ -38,8 +44,8 @@ type Props = {
 const formSchema = z.object({
   zoneId: z
     .string()
-    .refine((val) => !Number(val), {
-      message: "Veuillez sélectionner une zone",
+    .refine((val) => !!val && !isNaN(Number(val)) && Number(val) > 0, {
+      message: "Renseignez une zone valide",
     }),
   street: z
     .string()
@@ -65,17 +71,30 @@ function EditAddress({ address, isOpen, openChange, zones }: Props) {
     },
   });
 
+  const queryClient = useQueryClient();
+
   const addressQuery = new AddressQuery();
   const updateAddress = useMutation({
-    mutationFn: (values:z.infer<typeof formSchema>) =>
-        addressQuery.update(address.id, {
+    mutationFn: (values: z.infer<typeof formSchema>) =>
+      addressQuery.update(address.id, {
         street: values.street,
         local: values.local,
         published: values.published,
         description: values.description ?? null,
         zoneId: Number(values.zoneId),
-    })
-  })
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["addresses"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["zones"],
+        refetchType: "active",
+      });
+      openChange(false);
+    },
+  });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     updateAddress.mutate(values);
@@ -130,24 +149,29 @@ function EditAddress({ address, isOpen, openChange, zones }: Props) {
                 </FormItem>
               )}
             />
-             <FormField
+            <FormField
               control={form.control}
               name="zoneId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{"Zone"}</FormLabel>
-                    <FormControl>
-                      <Select defaultValue={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger className="w-full">
-                            <SelectValue placeholder={"Sélectionner une zone"}/>
-                        </SelectTrigger>
-                        <SelectContent>
-                            {zones.map(x=>
-                                <SelectItem key={x.id} value={String(x.id)}>{x.name}</SelectItem>
-                            )}
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
+                  <FormControl>
+                    <Select
+                      defaultValue={field.value}
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder={"Sélectionner une zone"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {zones.map((x) => (
+                          <SelectItem key={x.id} value={String(x.id)}>
+                            {x.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -191,8 +215,11 @@ function EditAddress({ address, isOpen, openChange, zones }: Props) {
             />
             <div className="flex justify-end gap-2">
               <Button type="submit" disabled={updateAddress.isPending}>
-                {updateAddress.isPending && <Loader size={16} className="animate-spin"/>}
-                {"Enregistrer les modifications"}</Button>
+                {updateAddress.isPending && (
+                  <Loader size={16} className="animate-spin" />
+                )}
+                {"Enregistrer les modifications"}
+              </Button>
               <Button
                 variant={"outline"}
                 onClick={(e) => {

@@ -4,7 +4,7 @@ import { Zone } from "@/types/types";
 export default class ZoneQuery {
   route = "/zones";
   create = async (
-    data: Omit<Zone, "id"> & { addressIds?: number[] }
+    data: Omit<Zone, "id" | "addresses"> & { addressIds?: number[] }
   ): Promise<Zone> => {
     return api.post(`${this.route}`, data).then((response) => response.data);
   };

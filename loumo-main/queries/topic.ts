@@ -3,7 +3,7 @@ import { Topic } from "@/types/types";
 
 export default class TopicQuery {
   route = "/topics";
-  create = async (data: Omit<Topic, "id">): Promise<Topic> => {
+  create = async (data: Omit<Topic, "id" | "faqs">): Promise<Topic> => {
     return api.post(`${this.route}`, data).then((response) => response.data);
   };
 

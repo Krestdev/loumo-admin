@@ -48,7 +48,7 @@ const formSchema = z.object({
       message: "Doit être un nombre",
     }),
   status: z.enum(["ACTIVE", "INACTIVE", "PENDING", "DISABLED"]),
-  addressIds: z.array(z.number()).min(1, "Choisir au moins un quartier"),
+  addressIds: z.array(z.number())//.min(1, "Choisir au moins un quartier"),
 });
 
 function AddZone({ isOpen, openChange, addresses }: Props) {
@@ -74,7 +74,7 @@ function AddZone({ isOpen, openChange, addresses }: Props) {
           addressIds: values.addressIds,
           description: values.description ?? "",
           status: values.status,
-          addresses: []
+          //addresses: []
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({
