@@ -114,7 +114,7 @@ function AddPage({ isOpen, openChange }: Props) {
                 <FormItem>
                   <FormLabel>{"Meta description"}</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Courte description pour les moteurs de recherche" {...field} />
+                    <Textarea placeholder="Courte description pour les moteurs de recherche.." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
