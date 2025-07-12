@@ -44,11 +44,13 @@ import { fr } from "date-fns/locale";
 import {
   AlertTriangle,
   Calendar,
+  CirclePlus,
   Package,
   Search
 } from "lucide-react";
 import React, { useMemo, useState } from "react";
 import Restock from "./add";
+import CreateStockPage from "./createStock";
 
 export default function InventoryPage() {
   const stockQuery = new StockQuery();
@@ -105,6 +107,8 @@ export default function InventoryPage() {
   const [dateTo, setDateTo] = useState<Date>();
   const [selectedStock, setSelectedStock] = useState<Stock>();
   const [addDialog, setAddDialog] = useState<boolean>(false);
+
+  const [createDialog, setCreateDialog] =useState<boolean>(false);
 
   const filteredData = useMemo(() => {
     return stocks.filter((item) => {
@@ -318,9 +322,12 @@ export default function InventoryPage() {
 
       {/* Inventory Table */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-wrap gap-4 justify-between items-center">
+          <div className="flex flex-col gap-2">
           <CardTitle>{"Stock par produit"}</CardTitle>
           <CardDescription>{`${stocks.length} produit(s) affiché(s)`}</CardDescription>
+          </div>
+          <Button onClick={()=>setCreateDialog(true)}><CirclePlus size={16} />{"Créer un Stock"}</Button>
         </CardHeader>
         <CardContent>
           <Table>
@@ -402,6 +409,7 @@ export default function InventoryPage() {
       {
         !!selectedStock && <Restock isOpen={addDialog} openChange={setAddDialog} products={products} stock={selectedStock} shops={shops} />
       }
+      <CreateStockPage isOpen={createDialog} openChange={setCreateDialog} />
     </PageLayout>
   );
 }

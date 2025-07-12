@@ -4,10 +4,7 @@ import { Stock } from "@/types/types";
 export default class StockQuery {
   route = "/stocks";
   create = async (
-    data: Omit<Stock, "id" | "promotionId"> & {
-      orderId: number;
-      orderItemsIds?: number[];
-    }
+    data: Omit<Stock, "id" | "promotionId">
   ): Promise<Stock> => {
     return api.post(`${this.route}`, data).then((response) => response.data);
   };
