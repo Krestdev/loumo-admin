@@ -15,9 +15,9 @@ type Props = {
 export default function ViewPageModal({ isOpen, openChange, page }: Props) {
   return (
     <Dialog open={isOpen} onOpenChange={openChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh]">
+      <DialogContent className="sm:max-w-[70vw] xl:max-w-[1080px]">
         <DialogHeader>
-          <DialogTitle>{`Page : ${page.name}`}</DialogTitle>
+          <DialogTitle>{`[Page] ${page.name}`}</DialogTitle>
           <DialogDescription>
             {"Aperçu de la page ajoutée par l'administrateur"}
           </DialogDescription>
@@ -43,7 +43,7 @@ export default function ViewPageModal({ isOpen, openChange, page }: Props) {
           )}
 
           <div className="max-h-[400px] overflow-y-auto border rounded-md p-4">
-            <div className="prose prose-sm max-w-full" dangerouslySetInnerHTML={{ __html: page.content ?? "<i>Aucun contenu</i>" }} />
+            <div className="tiptap prose prose-sm max-w-full" dangerouslySetInnerHTML={{ __html: page.content ?? "<i>Aucun contenu</i>" }} />
           </div>
         </div>
       </DialogContent>

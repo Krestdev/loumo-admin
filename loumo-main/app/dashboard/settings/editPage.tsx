@@ -72,7 +72,7 @@ export default function EditPageModal({ isOpen, openChange, page }: Props) {
 
   return (
     <Dialog open={isOpen} onOpenChange={openChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[70vw] xl:max-w-[1080px]">
         <DialogHeader>
           <DialogTitle>{"Modifier la page"}</DialogTitle>
           <DialogDescription>
