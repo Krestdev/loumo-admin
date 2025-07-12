@@ -50,12 +50,15 @@ import DeleteTopic from "./deleteTopic";
 import EditQA from "./editQA";
 import EditTopic from "./editTopic";
 import AddPage from "./addPage";
+import DeletePageModal from "./deletePage";
+import EditPageModal from "./editPage";
+import ViewPageModal from "./viewPage";
 
 export default function SettingsPage() {
   //settings
   const settingsQuery = new SettingQuery();
   const getSettings = useQuery({
-    queryKey: ["settings"],
+    queryKey: ["pages"],
     queryFn: () => settingsQuery.getAll(),
     refetchOnWindowFocus: false,
   });
@@ -82,6 +85,10 @@ export default function SettingsPage() {
   const [editFAQ, setEditFAQ] = useState<boolean>(false);
 
   const [addPageDialog, setAddPageDialog] = useState<boolean>(false);
+  const [selectedPage, setSelectedPage] = useState<Setting>();
+  const [deletePageDialog, setDeletePageDialog] = useState<boolean>(false);
+  const [editPageDialog, setEditPageDialog] = useState<boolean>(false);
+  const [viewPageDialog, setViewPageDialog] = useState<boolean>(false);
 
   const { setLoading } = useStore();
 
@@ -126,16 +133,31 @@ export default function SettingsPage() {
     setEditTopicDialog(true);
   };
 
+  const handleDeletePage = (page:Setting):void => {
+    setSelectedPage(page);
+    setDeletePageDialog(true);
+  };
+
+  const handleEditPage = (page: Setting):void => {
+    setSelectedPage(page);
+    setEditPageDialog(true);
+  }
+
+  const handleViewPage = (page:Setting):void => {
+    setSelectedPage(page);
+    setViewPageDialog(true);
+  }
+
   return (
     <PageLayout
       isLoading={getSettings.isLoading || getTopics.isLoading}
       className="flex-1 space-y-4 p-4 md:p-8 pt-6"
     >
-      <Tabs defaultValue="general" className="space-y-4">
+      <Tabs defaultValue="pages" className="space-y-4">
         <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="general">{"Général"}</TabsTrigger>
-          <TabsTrigger value="FAQ">{"FAQ"}</TabsTrigger>
+          {/* <TabsTrigger value="general">{"Général"}</TabsTrigger> */}
           <TabsTrigger value="pages">{"Pages"}</TabsTrigger>
+          <TabsTrigger value="FAQ">{"FAQ"}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general" className="space-y-4">
@@ -377,6 +399,9 @@ export default function SettingsPage() {
 
         <TabsContent value="pages" className="space-y-4">
           <AddPage isOpen={addPageDialog} openChange={setAddPageDialog} />
+          {selectedPage && <DeletePageModal setting={selectedPage} isOpen={deletePageDialog} openChange={setDeletePageDialog}  />}
+          {selectedPage && <EditPageModal page={selectedPage} isOpen={editPageDialog} openChange={setEditPageDialog}  />}
+          {selectedPage && <ViewPageModal page={selectedPage} isOpen={viewPageDialog} openChange={setViewPageDialog}  />}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
@@ -394,9 +419,15 @@ export default function SettingsPage() {
 
             <CardContent className="space-y-4">
               {settings.filter((s) => s.section === "page").length === 0 ? (
-                <div className="text-center text-muted-foreground mt-10">
-                  <p>{"Aucune page n’a encore été créée."}</p>
-                  <p>{"Utilisez le bouton ci-dessus pour en ajouter une."}</p>
+                <div className="text-center text-muted-foreground py-6">
+                  <p className="text-base sm:text-lg italic">{"Aucune page n’a encore été créée."}</p>
+                  <Button
+                    size={"lg"}
+                    className="mt-3"
+                    onClick={() => setAddPageDialog(true)}
+                  >
+                    {"Créer une page"}
+                  </Button>
                 </div>
               ) : (
                 <Table>
@@ -417,15 +448,27 @@ export default function SettingsPage() {
                             {page.note || "-"}
                           </TableCell>
                           <TableCell className="text-right space-x-2">
-                            <Button size="icon" variant="ghost">
-                              <Eye size={16} />
-                            </Button>
-                            <Button size="icon" variant="ghost">
-                              <Pencil size={16} />
-                            </Button>
-                            <Button size="icon" variant="ghost">
-                              <Trash className="w-4 h-4 text-red-600" />
-                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button size={"icon"} variant={"ghost"}>
+                                        <MoreHorizontal size={16} />
+                                      </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent>
+                                <DropdownMenuItem onClick={()=>handleViewPage(page)}>
+                                  <Eye size={16} />
+                                  {"Voir la page"}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={()=>handleEditPage(page)}>
+                                  <Pencil size={16} />
+                                  {"Modifier la page"}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem variant="destructive" onClick={()=>handleDeletePage(page)}>
+                                  <Trash size={16} />
+                                  {"Supprimer la page"}
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </TableCell>
                         </TableRow>
                       ))}

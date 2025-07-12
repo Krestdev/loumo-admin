@@ -4,6 +4,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -93,7 +94,7 @@ function AddTopic({ isOpen, openChange}: Props) {
             </FormItem>
           )}
         />
-            <div className="flex justify-end gap-2">
+            <DialogFooter className="mt-4">
               <Button type="submit" disabled={createTopic.isPending}>
                 {createTopic.isPending ? (
                   <Loader size={16} className="animate-spin" />
@@ -112,7 +113,7 @@ function AddTopic({ isOpen, openChange}: Props) {
               >
                 {"Annuler"}
               </Button>
-            </div>
+            </DialogFooter>
           </form>
         </Form>
       </DialogContent>

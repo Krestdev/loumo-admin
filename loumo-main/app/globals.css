@@ -134,4 +134,43 @@
 .loader-bar {
   animation: slide-left 1.5s linear infinite;
 }
+/**Tiptap styles */
+.tiptap h1 {
+  font-size: 1.875rem; /* text-3xl */
+  font-weight: 700;
+  line-height: 2.25rem;
+  margin-bottom: 1rem;
+  color: #111827; /* text-gray-900 */
+}
+
+.tiptap h2 {
+  font-size: 1.5rem; /* text-2xl */
+  font-weight: 600;
+  line-height: 2rem;
+  margin-bottom: 0.75rem;
+  color: #1f2937; /* text-gray-800 */
+}
+
+.tiptap h3 {
+  font-size: 1.25rem; /* text-xl */
+  font-weight: 600;
+  line-height: 1.75rem;
+  margin-bottom: 0.5rem;
+  color: #374151; /* text-gray-700 */
+}
+
+.tiptap h4 {
+  font-size: 1.125rem; /* text-lg */
+  font-weight: 500;
+  line-height: 1.75rem;
+  margin-bottom: 0.5rem;
+  color: #4b5563; /* text-gray-600 */
+}
+
+.tiptap p {
+  margin-bottom: 1rem;
+  line-height: 1.75;
+  color: #374151; /* text-gray-700 */
+}
+
 }

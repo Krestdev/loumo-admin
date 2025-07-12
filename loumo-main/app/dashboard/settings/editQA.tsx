@@ -1,6 +1,6 @@
 'use client';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
@@ -122,7 +122,7 @@ function EditQA({ QA, isOpen, openChange, topics }: Props) {
             </FormItem>
           )}
         />
-            <div className="flex justify-end gap-2">
+            <DialogFooter className="mt-4">
               <Button type="submit" disabled={modifyQA.isPending}>
                 {modifyQA.isPending && (
                   <Loader size={16} className="animate-spin" />
@@ -138,7 +138,7 @@ function EditQA({ QA, isOpen, openChange, topics }: Props) {
               >
                 {"Annuler"}
               </Button>
-            </div>
+            </DialogFooter>
           </form>
         </Form>
         </DialogContent>

@@ -1,6 +1,6 @@
 'use client';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import FaqQuery from '@/queries/faq';
 import { Faq } from '@/types/types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -30,10 +30,10 @@ function DeleteQA({ QA, isOpen, openChange }: Props) {
                 <DialogTitle>{`Supprimer ${QA.question}`}</DialogTitle>
                 <DialogDescription>{"Êtes-vous sûr de vouloir supprimer cette Question/Réponse ?"}</DialogDescription>
             </DialogHeader>
-            <div className='flex justify-end gap-2'>
+            <DialogFooter className="mt-4">
                 <Button variant={"destructive"} onClick={()=>{deleteQA.mutate(QA.id)}} disabled={deleteQA.isPending}>{ deleteQA.isPending ? <Loader size={16}/> : <Trash2 size={16}/>} {"Supprimer"}</Button>
                 <Button variant={"outline"} onClick={()=>openChange(false)}>{"Annuler"}</Button>
-            </div>
+            </DialogFooter>
         </DialogContent>
     </Dialog>
   )

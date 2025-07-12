@@ -1,96 +1,85 @@
 "use client";
+
+import { Setting } from "@/types/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+
 import TiptapEditor from "@/components/tiptap-content";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import SettingQuery from "@/queries/setting";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { CirclePlus, Loader } from "lucide-react";
-import React from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { Loader, Save } from "lucide-react";
+
+const formSchema = z.object({
+  name: z.string().min(3, "Titre requis"),
+  content: z.string().min(10, "Contenu trop court"),
+  note: z.string().optional(),
+});
 
 type Props = {
   isOpen: boolean;
-  openChange: React.Dispatch<React.SetStateAction<boolean>>;
+  openChange: (open: boolean) => void;
+  page: Setting;
 };
 
-const formSchema = z.object({
-  name: z
-    .string({ message: "Le titre est requis" })
-    .min(3, "Trop court")
-    .max(80, "Le maximum est de 80 caractères"),
-  note: z
-    .string({ message: "La meta description est requise" })
-    .min(5, "Trop court")
-    .max(160, "Le maximum est de 160 caractères"),
-  content: z
-    .string({ message: "Le contenu est requis" })
-    .min(10, "Le contenu est trop court"),
-});
-
-function AddPage({ isOpen, openChange }: Props) {
+export default function EditPageModal({ isOpen, openChange, page }: Props) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      note: "",
-      content: "",
+      name: page.name || "",
+      content: page.content || "",
+      note: page.note || "",
     },
   });
 
   const queryClient = useQueryClient();
   const settingQuery = new SettingQuery();
 
-  const createPage = useMutation({
+  const updatePage = useMutation({
     mutationFn: (values: z.infer<typeof formSchema>) =>
-      settingQuery.create({
+      settingQuery.update(page.id, {
         ...values,
-        section: "page",
+        section: page.section, // conservé
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["settings"],
-        refetchType: "active",
-      });
+      queryClient.invalidateQueries({ queryKey: ["pages"] });
       openChange(false);
     },
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    createPage.mutate(values);
+    updatePage.mutate(values);
   };
-
-  React.useEffect(() => {
-    if (isOpen) {
-      form.reset();
-    }
-  }, [isOpen, form]);
 
   return (
     <Dialog open={isOpen} onOpenChange={openChange}>
-      <DialogContent className="sm:max-w-[70vw] xl:max-w-[1080px]">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>{"Créer une page"}</DialogTitle>
-          <DialogDescription>{"Remplissez les informations de la page"}</DialogDescription>
+          <DialogTitle>{"Modifier la page"}</DialogTitle>
+          <DialogDescription>
+           {" Mettez à jour les informations de la page "}<strong>{page.name}</strong>
+          </DialogDescription>
         </DialogHeader>
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
@@ -106,21 +95,6 @@ function AddPage({ isOpen, openChange }: Props) {
                 </FormItem>
               )}
             />
-
-            <FormField
-              control={form.control}
-              name="note"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{"Meta description"}</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Courte description pour les moteurs de recherche" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <FormField
               control={form.control}
               name="content"
@@ -134,23 +108,30 @@ function AddPage({ isOpen, openChange }: Props) {
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="note"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{"Meta description (optionnel)"}</FormLabel>
+                  <FormControl>
+                    <Textarea rows={2} placeholder="Courte description pour le SEO..." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <DialogFooter className="mt-4">
-              <Button type="submit" disabled={createPage.isPending}>
-                {createPage.isPending ? (
+              <Button type="submit" disabled={updatePage.isPending}>
+                {updatePage.isPending ? (
                   <Loader size={16} className="animate-spin" />
                 ) : (
-                  <CirclePlus size={16} />
+                  <Save size={16} />
                 )}
-                {"Ajouter"}
+                {"Enregistrer"}
               </Button>
-              <Button
-                variant="outline"
-                onClick={(e) => {
-                  e.preventDefault();
-                  openChange(false);
-                }}
-              >
+              <Button variant="outline" onClick={() => openChange(false)}>
                 {"Annuler"}
               </Button>
             </DialogFooter>
@@ -160,5 +141,3 @@ function AddPage({ isOpen, openChange }: Props) {
     </Dialog>
   );
 }
-
-export default AddPage;

@@ -4,6 +4,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -111,7 +112,7 @@ function AddQA({ isOpen, openChange, topic }: Props) {
             </FormItem>
           )}
         />
-            <div className="flex justify-end gap-2">
+            <DialogFooter className="mt-4">
               <Button type="submit" disabled={createQA.isPending}>
                 {createQA.isPending ? (
                   <Loader size={16} className="animate-spin" />
@@ -129,7 +130,7 @@ function AddQA({ isOpen, openChange, topic }: Props) {
               >
                 {"Annuler"}
               </Button>
-            </div>
+            </DialogFooter>
           </form>
         </Form>
       </DialogContent>

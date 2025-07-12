@@ -1,6 +1,6 @@
 'use client';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import TopicQuery from '@/queries/topic';
 import { Topic } from '@/types/types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -30,10 +30,10 @@ function DeleteTopic({ topic, isOpen, openChange }: Props) {
                 <DialogTitle>{`Supprimer ${topic.name}`}</DialogTitle>
                 <DialogDescription>{"Êtes-vous sûr de vouloir supprimer cette section ?"}</DialogDescription>
             </DialogHeader>
-            <div className='flex justify-end gap-2'>
+            <DialogFooter className="mt-4">
                 <Button variant={"destructive"} onClick={()=>{deleteTopic.mutate(topic.id)}} disabled={deleteTopic.isPending}>{ deleteTopic.isPending ? <Loader size={16}/> : <Trash2 size={16}/>} {"Supprimer"}</Button>
                 <Button variant={"outline"} onClick={()=>openChange(false)}>{"Annuler"}</Button>
-            </div>
+            </DialogFooter>
         </DialogContent>
     </Dialog>
   )
