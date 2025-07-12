@@ -1,32 +1,30 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import ZoneQuery from "@/queries/zone";
-import { Address } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CirclePlus, Loader } from "lucide-react";
@@ -37,7 +35,6 @@ import { z } from "zod";
 type Props = {
   isOpen: boolean;
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
-  addresses: Address[];
 };
 
 const formSchema = z.object({
@@ -48,10 +45,9 @@ const formSchema = z.object({
       message: "Doit être un nombre",
     }),
   status: z.enum(["ACTIVE", "INACTIVE", "PENDING", "DISABLED"]),
-  addressIds: z.array(z.number())//.min(1, "Choisir au moins un quartier"),
 });
 
-function AddZone({ isOpen, openChange, addresses }: Props) {
+function AddZone({ isOpen, openChange }: Props) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -59,7 +55,6 @@ function AddZone({ isOpen, openChange, addresses }: Props) {
       description: "",
       price: "0",
       status: "ACTIVE",
-      addressIds: [],
     },
   });
 
@@ -71,10 +66,8 @@ function AddZone({ isOpen, openChange, addresses }: Props) {
       zoneQuery.create({
           name: values.name,
           price: Number(values.price),
-          addressIds: values.addressIds,
           description: values.description ?? "",
           status: values.status,
-          //addresses: []
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -168,53 +161,6 @@ function AddZone({ isOpen, openChange, addresses }: Props) {
                   <SelectItem value="DISABLED">{"Désactivée"}</SelectItem>
                 </SelectContent>
               </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="addressIds"
-          render={() => (
-            <FormItem>
-              <FormLabel>{"Quartiers associés"}</FormLabel>
-              <div className="grid grid-cols-2 gap-2 h-48 overflow-y-auto border p-2 rounded-md">
-                {addresses.map((address) => (
-                  <FormField
-                    key={address.id}
-                    control={form.control}
-                    name="addressIds"
-                    render={({ field }) => {
-                      const isChecked = field.value?.includes(address.id);
-                      return (
-                        <FormItem
-                          key={address.id}
-                          className="flex flex-row items-center space-x-2 space-y-0"
-                        >
-                          <FormControl>
-                            <Checkbox
-                              checked={isChecked}
-                              onCheckedChange={(checked) => {
-                                if (checked) {
-                                  field.onChange([...field.value, address.id]);
-                                } else {
-                                  field.onChange(
-                                    field.value.filter((id) => id !== address.id)
-                                  );
-                                }
-                              }}
-                            />
-                          </FormControl>
-                          <FormLabel className="text-sm font-normal">
-                            {address.street}
-                          </FormLabel>
-                        </FormItem>
-                      );
-                    }}
-                  />
-                ))}
-              </div>
               <FormMessage />
             </FormItem>
           )}

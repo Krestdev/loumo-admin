@@ -349,7 +349,7 @@ export default function ZonesPage() {
             </div>
           </CardContent>
         </Card> */}
-        <AddZone addresses={addresses} isOpen={addDialog} openChange={setAddDialog}/>
+        <AddZone isOpen={addDialog} openChange={setAddDialog}/>
         {selected && <DeleteZone zone={selected} isOpen={deleteDialog} openChange={setDeleteDialog}/>}
         {selected && <EditZone zone={selected} isOpen={editDialog} openChange={setEditDialog} addresses={addresses}/>}
         {selected && <ViewZoneDetails isOpen={viewDialog} openChange={setViewDialog} zone={selected}/>}
