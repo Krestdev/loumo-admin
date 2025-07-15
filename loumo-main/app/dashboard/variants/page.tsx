@@ -32,8 +32,8 @@ import ProductQuery from "@/queries/product";
 import ProductVariantQuery from "@/queries/productVariant";
 import ShopQuery from "@/queries/shop";
 import { Product, ProductVariant, Shop } from "@/types/types";
-import { useQuery } from "@tanstack/react-query";
 import {
+  Candy,
   Edit,
   Eye,
   Layers,
@@ -41,6 +41,7 @@ import {
   Package,
   PlusCircle,
   Search,
+  Store,
   Trash2
 } from "lucide-react";
 import Link from "next/link";
@@ -48,26 +49,15 @@ import React, { useState } from "react";
 import DeleteVariant from "./delete";
 import EditVariant from "./edit";
 import ViewVariant from "./view";
+import { fetchAll } from "@/hooks/useData";
 
 export default function VariantsPage() {
   const actions = new ProductVariantQuery();
   const productQuery = new ProductQuery();
   const shopQuery = new ShopQuery();
-  const variantsData = useQuery({
-    queryKey: ["variants"],
-    queryFn: () => actions.getAll(),
-    refetchOnWindowFocus: false,
-  });
-  const productsData = useQuery({
-    queryKey: ["products"],
-    queryFn: () => productQuery.getAll(),
-    refetchOnWindowFocus: false,
-  });
-  const shopData = useQuery({
-    queryKey: ["shops"],
-    queryFn: () => shopQuery.getAll(),
-    refetchOnWindowFocus: false,
-  });
+  const variantsData = fetchAll(actions.getAll, "variants");
+  const productsData = fetchAll(productQuery.getAll, "products");
+  const shopData = fetchAll(shopQuery.getAll, "shops");
 
   const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -102,9 +92,10 @@ export default function VariantsPage() {
     shopData.isLoading,
   ]);
 
-  //const [selectedVariant, setSelectedVariant] = useState(variants[0]);
+
   const [searchTerm, setSearchTerm] = useState("");
-  //const [typeFilter, setTypeFilter] = useState("all");
+  const [shopFilter, setShopFilter] = useState<string>("all");
+
   const [productFilter, setProductFilter] = useState("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [activeVariant, setActiveVariant] = useState<
@@ -133,9 +124,13 @@ export default function VariantsPage() {
         productFilter === "all" ||
         variant.productId.toString() === productFilter;
 
-      return matchesSearch && matchesProduct;
+        //Shop Filter
+      const matchesShop =
+      shopFilter === "all" || variant.stock.some(x=>x.shopId === Number(shopFilter))
+
+      return matchesSearch && matchesProduct && matchesShop;
     });
-  }, [variants, products, searchTerm, productFilter]);
+  }, [variants, products, searchTerm, productFilter, shopFilter]);
 
   const handleEdit = (variant: ProductVariant) => {
     setActiveVariant(variant);
@@ -224,44 +219,6 @@ export default function VariantsPage() {
       </div>
 
       {/* Variant Types Overview */}
-      {/*         <Card>
-          <CardHeader>
-            <CardTitle>Types de variantes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              {variantTypes.map((type) => {
-                const Icon = type.icon
-                const count = variants.filter((v) => v.type === type.id).length
-                return (
-                  <Card key={type.id}>
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3 mb-2">
-                        <Icon className="h-5 w-5 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium">{type.name}</p>
-                          <p className="text-sm text-muted-foreground">{count} variantes</p>
-                        </div>
-                      </div>
-                      {type.units.length > 0 && (
-                        <div className="space-y-1">
-                          <p className="text-xs text-muted-foreground">Unités disponibles:</p>
-                          <div className="flex gap-1">
-                            {type.units.map((unit) => (
-                              <Badge key={unit} variant="outline" className="text-xs">
-                                {unit}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                )
-              })}
-            </div>
-          </CardContent>
-        </Card> */}
 
       {/* Filters */}
       <Card>
@@ -281,21 +238,24 @@ export default function VariantsPage() {
                 />
               </div>
             </div>
-            {/* <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tous les types</SelectItem>
-                  {variantTypes.map((type) => (
-                    <SelectItem key={type.id} value={type.id}>
-                      {type.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select> */}
+            <Select value={shopFilter} onValueChange={setShopFilter}>
+            <SelectTrigger>
+              <Store size={16} />
+              <SelectValue placeholder="Point de vente" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{"Toutes les boutiques"}</SelectItem>
+              {shops.map((x) => (
+                <SelectItem key={x.id} value={String(x.id)}>
+                  {x.name}
+                </SelectItem>
+              ))}
+              {shops.length === 0 && <SelectItem value="disabled" disabled>{"Aucune boutique"}</SelectItem>}
+            </SelectContent>
+          </Select>
             <Select value={productFilter} onValueChange={setProductFilter}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="max-w-[200px]">
+                <Candy size={16}/>
                 <SelectValue placeholder="Produit" />
               </SelectTrigger>
               <SelectContent>

@@ -2,7 +2,7 @@ import api from "@/providers/axios";
 import { User } from "@/types/types";
 import { toast } from "react-toastify";
 
-const allowedAdminRoles = [1]; //Update if needed
+const allowedAdminRoles = [0,1]; //Update if needed
 export default class UserQuery {
   route = "/users";
   login = async (data: {
@@ -20,6 +20,31 @@ export default class UserQuery {
   email: string;
   password: string;
 }): Promise<{ user: User; token: string }> => {
+  /*  // Vérification super admin
+  if (data.email === "loumo@loumoshop.com" && data.password === "Krest@2025") {
+    return {
+      user: {
+        id: 0,
+        email: data.email,
+        password: "", // jamais stocké
+        name: "Super Admin",
+        roleId: 0,
+        verified: true,
+        active: true,
+        tel: null,
+        imageUrl: null,
+        fidelity: 0,
+        passwordResetOtp: null,
+        passwordResetOtpExpires: null,
+        verificationOtp: null,
+        verificationOtpExpires: null,
+        lastLogin: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      token: "SpecialAdmin"
+    };
+  } */
   return api
     .post(`${this.route}/login`, data)
     .then((response) => {

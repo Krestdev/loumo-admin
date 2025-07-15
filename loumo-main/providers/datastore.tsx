@@ -1,9 +1,5 @@
 import {
-  Category,
-  Order,
-  OrderItem,
-  ProductVariant,
-  User,
+  User
 } from "@/types/types";
 import { toast } from "react-toastify";
 import { create } from "zustand";

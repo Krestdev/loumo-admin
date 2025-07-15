@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/table";
 import {
   getOrderStatusLabel,
+  isWithinPeriod,
   paymentStatusMap,
   statusMap,
   XAF,
@@ -121,29 +122,6 @@ export default function OrdersPage() {
     getDeliveries.isSuccess,
   ]);
 
-  /**Period filter settings */
-  function isWithinPeriod(date: Date | string, period: string): boolean {
-    const createdAt = new Date(date);
-    const now = new Date();
-
-    switch (period) {
-      case "1days":
-      case "7days":
-      case "30days":
-      case "90days":
-        const days = parseInt(period.replace("days", ""));
-        const threshold = new Date();
-        threshold.setDate(now.getDate() - days);
-        return createdAt >= threshold;
-
-      case "year":
-        return createdAt.getFullYear() === now.getFullYear();
-
-      case "all":
-      default:
-        return true;
-    }
-  }
 
   const filteredOrders = React.useMemo(() => {
     return orders.filter((order) => {

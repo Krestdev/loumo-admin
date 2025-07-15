@@ -1,5 +1,6 @@
 "use client";
 
+import { DateRangePicker } from "@/components/dateRangePicker";
 import PageLayout from "@/components/page-layout";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,12 +20,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { fetchAll } from "@/hooks/useData";
 import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import OrderQuery from "@/queries/order";
 import PaymentQuery from "@/queries/payment";
-import { Order, Payment } from "@/types/types";
-import { useQuery } from "@tanstack/react-query";
+import ShopQuery from "@/queries/shop";
+import { Order, Payment, Shop } from "@/types/types";
 import {
   AlertCircle,
   Ban,
@@ -36,11 +38,15 @@ import {
   CreditCard,
   DollarSign,
   Ellipsis,
+  Filter,
   RefreshCw,
   Search,
   Smartphone,
+  Store,
+  Tag,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { DateRange } from "react-day-picker";
 
 const paymentMethods: Payment["method"][] = [
   "CASH",
@@ -59,58 +65,81 @@ const paymentStatus: Payment["status"][] = [
 
 export default function PaymentsPage() {
   const paymentQuery = new PaymentQuery();
-  const getPayments = useQuery({
-    queryKey: ["payments"],
-    queryFn: () => paymentQuery.getAll(),
-    refetchOnWindowFocus: false,
-  });
+  const getPayments = fetchAll(paymentQuery.getAll, "payments", 60000);
 
   const ordersQuery = new OrderQuery();
-  const getOrders = useQuery({
-    queryKey: ["orders"],
-    queryFn: ordersQuery.getAll,
-    refetchOnWindowFocus: false,
-  });
+  const getOrders = fetchAll(ordersQuery.getAll, "orders", 60000);
+
+  const shopQuery = new ShopQuery();
+  const getShops = fetchAll(shopQuery.getAll, "shops");
 
   const { setLoading } = useStore();
 
   const [payments, setPayments] = useState<Payment[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [shops, setShops] = useState<Shop[]>([]);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [methodFilter, setMethodFilter] = useState("all");
+  const [shopFilter, setShopFilter] = useState<string>("all");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: undefined,
+    to: undefined,
+  })
 
   useEffect(() => {
     setLoading(getPayments.isLoading);
     if (getPayments.isSuccess) setPayments(getPayments.data);
     if (getOrders.isSuccess) setOrders(getOrders.data);
+    if (getShops.isSuccess) setShops(getShops.data);
   }, [
     setLoading,
     setPayments,
     setOrders,
+    setShops,
     getPayments.isLoading,
     getPayments.isSuccess,
     getPayments.data,
     getOrders.isLoading,
     getOrders.isSuccess,
     getOrders.data,
+    getShops.isLoading,
+    getShops.isSuccess,
+    getShops.data,
   ]);
 
-  const filteredPayments = payments.filter((payment) => {
-    const order = orders.find((z) => z.payment?.id === payment.id);
-    const matchesSearch =
+  const filteredPayments = useMemo(()=>{
+    return payments.filter((payment)=>{
+
+      const order = orders.find((z) => z.payment?.id === payment.id);
+      const createdAt = order ? new Date(order.createdAt) : new Date();
+      // Filtrage par date (range)
+    const matchesDate =
+      (!dateRange?.from || createdAt >= new Date(dateRange.from.setHours(0, 0, 0, 0))) &&
+      (!dateRange?.to || createdAt <= new Date(dateRange.to.setHours(23, 59, 59, 999)));
+      //Search filter
+      const matchesSearch =
       order?.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       String(payment.orderId)
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
       String(payment.id).toLowerCase().includes(searchTerm.toLowerCase());
+      //Status filter
     const matchesStatus =
       statusFilter === "all" || payment.status === statusFilter;
+      //Method filter
     const matchesMethod =
       methodFilter === "all" || payment.method === methodFilter;
-    return matchesSearch && matchesStatus && matchesMethod;
-  });
+      //Shop filter
+      const matchesShop = 
+      shopFilter === "all" || order?.address?.zoneId === Number(shopFilter)
+
+    return matchesSearch && matchesStatus && matchesMethod && matchesDate && matchesShop;
+    })
+  },[
+    payments, orders, searchTerm, dateRange, statusFilter, shopFilter, methodFilter
+  ]);
 
   function getStatusColor(status: Payment["status"]) {
     switch (status) {
@@ -229,9 +258,60 @@ export default function PaymentsPage() {
 
   return (
     <PageLayout
-      isLoading={getPayments.isLoading || getOrders.isLoading}
+      isLoading={getPayments.isLoading || getOrders.isLoading || getShops.isLoading}
       className="p-4 space-y-6"
     >
+      {/**Filtres */}
+      <div className="p-6 w-full bg-white rounded-lg flex flex-wrap justify-between items-center gap-4 sm:gap-6 shadow-sm">
+        <h4 className="font-semibold text-sm sm:text-base flex gap-2 items-center"><Filter size={16}/> {"Filtres"}</h4>
+        <div className="flex gap-3 flex-wrap">
+          <DateRangePicker date={dateRange} onChange={setDateRange} />
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="max-w-40">
+                <Tag size={16}/>
+                <SelectValue placeholder="Statut" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{"Tous"}</SelectItem>
+                {paymentStatus.map((x, id) => (
+                  <SelectItem key={id} value={x}>
+                    {payStatusName(x)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={methodFilter} onValueChange={setMethodFilter}>
+              <SelectTrigger className="max-w-40">
+                <DollarSign size={16}/>
+                <SelectValue placeholder="Méthode" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{"Toutes"}</SelectItem>
+                {paymentMethods.map((item, id) => (
+                  <SelectItem key={id} value={item}>
+                    {payMethodName(item)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={shopFilter} onValueChange={setShopFilter}>
+            <SelectTrigger>
+              <Store size={16} />
+              <SelectValue placeholder="Point de vente" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{"Toutes les boutiques"}</SelectItem>
+              {shops.map((x) => (
+                <SelectItem key={x.id} value={String(x.id)}>
+                  {x.name}
+                </SelectItem>
+              ))}
+              {shops.length === 0 && <SelectItem value="disabled" disabled>{"Aucune boutique"}</SelectItem>}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
       {/* Payment Stats */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
@@ -264,9 +344,9 @@ export default function PaymentsPage() {
             <CheckCircle className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{`${
+            <div className="text-2xl font-bold">{successPayments.length > 0 ? `${
               (successPayments.length * 100) / payments.length
-            }%`}</div>
+            }%` : "0%"}</div>
             <p className="text-xs text-muted-foreground">
               {"Taux de réussite"}
             </p>
@@ -408,11 +488,11 @@ export default function PaymentsPage() {
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>{"Filtres"}</CardTitle>
+          <CardTitle>{"Recherche"}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex gap-4 flex-wrap">
-            <div className="flex-1 min-w-[200px]">
+            <div className="flex-1 min-w-[200px] max-w-lg">
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -423,32 +503,6 @@ export default function PaymentsPage() {
                 />
               </div>
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Statut" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{"Tous"}</SelectItem>
-                {paymentStatus.map((x, id) => (
-                  <SelectItem key={id} value={x}>
-                    {payStatusName(x)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={methodFilter} onValueChange={setMethodFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Méthode" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{"Toutes"}</SelectItem>
-                {paymentMethods.map((item, id) => (
-                  <SelectItem key={id} value={item}>
-                    {payMethodName(item)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
         </CardContent>
       </Card>

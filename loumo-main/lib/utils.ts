@@ -1,7 +1,7 @@
 import { Delivery, Order, Payment, User } from "@/types/types";
-import { clsx, type ClassValue } from "clsx"
+import { clsx, type ClassValue } from "clsx";
 import { isAfter, subDays } from "date-fns";
-import { twMerge } from "tailwind-merge"
+import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -19,6 +19,7 @@ export function formatXAF(value?: number): string {
       })} FCFA`
     : "- FCFA";
 }
+
 
 export function filterByDate<T extends { createdAt?: Date | string }>(
   items: T[],
@@ -148,3 +149,31 @@ export function sortOrdersByNewest(orders: Order[]): Order[] {
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 }
+
+export function isExpired(date: Date): boolean {
+  return new Date() > date;
+}
+
+/**Period filter settings */
+export function isWithinPeriod(date: Date | string, period: string): boolean {
+    const createdAt = new Date(date);
+    const now = new Date();
+
+    switch (period) {
+      case "1days":
+      case "7days":
+      case "30days":
+      case "90days":
+        const days = parseInt(period.replace("days", ""));
+        const threshold = new Date();
+        threshold.setDate(now.getDate() - days);
+        return createdAt >= threshold;
+
+      case "year":
+        return createdAt.getFullYear() === now.getFullYear();
+
+      case "all":
+      default:
+        return true;
+    }
+  }

@@ -1,5 +1,6 @@
 "use client";
 
+import { DateRangePicker } from "@/components/dateRangePicker";
 import PageLayout from "@/components/page-layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,41 +21,33 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { fetchAll } from "@/hooks/useData";
+import { getPriorityColor, getStatusColor } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import AgentQuery from "@/queries/agent";
 import DeliveryQuery from "@/queries/delivery";
-import ZoneQuery from "@/queries/zone";
-import { Agent, Delivery, Zone } from "@/types/types";
-import { useQuery } from "@tanstack/react-query";
+import ShopQuery from "@/queries/shop";
+import { Agent, Delivery, Shop } from "@/types/types";
 import { formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
-import { CheckCircle, Clock, Package, Search, Truck, User } from "lucide-react";
-import React, { useState } from "react";
+import { BadgeCheck, CheckCircle, Clock, Filter, Package, Search, Store, Truck, User } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { DateRange } from "react-day-picker";
 import EditDelivery from "./edit";
 import EndDelivery from "./end";
 import ViewDelivery from "./view";
-import { getPriorityColor, getStatusColor } from "@/lib/utils";
 
 
 
 export default function DeliveriesPage() {
   const deliveriesQuery = new DeliveryQuery();
-  const deliveryData = useQuery({
-    queryKey: ["deliveries"],
-    queryFn: deliveriesQuery.getAll,
-  });
+  const deliveryData = fetchAll(deliveriesQuery.getAll,"deliveries",60000);
 
   const agentQuery = new AgentQuery();
-  const agentData = useQuery({
-    queryKey: ["agents"],
-    queryFn: agentQuery.getAll,
-  });
+  const agentData = fetchAll(agentQuery.getAll,"agents",60000);
 
-  const zoneQuery = new ZoneQuery();
-  const zoneData = useQuery({
-    queryKey: ["zones"],
-    queryFn: zoneQuery.getAll,
-  });
+  const shopQuery = new ShopQuery();
+  const getShops = fetchAll(shopQuery.getAll,"shops",60000);
 
   const { setLoading } = useStore();
 
@@ -63,15 +56,21 @@ export default function DeliveriesPage() {
   const [edit, setEdit] = useState(false);
   const [actionDialog, setActionDialog] = useState(false);
   const [drivers, setDrivers] = useState<Agent[]>([]);
-  const [zones, setZones] = useState<Zone[]>([]);
+  const [shops, setShops] = useState<Shop[]>([]);
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [zoneFilter, setZoneFilter] = useState("all");
+  const [shopFilter, setShopFilter] = useState("all");
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
+    from: undefined,
+    to: undefined,
+  });
+
+  const statusArray:Delivery["status"][] = ["CANCELED", "COMPLETED", "NOTSTARTED", "STARTED"];
 
   React.useEffect(() => {
     setLoading(
-      zoneData.isLoading || deliveryData.isLoading || zoneData.isLoading
+      getShops.isLoading || deliveryData.isLoading || agentData.isLoading
     );
     if (deliveryData.isSuccess) {
       setDeliveries(deliveryData.data);
@@ -79,39 +78,50 @@ export default function DeliveriesPage() {
     if (agentData.isSuccess) {
       setDrivers(agentData.data);
     }
-    if (zoneData.isSuccess) {
-      setZones(zoneData.data);
+    if (getShops.isSuccess) {
+      setShops(getShops.data);
     }
   }, [
     setLoading,
     setDeliveries,
     setDrivers,
-    setZones,
+    setShops,
     deliveryData.isSuccess,
     deliveryData.data,
     deliveryData.isLoading,
     agentData.isLoading,
     agentData.data,
     agentData.isSuccess,
-    zoneData.data,
-    zoneData.isLoading,
-    zoneData.isSuccess,
+    getShops.data,
+    getShops.isLoading,
+    getShops.isSuccess,
   ]);
 
-  const filteredDeliveries = deliveries.filter((delivery) => {
+  const filteredDeliveries = useMemo(()=>{
+    return deliveries.filter((delivery) => {
+      const deliveryDate = !!delivery.deliveredTime ? new Date(delivery.deliveredTime) : new Date(delivery.scheduledTime);
+      //Search
     const matchesSearch =
       delivery.order?.user.name
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
       delivery.orderId === parseInt(searchTerm.toLowerCase()) ||
       delivery.trackingCode.toLowerCase().includes(searchTerm.toLowerCase());
+      //Status
     const matchesStatus =
       statusFilter === "all" || delivery.status === statusFilter;
-    const matchesZone =
-      zoneFilter === "all" ||
-      delivery.order?.address?.zone?.name === zoneFilter;
-    return matchesSearch && matchesStatus && matchesZone;
+      //Shop
+    const matchesShop =
+      shopFilter === "all" ||
+      delivery.order?.address?.zoneId === Number(shopFilter);
+      //Period
+      const matchesDate =
+      (!dateRange?.from || deliveryDate >= new Date(dateRange.from.setHours(0, 0, 0, 0))) &&
+      (!dateRange?.to || deliveryDate <= new Date(dateRange.to.setHours(23, 59, 59, 999)));
+    return matchesSearch && matchesStatus && matchesShop && matchesDate;
   });
+  },[deliveries, statusFilter, shopFilter, searchTerm, dateRange]);
+  
 
   const handleView = (delivery: Delivery) => {
     setSelected(delivery);
@@ -128,25 +138,62 @@ export default function DeliveriesPage() {
     setActionDialog(true);
   };
 
-  //Today deliveries logic
-  const today = new Date();
-  const todayDeliveries = deliveries.filter((x) => {
-    if (!x.deliveredTime) return false;
-    const delivered = new Date(x.deliveredTime);
-    return (
-      delivered.getDate() === today.getDate() &&
-      delivered.getMonth() === today.getMonth() &&
-      delivered.getFullYear() === today.getFullYear()
-    );
-  }).length;
+  const statusName = (status :Delivery["status"]):string => {
+    switch(status){
+      case "CANCELED":
+        return "Annulé";
+      case "COMPLETED":
+        return "Terminé";
+      case "NOTSTARTED":
+        return "En attente";
+      case "STARTED":
+        return "En cours";
+      default :
+      return "Inconnu";
+    }
+  }
 
   return (
     <PageLayout
       isLoading={
-        zoneData.isLoading || deliveryData.isLoading || zoneData.isLoading
+        getShops.isLoading || deliveryData.isLoading || agentData.isLoading
       }
       className="flex-1 overflow-auto p-4 space-y-6"
     >
+      {/**Filtres */}
+      <div className="p-6 w-full bg-white rounded-lg flex flex-wrap justify-between items-center gap-4 sm:gap-6 shadow-sm">
+        <h4 className="font-semibold text-sm sm:text-base flex gap-2 items-center"><Filter size={16}/> {"Filtres"}</h4>
+        <div className="flex gap-3 flex-wrap">
+          <DateRangePicker date={dateRange} onChange={setDateRange} />
+            <Select value={shopFilter} onValueChange={setShopFilter}>
+            <SelectTrigger>
+              <Store size={16} />
+              <SelectValue placeholder="Point de vente" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{"Toutes les boutiques"}</SelectItem>
+              {shops.map((x) => (
+                <SelectItem key={x.id} value={String(x.id)}>
+                  {x.name}
+                </SelectItem>
+              ))}
+              {shops.length === 0 && <SelectItem value="disabled" disabled>{"Aucune boutique"}</SelectItem>}
+            </SelectContent>
+          </Select>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="max-w-[150px]">
+                <BadgeCheck size={16}/>
+                <SelectValue placeholder="Statut" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{"Tous"}</SelectItem>
+                {statusArray.map((x, i)=>
+                  <SelectItem key={i} value={x}>{statusName(x)}</SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+        </div>
+      </div>
       {/* Delivery Stats */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
@@ -167,26 +214,23 @@ export default function DeliveriesPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              {"Livrées aujourd'hui"}
+              {"Total livraisons"}
             </CardTitle>
             <Package className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{todayDeliveries}</div>
-            {/* <p className="text-xs text-muted-foreground">
-                <span className="text-green-600">+8</span> vs hier
-              </p> */}
+            <div className="text-2xl font-bold">{filteredDeliveries.filter(x=>x.status === "COMPLETED").length}</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Temps moyen</CardTitle>
+            <CardTitle className="text-sm font-medium">{"Temps moyen"}</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">42min</div>
-            <p className="text-xs text-muted-foreground">Temps de livraison</p>
+            <div className="text-2xl font-bold">{"--"}</div>
+            <p className="text-xs text-muted-foreground">{"Temps de livraison"}</p>
           </CardContent>
         </Card>
 
@@ -215,11 +259,11 @@ export default function DeliveriesPage() {
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>{"Filtres"}</CardTitle>
+          <CardTitle>{"Recherche"}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex gap-4 flex-wrap">
-            <div className="flex-1 min-w-[200px]">
+            <div className="flex-1 min-w-[200px] max-w-lg">
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -230,31 +274,6 @@ export default function DeliveriesPage() {
                 />
               </div>
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Statut" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tous</SelectItem>
-                <SelectItem value="En attente">En attente</SelectItem>
-                <SelectItem value="En cours">En cours</SelectItem>
-                <SelectItem value="En route">En route</SelectItem>
-                <SelectItem value="Livré">Livré</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={zoneFilter} onValueChange={setZoneFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Zone" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{"Toutes les zones"}</SelectItem>
-                {zones.map((x) => (
-                  <SelectItem key={x.id} value={x.name}>
-                    {x.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
         </CardContent>
       </Card>
