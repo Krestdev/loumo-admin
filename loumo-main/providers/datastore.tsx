@@ -12,6 +12,8 @@ type Store = {
   logout: () => void;
   reLogin: () => void;
   setIsHydrated: (v: boolean) => void;
+  token: string | null;
+  setToken: (token:string)=>void;
 };
 type LoadingState = {
   isLoading: boolean;
@@ -22,9 +24,11 @@ export const useStore = create<Store&LoadingState>()(
   persist(
     (set, get) => ({
       isHydrated: false,
+      token: null,
       isLoading: false,
       setLoading: (value) => set(() => ({ isLoading: value })),
       user: null,
+      setToken: (token) => set(()=>({token})),
       login: (user) => set(() => ({ user })),
       logout: () => {set({ user: null }); toast.info("Vous avez été déconnecté avec succès !")},
       reLogin: () =>
@@ -34,7 +38,7 @@ export const useStore = create<Store&LoadingState>()(
         setIsHydrated: (v) => set({ isHydrated: v }),
     }),
     {
-      name: "ecommerce-store",
+      name: "loumoshop-admin",
       storage: createJSONStorage(() => sessionStorage),
        onRehydrateStorage: () => (state) => {
         state?.setIsHydrated(true); // ✅ proper Zustand update

@@ -24,6 +24,16 @@ export type DeliveryPriority = "LOW" | "NORMAL" | "HIGH" | "URGENT";
 
 export type ZoneStatus = "ACTIVE" | "INACTIVE" | "PENDING" | "DISABLED";
 
+export type AgentStatus = "AVAILABLE"|"SUSPENDED"|"FULL"|"UNAVAILABLE"|"UNVERIFIED";
+
+export type DeliveryStatus = "NOTSTARTED"|"STARTED"|"COMPLETED"|"CANCELED";
+
+export type OrderStatus = "FAILED"|"COMPLETED"|"PROCESSING"|"REJECTED"|"ACCEPTED"|"PENDING";
+
+export type PaymentStatus = "FAILED"|"COMPLETED"|"PROCESSING"|"REJECTED"|"ACCEPTED"|"PENDING";
+
+export type PaymentMethod = "MTN_MOMO_CMR" | "ORANGE_CMR"| "CASH";
+
 export type Address = {
   street: string;
   local: string;
@@ -52,7 +62,7 @@ export type Agent = {
   id: number;
   userId: number;
   code: string;
-  status: "AVAILABLE"|"SUSPENDED"|"FULL"|"UNAVAILABLE"|"UNVERIFIED";
+  status: AgentStatus;
   user?: User;
   delivery?: Delivery[];
   zone: Zone;
@@ -69,7 +79,7 @@ export type Category = {
 
 export type Delivery = {
   id: number;
-  status: "NOTSTARTED"|"STARTED"|"COMPLETED"|"CANCELED";
+  status: DeliveryStatus;
   trackingCode: string;
   priority: DeliveryPriority;
   agentId: number | null;
@@ -105,7 +115,7 @@ export type Order = {
   user: User;
   userId: number;
   note: string;
-  status: "FAILED"|"COMPLETED"|"PROCESSING"|"REJECTED"|"ACCEPTED"|"PENDING";
+  status: OrderStatus;
   weight: number;
   total: number;
   deliveryFee: number;
@@ -133,12 +143,12 @@ export type OrderItem = {
 export type Payment = {
   name: string;
   id: number;
-  status: "FAILED"|"COMPLETED"|"PROCESSING"|"REJECTED"|"ACCEPTED"|"PENDING";
+  status: PaymentStatus;
   orderId: number;
   order?: Order;
   total: number;
   ref: string;
-  method: "MTN_MOMO_CMR" | "ORANGE_CMR"| "CASH";
+  method: PaymentMethod;
 };
 
 export type Permission = {

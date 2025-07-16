@@ -21,7 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { fetchAll } from "@/hooks/useData";
-import { XAF } from "@/lib/utils";
+import { payStatusName, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import OrderQuery from "@/queries/order";
 import PaymentQuery from "@/queries/payment";
@@ -54,7 +54,7 @@ const paymentMethods: Payment["method"][] = [
   "ORANGE_CMR",
 ];
 
-const paymentStatus: Payment["status"][] = [
+export const paymentStatus: Payment["status"][] = [
   "ACCEPTED",
   "COMPLETED",
   "FAILED",
@@ -193,25 +193,6 @@ export default function PaymentsPage() {
         return "Orange Money";
       default:
         return "Espèces";
-    }
-  };
-
-  const payStatusName = (status: Payment["status"]): string => {
-    switch (status) {
-      case "ACCEPTED":
-        return "Accepté";
-      case "COMPLETED":
-        return "Terminé";
-      case "FAILED":
-        return "Echoué";
-      case "PENDING":
-        return "En cours";
-      case "PROCESSING":
-        return "Traitement";
-      case "REJECTED":
-        return "Rejeté";
-      default:
-        return "Inconnu";
     }
   };
 

@@ -22,7 +22,7 @@ export function LoginForm({
   ...props
 }: React.ComponentProps<"div">) {
 
-  const {login} = useStore();
+  const {login, setToken} = useStore();
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -37,7 +37,8 @@ export function LoginForm({
     mutationFn: (values:z.infer<typeof loginSchema>)=> usersQuery.loginAdmin({
       ...values
     }),
-    onSuccess: ({user})=>{
+    onSuccess: ({user, token})=>{
+      setToken(token);
       login(user);
     }
   });

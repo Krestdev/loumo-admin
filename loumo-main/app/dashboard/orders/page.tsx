@@ -27,10 +27,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { fetchAll } from "@/hooks/useData";
 import {
   getOrderStatusLabel,
   isWithinPeriod,
   paymentStatusMap,
+  payStatusName,
   statusMap,
   XAF,
 } from "@/lib/utils";
@@ -38,18 +40,22 @@ import { useStore } from "@/providers/datastore";
 import DeliveryQuery from "@/queries/delivery";
 import OrderQuery from "@/queries/order";
 import ZoneQuery from "@/queries/zone";
-import { Delivery, Order, Zone } from "@/types/types";
+import { Delivery, Order, OrderStatus, Zone } from "@/types/types";
 import { PDFDownloadLink } from "@react-pdf/renderer";
-import { useQuery } from "@tanstack/react-query";
 import {
+  ArrowRightCircle,
+  BadgeCheck,
   CheckCircleIcon,
+  DollarSign,
   Eye,
   Loader,
   MoreHorizontal,
   Search,
-  SquareChevronRight
+  SquareChevronRight,
+  Store
 } from "lucide-react";
 import React, { useState } from "react";
+import { paymentStatus } from "../payments/page";
 import AssignDriver from "./assign";
 import EndOrder from "./end";
 import { OrdersPDFDocument } from "./pdf";
@@ -57,25 +63,14 @@ import ViewOrder from "./view";
 
 export default function OrdersPage() {
   const ordersQuery = new OrderQuery();
-  const zoneQuery = new ZoneQuery();
-  const orderData = useQuery({
-    queryKey: ["orders"],
-    queryFn: ordersQuery.getAll,
-    refetchOnWindowFocus: false,
-  });
+  const orderData = fetchAll(ordersQuery.getAll, "orders", 30000);
 
-  const getZones = useQuery({
-    queryKey: ["zones"],
-    queryFn: () => zoneQuery.getAll(),
-    refetchOnWindowFocus: false,
-  });
+  const zoneQuery = new ZoneQuery();
+  const getZones = fetchAll(zoneQuery.getAll,"zones", 30000);
 
   const deliveryQuery = new DeliveryQuery();
-  const getDeliveries = useQuery({
-    queryKey: ["deliveries"],
-    queryFn: () => deliveryQuery.getAll(),
-  });
-
+  const getDeliveries = fetchAll(deliveryQuery.getAll,"deliveries",30000);
+  
   const [orders, setOrders] = useState<Order[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
@@ -121,6 +116,8 @@ export default function OrdersPage() {
     getDeliveries.isLoading,
     getDeliveries.isSuccess,
   ]);
+
+  const orderStatus:OrderStatus[] = ["ACCEPTED", "COMPLETED", "FAILED", "PENDING", "PROCESSING", "REJECTED"] as const;
 
 
   const filteredOrders = React.useMemo(() => {
@@ -220,28 +217,27 @@ export default function OrdersPage() {
 
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-full">
+                <BadgeCheck size={16}/>
                 <SelectValue placeholder="Statut commande" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{"Tous les statuts"}</SelectItem>
-                <SelectItem value="En cours">{"En cours"}</SelectItem>
-                <SelectItem value="Préparation">{"Préparation"}</SelectItem>
-                <SelectItem value="En livraison">{"En livraison"}</SelectItem>
-                <SelectItem value="Livré">{"Livré"}</SelectItem>
-                <SelectItem value="Annulé">{"Annulé"}</SelectItem>
+                {orderStatus.map((x,i)=>
+                <SelectItem key={i} value={x}>{getOrderStatusLabel(x)}</SelectItem>
+                )}
               </SelectContent>
             </Select>
 
             <Select value={paymentFilter} onValueChange={setPaymentFilter}>
               <SelectTrigger className="w-full">
+                <ArrowRightCircle size={16}/>
                 <SelectValue placeholder="Statut paiement" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{"Tous les paiements"}</SelectItem>
-                <SelectItem value="Payé">{"Payé"}</SelectItem>
-                <SelectItem value="En attente">{"En attente"}</SelectItem>
-                <SelectItem value="Échoué">{"Échoué"}</SelectItem>
-                <SelectItem value="Rejeté">{"Rejeté"}</SelectItem>
+                {paymentStatus.map((x,id)=>
+                <SelectItem key={id} value={x}>{payStatusName(x)}</SelectItem>
+                )}
               </SelectContent>
             </Select>
 
@@ -260,6 +256,7 @@ export default function OrdersPage() {
 
             <Select value={zoneFilter} onValueChange={setZoneFilter}>
               <SelectTrigger className="w-full">
+                <Store size={16}/>
                 <SelectValue placeholder="Zone de livraison" />
               </SelectTrigger>
               <SelectContent>
@@ -274,6 +271,7 @@ export default function OrdersPage() {
 
             <Select value={amountFilter} onValueChange={setAmountFilter}>
               <SelectTrigger className="w-full">
+                <DollarSign size={16}/>
                 <SelectValue placeholder="Montant" />
               </SelectTrigger>
               <SelectContent>
@@ -321,6 +319,7 @@ export default function OrdersPage() {
                   <TableHead>{"Poids"}</TableHead>
                   <TableHead>{"Statut"}</TableHead>
                   <TableHead>{"Paiement"}</TableHead>
+                  <TableHead>{"Livraison"}</TableHead>
                   <TableHead>{"Actions"}</TableHead>
                 </TableRow>
               </TableHeader>
@@ -328,7 +327,7 @@ export default function OrdersPage() {
                 {filteredOrders.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={8}
+                      colSpan={9}
                       className="text-center text-gray-500 py-5 sm:text-lg xl:text-xl"
                     >
                       {"Aucune commande trouvée"}
@@ -371,7 +370,9 @@ export default function OrdersPage() {
                       </TableCell>
                       <TableCell>{`${order.weight} kg`}</TableCell>
                       <TableCell>
-                        <Badge
+                        {
+                          !!order.delivery ?
+                          <Badge
                           variant={
                             order.status === "ACCEPTED"
                               ? "default"
@@ -384,6 +385,8 @@ export default function OrdersPage() {
                         >
                           {getOrderStatusLabel(order.status)}
                         </Badge>
+                        :
+                        "--"}
                       </TableCell>
                       <TableCell>
                         <Badge
@@ -401,13 +404,8 @@ export default function OrdersPage() {
                         >
                           {!order.payment
                             ? "Non Payé"
-                            : order.payment.status === "ACCEPTED"
-                            ? "Accepté"
-                            : order.payment.status === "PENDING"
-                            ? "En cours"
-                            : order.payment.status === "COMPLETED"
-                            ? "Payé"
-                            : "Non Payé"}
+                            : payStatusName(order.payment.status)
+                            }
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -468,6 +466,7 @@ export default function OrdersPage() {
           openChange={setViewDialog}
           isOpen={viewDialog}
           zones={zones}
+          delivery={deliveries.find(x=> x.orderId === selectedOrder.id)}
         />
       )}
       {selectedOrder && getZones.isSuccess && (

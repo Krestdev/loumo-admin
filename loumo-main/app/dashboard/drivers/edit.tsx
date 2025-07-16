@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { agentStatusName } from "@/lib/utils";
 import AgentQuery from "@/queries/agent";
 import UserQuery from "@/queries/user";
 import ZoneQuery from "@/queries/zone";
@@ -209,7 +210,7 @@ function EditDriver({ agent, isOpen, openChange }: Props) {
                       <SelectContent>
                         {agentStatus.map((x, id) => (
                           <SelectItem key={id} value={x}>
-                            {x}
+                            {agentStatusName(x)}
                           </SelectItem>
                         ))}
                       </SelectContent>

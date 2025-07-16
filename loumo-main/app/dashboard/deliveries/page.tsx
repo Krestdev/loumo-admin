@@ -27,7 +27,7 @@ import { useStore } from "@/providers/datastore";
 import AgentQuery from "@/queries/agent";
 import DeliveryQuery from "@/queries/delivery";
 import ShopQuery from "@/queries/shop";
-import { Agent, Delivery, Shop } from "@/types/types";
+import { Agent, Delivery, DeliveryStatus, Shop } from "@/types/types";
 import { formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
 import { BadgeCheck, CheckCircle, Clock, Filter, Package, Search, Store, Truck, User } from "lucide-react";
@@ -138,7 +138,7 @@ export default function DeliveriesPage() {
     setActionDialog(true);
   };
 
-  const statusName = (status :Delivery["status"]):string => {
+  const statusName = (status :DeliveryStatus):string => {
     switch(status){
       case "CANCELED":
         return "Annulé";
@@ -223,7 +223,7 @@ export default function DeliveriesPage() {
           </CardContent>
         </Card>
 
-        <Card>
+{/*         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{"Temps moyen"}</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
@@ -232,7 +232,7 @@ export default function DeliveriesPage() {
             <div className="text-2xl font-bold">{"--"}</div>
             <p className="text-xs text-muted-foreground">{"Temps de livraison"}</p>
           </CardContent>
-        </Card>
+        </Card> */}
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -250,7 +250,7 @@ export default function DeliveriesPage() {
               }
             </div>
             <p className="text-xs text-muted-foreground">
-              {`Sur ${drivers.length} disponibles`}
+              {`Sur ${drivers.filter(x=>x.status === "AVAILABLE").length} disponibles`}
             </p>
           </CardContent>
         </Card>
@@ -287,7 +287,8 @@ export default function DeliveriesPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{"Référence"}</TableHead>
+                <TableHead>{"Ref"}</TableHead>
+                <TableHead>{"Commande"}</TableHead>
                 <TableHead>{"Livreur"}</TableHead>
                 <TableHead>{"Client"}</TableHead>
                 <TableHead>{"Zone"}</TableHead>
@@ -318,6 +319,11 @@ export default function DeliveriesPage() {
                     <TableCell>
                       <div>
                         <p className="text-xs">{delivery.trackingCode}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="text-xs">{delivery.orderId}</p>
                       </div>
                     </TableCell>
                     <TableCell>

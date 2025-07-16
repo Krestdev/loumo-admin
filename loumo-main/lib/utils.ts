@@ -1,4 +1,5 @@
-import { Delivery, Order, Payment, User } from "@/types/types";
+import { units } from "@/data/unit";
+import { AgentStatus, Delivery, Order, OrderStatus, Payment, User } from "@/types/types";
 import { clsx, type ClassValue } from "clsx";
 import { isAfter, subDays } from "date-fns";
 import { twMerge } from "tailwind-merge";
@@ -55,11 +56,30 @@ export const statusMap: Record<string, Order["status"][]> = {
     "Annulé": ["REJECTED", "FAILED"],
   };
 
+   export const payStatusName = (status: Payment["status"]): string => {
+    switch (status) {
+      case "ACCEPTED":
+        return "Accepté";
+      case "COMPLETED":
+        return "Terminé";
+      case "FAILED":
+        return "Echoué";
+      case "PENDING":
+        return "En cours";
+      case "PROCESSING":
+        return "Traitement";
+      case "REJECTED":
+        return "Rejeté";
+      default:
+        return "Inconnu";
+    }
+  };
+
 export const paymentStatusMap: Record<string, Payment["status"][]> = {
-    Payé: ["COMPLETED", "ACCEPTED"],
+    "Payé": ["COMPLETED", "ACCEPTED"],
     "En attente": ["PENDING", "PROCESSING"],
-    Échoué: ["FAILED"],
-    Rejeté: ["REJECTED"],
+    "Échoué": ["FAILED"],
+    "Rejeté": ["REJECTED"],
   };
 
   export const getOrderStatusLabel = (status: Order["status"]): string => {
@@ -122,6 +142,42 @@ export const getPriorityColor = (priority: Delivery["priority"]) => {
   }
 };
 
+export const unitName = (unit :string) =>{
+  switch(unit){
+    case "g":
+      return "Gramme (g)";
+    case "kg":
+      return "Kilogramme (kg)";
+    case "pièce":
+      return "Pièce/Unité";
+    case "L":
+      return "Litre (L)";
+    case "ml":
+      return "Mililitre (ml)";
+    case "cl":
+      return "Centilitre (cl)";
+    default:
+      return "unknown";
+  }
+}
+
+export const agentStatusName = (status: AgentStatus):string =>{
+  switch(status){
+    case "AVAILABLE":
+      return "Disponible";
+    case "FULL":
+      return "Occupé";
+    case "SUSPENDED":
+      return "Suspendu";
+    case "UNAVAILABLE":
+      return "Indisponible";
+    case "UNVERIFIED":
+      return "Non vérifié";
+    default:
+      return "Statut inconnu";
+  }
+}
+
 export function getOrdersByDay(orders: Order[], dayOffset: number = 0): Order[] {
   const now = new Date();
   const targetDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + dayOffset);
@@ -177,3 +233,35 @@ export function isWithinPeriod(date: Date | string, period: string): boolean {
         return true;
     }
   }
+
+  export function splitVariantName(fullName: string): {
+  name: string;
+  quantity: string;
+  unit: string;
+} {
+  const parts = fullName.trim().split(/\s+/); // découpe par espace
+
+  for (let i = 0; i < parts.length - 1; i++) {
+    const maybeQuantity = parts[i];
+    const maybeUnit = parts[i + 1];
+
+    const isNumber = !isNaN(Number(maybeQuantity));
+    const isValidUnit = units.some(x=> x === maybeUnit);
+
+    if (isNumber && isValidUnit) {
+      const nameParts = parts.slice(0, i);
+      return {
+        name: nameParts.join(" "),
+        quantity: maybeQuantity,
+        unit: maybeUnit,
+      };
+    }
+  }
+
+  // fallback (au cas où rien ne matche)
+  return {
+    name: fullName,
+    quantity: "",
+    unit: units[0],
+  };
+}

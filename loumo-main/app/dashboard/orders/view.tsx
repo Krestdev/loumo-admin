@@ -17,11 +17,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { fetchAll } from "@/hooks/useData";
 import { XAF } from "@/lib/utils";
 import ProductVariantQuery from "@/queries/productVariant";
-import { Order, ProductVariant, Zone } from "@/types/types";
+import { Delivery, Order, ProductVariant, Zone } from "@/types/types";
 import { PDFDownloadLink } from "@react-pdf/renderer";
-import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import {
   CheckCircle,
@@ -38,15 +38,12 @@ type Props = {
   zones: Zone[];
   isOpen: boolean;
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
+  delivery?: Delivery;
 };
 
-function ViewOrder({ order, isOpen, openChange, zones }: Props) {
+function ViewOrder({ order, isOpen, openChange, zones, delivery }: Props) {
   const variantQuery = new ProductVariantQuery();
-  const getVariants = useQuery({
-    queryKey: ["variants"],
-    queryFn: () => variantQuery.getAll(),
-    refetchOnWindowFocus: false,
-  });
+  const getVariants = fetchAll(variantQuery.getAll, "variants");
   const [variants, setVariants] = React.useState<ProductVariant[]>([]);
 
   React.useEffect(() => {
@@ -104,14 +101,17 @@ function ViewOrder({ order, isOpen, openChange, zones }: Props) {
             </CardHeader>
             <CardContent className="space-y-2">
               <p>
-                <strong>{"Zone:"}</strong>{" "}
+                <strong>{"Zone : "}</strong>
                 {zones.find((x) => x.id === order.address?.id)?.name}
               </p>
               {order.address && (
                 <p>
-                  <strong>{"Adresse:"}</strong> {order.address?.street}
+                  <strong>{"Adresse : "}</strong> {order.address?.street}
                 </p>
               )}
+              {delivery && <p>
+                <span>{"Livreur : "}</span><strong>{delivery.agent?.user?.name ?? "--"}</strong>
+                </p>}
             </CardContent>
           </Card>
 
@@ -206,7 +206,7 @@ function ViewOrder({ order, isOpen, openChange, zones }: Props) {
                     "En cours"
                   ) : order.payment.status === "COMPLETED" ? (
                     <span className="inline-flex gap-1 items-center font-semibold">
-                      {"Payé"}{" "}
+                      {"Payé"}
                       <CheckCircle size={12} className="text-green-600" />
                     </span>
                   ) : (

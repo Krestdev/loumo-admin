@@ -17,6 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { units } from "@/data/unit";
+import { unitName } from "@/lib/utils";
 import ProductQuery from "@/queries/product";
 import ProductVariantQuery from "@/queries/productVariant";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -30,13 +32,16 @@ import z from "zod";
 const formSchema = z.object({
   name: z
     .string({ message: "Veuillez renseigner un nom" })
-    .min(2, { message: "Le nom doit comporter au moins 3 caractères" }),
+    //.min(2, { message: "Le nom doit comporter au moins 3 caractères" })
+    .max(4, {message: "4 caractères maximum"}).optional(),
+  quantity: z.string().refine((val)=>Number(val)>0, {message: "Doit être un nombre"}),
+  unit: z.enum(units),
   weight: z.string({ message: "Veuillez renseigner le poids" })
   .refine((val) => !isNaN(Number(val)), {
     message: "Le poids doit être un nombre",
   }),
   status: z.boolean(),
-  price: z.string({ message: "Veuillez renseigner un prix" }),
+  price: z.string({ message: "Veuillez renseigner un prix" }).refine((val)=>!isNaN(Number(val)),{message: "Le prix doit être un nombre"}),
   productId: z.string({ message: "Veuillez sélectionner le produit parent" }),
   imgUrl: z
     .any()
@@ -53,9 +58,11 @@ function PageAdd() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
+      name: undefined,
       weight: "",
       status: true,
+      quantity: "",
+      unit: "g",
     },
   });
 
@@ -66,7 +73,7 @@ function PageAdd() {
         if(values.imgUrl){
             return actions.create({
         productId: Number(values.productId),
-        name: values.name,
+        name: [values.name, values.quantity, values.unit].filter(Boolean).join(" "),
         weight: Number(values.weight),
         status: values.status,
         price: Number(values.price),
@@ -75,16 +82,11 @@ function PageAdd() {
         }
       return actions.create({
         productId: Number(values.productId),
-        name: values.name,
+        name: [values.name, values.quantity, values.unit].filter(Boolean).join(" "),
         weight: Number(values.weight),
         status: values.status,
         price: Number(values.price),
       })},
-    /* onSuccess: ()=>{
-            console.log("onSuccess here !")
-            queryClient.invalidateQueries({queryKey: ["variants"], refetchType: "active"},);
-            router.back();
-        }, */
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["variants"],
@@ -114,6 +116,34 @@ function PageAdd() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2 place-items-start">
+             <FormField
+              control={form.control}
+              name="productId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{"Produit parent"}</FormLabel>
+                  <FormControl>
+                    <Select
+                      defaultValue={field.value}
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger className="w-full !h-10">
+                        <SelectValue placeholder="Sélectionner un produit" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {products.isSuccess &&
+                          products.data.map((x) => (
+                            <SelectItem key={x.id} value={String(x.id)}>
+                              {x.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="name"
@@ -121,7 +151,42 @@ function PageAdd() {
                 <FormItem>
                   <FormLabel>{"Nom de la variante"}</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Entrez un nom" />
+                    <Input {...field} placeholder="ex. Sac, Boite" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="quantity"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{"Quantité"}</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="ex. 10" type="number" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="unit"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{"Unité"}</FormLabel>
+                  <FormControl>
+                    <Select defaultValue={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="kg"/>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {units.map((x, id)=>
+                          <SelectItem key={id} value={x}>{unitName(x)}</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -163,34 +228,6 @@ function PageAdd() {
                       {"kg"}
                     </span>
                   </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="productId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{"Produit parent"}</FormLabel>
-                  <FormControl>
-                    <Select
-                      defaultValue={field.value}
-                      onValueChange={field.onChange}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Sélectionner un produit" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {products.isSuccess &&
-                          products.data.map((x) => (
-                            <SelectItem key={x.id} value={String(x.id)}>
-                              {x.name}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

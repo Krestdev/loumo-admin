@@ -4,8 +4,9 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
-  DialogTitle,
+  DialogTitle
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -23,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { agentStatusName } from "@/lib/utils";
 import AgentQuery from "@/queries/agent";
 import UserQuery from "@/queries/user";
 import ZoneQuery from "@/queries/zone";
@@ -209,7 +211,8 @@ function AddDriver({ isOpen, openChange }: Props) {
                       <SelectContent>
                         {agentStatus.map((x, id) => (
                           <SelectItem key={id} value={x}>
-                            {x}
+                            <svg height="16" width="16" xmlns="http://www.w3.org/2000/svg"><circle r={5} cx={8} cy={8} fill={x==="AVAILABLE" ? "green" : x==="UNVERIFIED" ? "orange" : "red"}/></svg>
+                            {agentStatusName(x)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -246,7 +249,7 @@ function AddDriver({ isOpen, openChange }: Props) {
                 </FormItem>
               )}
             />
-            <div className="flex justify-end gap-2">
+            <DialogFooter className="mt-4">
               <Button
                 type="submit"
                 disabled={createDriver.isPending || createAgent.isPending}
@@ -254,7 +257,7 @@ function AddDriver({ isOpen, openChange }: Props) {
                 {createDriver.isPending ||
                   (createAgent.isPending && (
                     <Loader size={16} className="animate-spin" />
-                  ))}{" "}
+                  ))}
                 {"Créer un Livreur"}
               </Button>
               <Button
@@ -267,7 +270,7 @@ function AddDriver({ isOpen, openChange }: Props) {
               >
                 {"Annuler"}
               </Button>
-            </div>
+            </DialogFooter>
           </form>
         </Form>
       </DialogContent>
