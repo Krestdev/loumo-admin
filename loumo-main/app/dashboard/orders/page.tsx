@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/table";
 import { fetchAll } from "@/hooks/useData";
 import {
+  getDeliveryStatusName,
   getOrderStatusLabel,
   isWithinPeriod,
   paymentStatusMap,
@@ -44,15 +45,17 @@ import { Delivery, Order, OrderStatus, Zone } from "@/types/types";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import {
   ArrowRightCircle,
+  ArrowUpDown,
   BadgeCheck,
   CheckCircleIcon,
   DollarSign,
+  Download,
   Eye,
   Loader,
   MoreHorizontal,
   Search,
   SquareChevronRight,
-  Store
+  Store,
 } from "lucide-react";
 import React, { useState } from "react";
 import { paymentStatus } from "../payments/page";
@@ -60,17 +63,18 @@ import AssignDriver from "./assign";
 import EndOrder from "./end";
 import { OrdersPDFDocument } from "./pdf";
 import ViewOrder from "./view";
+import { exportToExcel } from "@/lib/exportToExcel";
 
 export default function OrdersPage() {
   const ordersQuery = new OrderQuery();
   const orderData = fetchAll(ordersQuery.getAll, "orders", 30000);
 
   const zoneQuery = new ZoneQuery();
-  const getZones = fetchAll(zoneQuery.getAll,"zones", 30000);
+  const getZones = fetchAll(zoneQuery.getAll, "zones", 30000);
 
   const deliveryQuery = new DeliveryQuery();
-  const getDeliveries = fetchAll(deliveryQuery.getAll,"deliveries",30000);
-  
+  const getDeliveries = fetchAll(deliveryQuery.getAll, "deliveries", 30000);
+
   const [orders, setOrders] = useState<Order[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
@@ -83,6 +87,7 @@ export default function OrdersPage() {
   const [amountFilter, setAmountFilter] = useState("all");
   const [zoneFilter, setZoneFilter] = useState("all");
   const [paymentFilter, setPaymentFilter] = useState("all");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc"); // "desc" = latest first
   const [viewDialog, setViewDialog] = useState(false);
   const [endDialog, setEndDialog] = useState(false);
 
@@ -117,55 +122,68 @@ export default function OrdersPage() {
     getDeliveries.isSuccess,
   ]);
 
-  const orderStatus:OrderStatus[] = ["ACCEPTED", "COMPLETED", "FAILED", "PENDING", "PROCESSING", "REJECTED"] as const;
-
+  const orderStatus: OrderStatus[] = [
+    "ACCEPTED",
+    "COMPLETED",
+    "FAILED",
+    "PENDING",
+    "PROCESSING",
+    "REJECTED",
+  ] as const;
 
   const filteredOrders = React.useMemo(() => {
-    return orders.filter((order) => {
-      const matchesSearch =
-        order.user?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.id.toString().includes(searchTerm.toLowerCase());
+    return orders
+      .filter((order) => {
+        const matchesSearch =
+          order.user?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          order.id.toString().includes(searchTerm.toLowerCase());
 
-      const matchesStatus =
-        statusFilter === "all" ||
-        statusMap[statusFilter]?.includes(order.status);
+        const matchesStatus =
+          statusFilter === "all" ||
+          statusMap[statusFilter]?.includes(order.status);
 
-      const matchesPayment =
-        paymentFilter === "all" ||
-        (order.payment?.status &&
-          paymentStatusMap[paymentFilter]?.includes(order.payment.status));
+        const matchesPayment =
+          paymentFilter === "all" ||
+          (order.payment?.status &&
+            paymentStatusMap[paymentFilter]?.includes(order.payment.status));
 
-      const matchesPeriod =
-        periodFilter === "all" || isWithinPeriod(order.createdAt, periodFilter);
+        const matchesPeriod =
+          periodFilter === "all" ||
+          isWithinPeriod(order.createdAt, periodFilter);
 
-      const matchesZone =
-        zoneFilter === "all" || order.address?.zone?.name === zoneFilter;
+        const matchesZone =
+          zoneFilter === "all" || order.address?.zone?.name === zoneFilter;
 
-      const matchesAmount = (() => {
-        const amount = order.total;
-        switch (amountFilter) {
-          case "0-20":
-            return amount < 20000;
-          case "20-50":
-            return amount >= 20000 && amount <= 50000;
-          case "50-100":
-            return amount > 50000 && amount <= 100000;
-          case "100+":
-            return amount > 100000;
-          default:
-            return true;
-        }
-      })();
+        const matchesAmount = (() => {
+          const amount = order.total;
+          switch (amountFilter) {
+            case "0-20":
+              return amount < 20000;
+            case "20-50":
+              return amount >= 20000 && amount <= 50000;
+            case "50-100":
+              return amount > 50000 && amount <= 100000;
+            case "100+":
+              return amount > 100000;
+            default:
+              return true;
+          }
+        })();
 
-      return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesPayment &&
-        matchesPeriod &&
-        matchesZone &&
-        matchesAmount
-      );
-    });
+        return (
+          matchesSearch &&
+          matchesStatus &&
+          matchesPayment &&
+          matchesPeriod &&
+          matchesZone &&
+          matchesAmount
+        );
+      })
+      .sort((a, b) => {
+        const timeA = new Date(a.createdAt).getTime();
+        const timeB = new Date(b.createdAt).getTime();
+        return sortDirection === "desc" ? timeB - timeA : timeA - timeB;
+      });
   }, [
     orders,
     searchTerm,
@@ -174,6 +192,7 @@ export default function OrdersPage() {
     periodFilter,
     zoneFilter,
     amountFilter,
+    sortDirection,
   ]);
 
   const handleView = (order: Order) => {
@@ -189,6 +208,29 @@ export default function OrdersPage() {
   const handleEnd = (order: Order) => {
     setSelectedOrder(order);
     setEndDialog(true);
+  };
+
+  //Export xlsx
+  const handleExcelExport = (orders: Order[]) => {
+    const formattedOrders = orders.map((order) => ({
+      ID: order.id,
+      "Nom du Client": order.user.name,
+      "Email du Client": order.user.email,
+      Montant: order.total,
+      Statut: getOrderStatusLabel(order.status),
+      Paiement: order.payment
+        ? payStatusName(order.payment.status)
+        : "Non payé",
+      Livraison: order.delivery
+        ? getDeliveryStatusName(order.delivery[0].status)
+        : "Non livré",
+      Adresse: order.address
+        ? `${order.address.local} - ${order.address.street}`
+        : "N/A",
+      Date: new Date(order.createdAt).toLocaleDateString(),
+    }));
+
+    exportToExcel(formattedOrders, "Commandes LoumoShop");
   };
 
   return (
@@ -215,29 +257,49 @@ export default function OrdersPage() {
               />
             </div>
 
+            <Select
+              value={sortDirection}
+              onValueChange={(value) =>
+                setSortDirection(value as "asc" | "desc")
+              }
+            >
+              <SelectTrigger className="w-full">
+                <ArrowUpDown size={16}/>
+                <SelectValue placeholder="Trier par date" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="desc">{"Les plus récentes"}</SelectItem>
+                <SelectItem value="asc">{"Les plus anciennes"}</SelectItem>
+              </SelectContent>
+            </Select>
+
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-full">
-                <BadgeCheck size={16}/>
+                <BadgeCheck size={16} />
                 <SelectValue placeholder="Statut commande" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{"Tous les statuts"}</SelectItem>
-                {orderStatus.map((x,i)=>
-                <SelectItem key={i} value={x}>{getOrderStatusLabel(x)}</SelectItem>
-                )}
+                {orderStatus.map((x, i) => (
+                  <SelectItem key={i} value={x}>
+                    {getOrderStatusLabel(x)}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
             <Select value={paymentFilter} onValueChange={setPaymentFilter}>
               <SelectTrigger className="w-full">
-                <ArrowRightCircle size={16}/>
+                <ArrowRightCircle size={16} />
                 <SelectValue placeholder="Statut paiement" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{"Tous les paiements"}</SelectItem>
-                {paymentStatus.map((x,id)=>
-                <SelectItem key={id} value={x}>{payStatusName(x)}</SelectItem>
-                )}
+                {paymentStatus.map((x, id) => (
+                  <SelectItem key={id} value={x}>
+                    {payStatusName(x)}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
@@ -256,7 +318,7 @@ export default function OrdersPage() {
 
             <Select value={zoneFilter} onValueChange={setZoneFilter}>
               <SelectTrigger className="w-full">
-                <Store size={16}/>
+                <Store size={16} />
                 <SelectValue placeholder="Zone de livraison" />
               </SelectTrigger>
               <SelectContent>
@@ -271,7 +333,7 @@ export default function OrdersPage() {
 
             <Select value={amountFilter} onValueChange={setAmountFilter}>
               <SelectTrigger className="w-full">
-                <DollarSign size={16}/>
+                <DollarSign size={16} />
                 <SelectValue placeholder="Montant" />
               </SelectTrigger>
               <SelectContent>
@@ -282,22 +344,30 @@ export default function OrdersPage() {
                 <SelectItem value="100+">{"Plus de 100 000"}</SelectItem>
               </SelectContent>
             </Select>
-
-            {/* <Button variant="outline">
-              <Filter className="mr-2 h-4 w-4" />
-              {"Filtres avancés"}
-            </Button>
- */}
-            <Button>
-              <PDFDownloadLink
-                document={<OrdersPDFDocument orders={filteredOrders} />}
-                fileName="liste-commandes.pdf"
-              >
-                {({ loading }) =>
-                  loading ? <Loader size={16} /> : "Exporter en PDF"
-                }
-              </PDFDownloadLink>
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="w-full" variant={"default"}>
+                  <Download size={16}/>
+                  {"Exporter"}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-60">
+                <DropdownMenuItem className="w-full">
+                  <PDFDownloadLink
+              document={<OrdersPDFDocument orders={filteredOrders} />}
+              fileName="liste-commandes.pdf"
+              className="w-full"
+            >
+              {({ loading }) =>
+                  loading ? <Loader size={16} className="animate-spin"/> : <span>{"vers PDF"}</span>
+              }
+            </PDFDownloadLink>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={()=>handleExcelExport(filteredOrders)}>
+                  {"vers Excel"}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </CardContent>
       </Card>
@@ -370,9 +440,7 @@ export default function OrdersPage() {
                       </TableCell>
                       <TableCell>{`${order.weight} kg`}</TableCell>
                       <TableCell>
-                        {
-                          !!order.delivery ?
-                          <Badge
+                        <Badge
                           variant={
                             order.status === "ACCEPTED"
                               ? "default"
@@ -385,8 +453,6 @@ export default function OrdersPage() {
                         >
                           {getOrderStatusLabel(order.status)}
                         </Badge>
-                        :
-                        "--"}
                       </TableCell>
                       <TableCell>
                         <Badge
@@ -404,9 +470,27 @@ export default function OrdersPage() {
                         >
                           {!order.payment
                             ? "Non Payé"
-                            : payStatusName(order.payment.status)
-                            }
+                            : payStatusName(order.payment.status)}
                         </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {!!order.delivery ? (
+                          <Badge
+                            variant={
+                              order.delivery[0].status === "COMPLETED"
+                                ? "default"
+                                : order.delivery[0].status === "CANCELED"
+                                ? "destructive"
+                                : order.delivery[0].status === "NOTSTARTED"
+                                ? "warning"
+                                : "info"
+                            }
+                          >
+                            {getDeliveryStatusName(order.delivery[0].status)}
+                          </Badge>
+                        ) : (
+                          "N/A"
+                        )}
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>
@@ -466,7 +550,7 @@ export default function OrdersPage() {
           openChange={setViewDialog}
           isOpen={viewDialog}
           zones={zones}
-          delivery={deliveries.find(x=> x.orderId === selectedOrder.id)}
+          delivery={deliveries.find((x) => x.orderId === selectedOrder.id)}
         />
       )}
       {selectedOrder && getZones.isSuccess && (

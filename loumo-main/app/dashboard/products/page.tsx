@@ -27,15 +27,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { fetchAll } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
 import CategoryQuery from "@/queries/category";
 import ProductQuery from "@/queries/product";
 import { Category, Product } from "@/types/types";
-import { useQuery } from "@tanstack/react-query";
 import { formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Edit, MoreHorizontal, PlusCircle, Search, Trash2 } from "lucide-react";
-import Link from "next/link";
 import React, { useMemo, useState } from "react";
 import AddProduct from "./add";
 import DeleteProduct from "./delete";
@@ -47,16 +46,8 @@ export default function ProductsPage() {
 
   const product = new ProductQuery();
   const category = new CategoryQuery();
-  const productData = useQuery({
-    queryKey: ["products"],
-    queryFn: () => product.getAll(),
-    refetchOnWindowFocus: false,
-  });
-  const categoryData = useQuery({
-    queryKey: ["categories"],
-    queryFn: () => category.getAll(),
-    refetchOnWindowFocus: false,
-  });
+  const productData = fetchAll(product.getAll,"products");
+  const categoryData = fetchAll(category.getAll,"categories");
 
   const { setLoading } = useStore();
 
@@ -88,7 +79,7 @@ export default function ProductsPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | undefined>();
+  const [selectedProduct, setSelectedProduct] = useState<Product>();
 
   const filteredProducts = useMemo(
     () =>
@@ -122,6 +113,19 @@ export default function ProductsPage() {
       setSelectedProducts(selectedProducts.filter((id) => id !== productId));
     }
   };
+
+  const handleEdit = (product:Product):void => {
+    setSelectedProduct(product);
+    setIsEditDialogOpen(true);
+  }
+
+  const handleAdd = ():void => {
+    setIsAddDialogOpen(true);
+  }
+  const handleDelete = (product: Product):void =>{
+    setSelectedProduct(product);
+    setIsDeleteDialogOpen(true);
+  }
 
   return (
     <PageLayout
@@ -172,11 +176,9 @@ export default function ProductsPage() {
               </SelectContent>
             </Select>
             {/**Add Product */}
-            <Link href={"/dashboard/products/add"}>
-              <Button /* onClick={()=>{setIsAddDialogOpen(true)}} */>
+              <Button onClick={()=>handleAdd()}>
                 <PlusCircle size={16} /> {"Ajouter un produit"}
               </Button>
-            </Link>
             {selectedProducts.length > 0 && (
               <div className="flex gap-2">
                 <Select defaultValue="edit">
@@ -317,20 +319,14 @@ export default function ProductsPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
-                            onClick={() => {
-                              setEditingProduct(product);
-                              setIsEditDialogOpen(true);
-                            }}
+                            onClick={() =>handleEdit(product)}
                           >
                             <Edit size={16} />
                             {"Modifier le produit"}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             variant="destructive"
-                            onClick={() => {
-                              setEditingProduct(product);
-                              setIsDeleteDialogOpen(true);
-                            }}
+                            onClick={() =>handleDelete(product)}
                           >
                             <Trash2 size={16} />
                             {"Supprimer le produit"}
@@ -352,16 +348,16 @@ export default function ProductsPage() {
         openChange={setIsAddDialogOpen}
         categories={categories}
       />
-      {editingProduct && (
+      {selectedProduct && (
         <DeleteProduct
-          product={editingProduct}
+          product={selectedProduct}
           isOpen={isDeleteDialogOpen}
           openChange={setIsDeleteDialogOpen}
         />
       )}
-      {editingProduct && (
+      {selectedProduct && (
         <EditProduct
-          product={editingProduct}
+          product={selectedProduct}
           isOpen={isEditDialogOpen}
           openChange={setIsEditDialogOpen}
           categories={categories}

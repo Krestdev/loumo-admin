@@ -12,12 +12,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { fetchAll } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
 import PermissionQuery from "@/queries/permission";
 import RoleQuery from "@/queries/role";
 import UserQuery from "@/queries/user";
 import { Permission, Role, User } from "@/types/types";
-import { useQuery } from "@tanstack/react-query";
 import {
   Edit,
   Key,
@@ -31,30 +31,18 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { AddRoleDialog } from "./addRole";
-import { EditRoleDialog } from "./editRole";
 import DeleteRole from "./deleteRole";
+import { EditRoleDialog } from "./editRole";
 
 function Page() {
   const rolesQuery = new RoleQuery();
-  const getRoles = useQuery({
-    queryKey: ["roles"],
-    queryFn: () => rolesQuery.getAll(),
-    refetchOnWindowFocus: false,
-  });
+  const getRoles = fetchAll(rolesQuery.getAll,"roles");
 
   const usersQuery = new UserQuery();
-  const getUsers = useQuery({
-    queryKey: ["users"],
-    queryFn: () => usersQuery.getAll(),
-    refetchOnWindowFocus: false,
-  });
+  const getUsers = fetchAll(usersQuery.getAll,"users");
 
   const permissionsQuery = new PermissionQuery();
-  const getPermissions = useQuery({
-    queryKey: ["permissions"],
-    queryFn: () => permissionsQuery.getAll(),
-    refetchOnWindowFocus: false,
-  });
+  const getPermissions = fetchAll(permissionsQuery.getAll,"permissions");
 
   const [roles, setRoles] = useState<Role[]>([]);
   const [users, setUsers] = useState<User[]>([]);

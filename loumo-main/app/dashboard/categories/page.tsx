@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -19,77 +20,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { fetchAll } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
 import CategoryQuery from "@/queries/category";
 import { Category } from "@/types/types";
-import { useQuery } from "@tanstack/react-query";
-import { Edit, Eye, PlusCircle, Search, Tag, Trash2 } from "lucide-react";
+import { Edit, Eye, MoreHorizontal, PlusCircle, Search, Tag, Trash } from "lucide-react";
 import React, { useState } from "react";
 import AddCategory from "./add";
 import DeleteCategory from "./delete";
 import EditCategory from "./edit";
 
-const categoriesData = [
-  {
-    id: 1,
-    name: "Céréales & Légumineuses",
-    description: "Riz, blé, lentilles, haricots et autres céréales en vrac",
-    productCount: 45,
-    isActive: true,
-    showOnHomepage: true,
-    parentId: null,
-    createdAt: "2024-01-15",
-  },
-  {
-    id: 2,
-    name: "Huiles & Condiments",
-    description: "Huiles d'olive, tournesol, épices et condiments",
-    productCount: 32,
-    isActive: true,
-    showOnHomepage: false,
-    parentId: null,
-    createdAt: "2024-01-16",
-  },
-  {
-    id: 3,
-    name: "Produits d'Hygiène",
-    description: "Savons, détergents, produits de nettoyage",
-    productCount: 28,
-    isActive: true,
-    showOnHomepage: true,
-    parentId: null,
-    createdAt: "2024-01-17",
-  },
-  {
-    id: 11,
-    name: "Riz",
-    description: "Différentes variétés de riz",
-    productCount: 15,
-    isActive: true,
-    showOnHomepage: false,
-    parentId: 1,
-    createdAt: "2024-01-18",
-  },
-  {
-    id: 12,
-    name: "Légumineuses",
-    description: "Lentilles, haricots, pois chiches",
-    productCount: 18,
-    isActive: true,
-    showOnHomepage: false,
-    parentId: 1,
-    createdAt: "2024-01-19",
-  },
-];
 
 export default function CategoriesPage() {
-  const { setLoading } = useStore();
+  const { setLoading, addToast } = useStore();
   const categoryQuery = new CategoryQuery();
-  const getCategories = useQuery({
-    queryKey: ["categories"],
-    queryFn: () => categoryQuery.getAll(),
-    refetchOnWindowFocus: false,
-  });
+  const getCategories = fetchAll(categoryQuery.getAll,"categories");
 
   const [categories, setCategories] = useState<Category[]>([]);
 
@@ -195,7 +140,7 @@ export default function CategoriesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
-              {categoriesData.filter((c) => c.showOnHomepage).length}
+              {categories.filter((c) => !!c.display).length}
             </div>
             <p className="text-xs text-muted-foreground">
               {"Visibles sur la page d'accueil"}
@@ -221,8 +166,9 @@ export default function CategoriesPage() {
               />
             </div>
             <Button onClick={() => setIsDialogOpen(true)}>
-              <PlusCircle size={16} className="mr-2" /> {"Ajouter"}
+              <PlusCircle size={16} /> {"Ajouter une catégorie"}
             </Button>
+            <Button onClick={()=>{addToast({title: "Hello from toast", variant: "error"})}}>Toast button</Button>
           </div>
         </CardContent>
       </Card>
@@ -242,6 +188,7 @@ export default function CategoriesPage() {
                 <TableHead>{"Nom"}</TableHead>
                 <TableHead>{"Produits"}</TableHead>
                 <TableHead>{"Statut"}</TableHead>
+                <TableHead>{"Page d'Accueil"}</TableHead>
                 <TableHead>{"Actions"}</TableHead>
               </TableRow>
             </TableHeader>
@@ -264,7 +211,20 @@ export default function CategoriesPage() {
                 filteredCategories.map((category) => (
                   <TableRow key={category.id}>
                     <TableCell className="font-medium">
-                      {category.name}
+                      <div className="flex items-center gap-3">
+                        <img
+                            src={
+                              !category.imgUrl
+                                ? "/images/placeholder.svg"
+                                : category.imgUrl.includes("http")
+                                ? category.imgUrl
+                                : `${process.env.NEXT_PUBLIC_API_BASE_URL}${category.imgUrl}`
+                            }
+                            alt={category.name}
+                            className="h-10 w-10 rounded-md object-cover"
+                          />
+                        {category.name}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <Badge variant="secondary">
@@ -273,32 +233,34 @@ export default function CategoriesPage() {
                     </TableCell>
                     <TableCell>
                       <Badge
-                        variant={category.status ? "default" : "secondary"}
+                        variant={!!category.status ? "default" : "outline"}
                       >
-                        {category.status ? "Actif" : "Désactivé"}
+                        {!!category.status ? "Actif" : "Désactivé"}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size={"sm"}
-                          onClick={() => handleEdit(category)}
-                        >
-                          <Edit size={16} />
-                          {"Modifier"}
-                        </Button>
-                        <Button
-                          variant="delete"
-                          size={"sm"}
-                          onClick={() => {
-                            handleDelete(category);
-                          }}
-                        >
-                          <Trash2 size={16} />
-                          {"Supprimer"}
-                        </Button>
-                      </div>
+                      <Badge
+                        variant={!!category.display ? "default" : "outline"}
+                      >
+                        {!!category.display ? "Oui" : "Non"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant={"ghost"} size={"icon"}><MoreHorizontal size={16}/></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem onClick={()=>handleEdit(category)}>
+                              <Edit size={16}/>
+                            {"Modifier"}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={()=>handleDelete(category)} variant="destructive">
+                              <Trash size={16}/>
+                            {"Supprimer"}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))

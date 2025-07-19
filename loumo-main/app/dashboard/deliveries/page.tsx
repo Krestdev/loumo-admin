@@ -30,7 +30,7 @@ import ShopQuery from "@/queries/shop";
 import { Agent, Delivery, DeliveryStatus, Shop } from "@/types/types";
 import { formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
-import { BadgeCheck, CheckCircle, Clock, Filter, Package, Search, Store, Truck, User } from "lucide-react";
+import { BadgeCheck, CheckCircle, Filter, Package, Search, Store, Truck, User } from "lucide-react";
 import React, { useMemo, useState } from "react";
 import { DateRange } from "react-day-picker";
 import EditDelivery from "./edit";

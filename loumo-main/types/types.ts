@@ -34,6 +34,8 @@ export type PaymentStatus = "FAILED"|"COMPLETED"|"PROCESSING"|"REJECTED"|"ACCEPT
 
 export type PaymentMethod = "MTN_MOMO_CMR" | "ORANGE_CMR"| "CASH";
 
+export type PromotionStatus =  "ACTIVE" | "EXPIRED" | "UPCOMING" | "DISABLED";
+
 export type Address = {
   street: string;
   local: string;
@@ -72,6 +74,7 @@ export type Agent = {
 export type Category = {
   name: string;
   id: number;
+  display: boolean;
   status: boolean;
   products?: Product[];
   imgUrl?: string;
@@ -185,10 +188,20 @@ export type ProductVariant = {
 export type Promotion = {
   id: number;
   code: string;
+  amount: number;         // e.g. 20 => 20% off
   percentage: number;
-  expireAt: Date;
-  stock?: Stock[];
+  expireAt: Date;             // expiry date/time
+  startAt: Date;             // optional start date
+  maxUses?: number;           // optional max number of uses
+  usedCount: number;         // optional number of times it’s been used
+  status: PromotionStatus;   // optional computed status
+  description: string;       // optional text shown to users
+  createdAt: Date;
+  updatedAt?: Date;
+  stock: Stock["id"][];            // link to affected stock items
 };
+
+
 
 export type Role = {
   id: number;
@@ -266,3 +279,16 @@ export type Setting = {
   section: String;
   date?: Date;
 };
+
+export type ToastVariant = "default" | "success" | "error" | "warning";
+export interface ToastData {
+  id: string
+  title: string
+  description?: string
+  duration?: number
+  variant?: ToastVariant
+  action?: {
+    label: string
+    onClick: () => void
+  }
+}

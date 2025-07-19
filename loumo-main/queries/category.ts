@@ -5,9 +5,20 @@ import { toast } from "react-toastify";
 export default class CategoryQuery {
   route = "/categories";
   create = async (
-    data: Omit<Category, "id"> & { productIds?: number[] }
+    data: Omit<Category, "id" | "imgUrl"> & { productIds?: number[], imgUrl?: null | File}
   ): Promise<Category> => {
-    const response = await api.post(`${this.route}`, data);
+    const formData = new FormData();
+    formData.append("name", data.name);
+    formData.append("status",String(data.status));
+    formData.append("display",String(data.display));
+    if(data.imgUrl) {
+    formData.append("imgUrl", data.imgUrl); // "image" should match your backend field name
+  }
+    const response = await api.post(`${this.route}`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
     const category = response.data;
 
     console.log("👉 Response complète :", category);
@@ -28,10 +39,19 @@ export default class CategoryQuery {
 
   update = async (
     id: number,
-    data: Partial<Omit<Category, "id">>
+    data: Partial<Omit<Category, "id"| "imgUrl">> & {imgUrl?: string | null | File}
   ): Promise<Category> => {
+    const formData = new FormData();
+    if(data.name)formData.append("name", data.name);
+    if(data.status)formData.append("status",String(data.status));
+    if(data.display)formData.append("display",String(data.display));
+    if(data.imgUrl instanceof File)formData.append("imgUrl", data.imgUrl);
     return api
-      .put(`${this.route}/${id}`, data)
+      .put(`${this.route}/${id}`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  })
       .then((response) => response.data);
   };
 

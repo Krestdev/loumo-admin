@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { fetchAll } from "@/hooks/useData";
 import {
+  cn,
   getClientsByDay,
   getOrderStatusLabel,
   sortOrdersByNewest,
@@ -41,7 +42,7 @@ import {
   Package,
   ShoppingCart,
   Store,
-  TriangleAlert,
+  Truck,
   UsersIcon,
   Warehouse
 } from "lucide-react";
@@ -171,7 +172,7 @@ export default function Dashboard() {
 
   //Stocks
   const lowStocks: Stock[] = stocks.filter((x) => x.quantity <= x.threshold);
-  const toRestock: Stock[] = stocks.filter((x) => x.quantity === 0);
+  //const toRestock: Stock[] = stocks.filter((x) => x.quantity === 0);
 
   //graph orders
   const ordersByDay = Array.from({ length: 7 })
@@ -224,6 +225,11 @@ export default function Dashboard() {
       .reverse();
   };
 
+  const deliveries = filteredOrders.filter(x=> !!x.delivery);
+  const startedDeliveries:number = filteredOrders.filter(x=> !!x.delivery && x.delivery.some(y=>y.status === "STARTED")).length;
+
+  const ordersActive = filteredOrders.filter(x=> x.status === "PROCESSING" || x.status ==="PENDING" || x.status === "ACCEPTED");
+
   return (
     <PageLayout
       isLoading={
@@ -261,7 +267,7 @@ export default function Dashboard() {
               <SelectValue placeholder="Produit" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{"Toutes les produits"}</SelectItem>
+              <SelectItem value="all">{"Tous les produits"}</SelectItem>
               {products.map((x) => (
                 <SelectItem key={x.id} value={String(x.id)}>
                   {x.name}
@@ -283,6 +289,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{filteredOrders.length}</div>
+            <p className="text-xs text-muted-foreground mt-2">{"Dont "}<span className={cn("px-1 py-0.5 rounded font-semibold border", ordersActive.length>0 ? "bg-orange-100 text-orange-600 border-orange-300" : "bg-gray-100")}>{ordersActive.length}</span>{" en cours."}</p>
           </CardContent>
         </Card>
         {/**Chiffre d'Affaires */}
@@ -297,6 +304,7 @@ export default function Dashboard() {
             <div className="text-2xl font-bold">
               {XAF.format(salesCompleted(filteredOrders))}
             </div>
+            <p className="text-xs text-muted-foreground mt-2">{`Dont `}<span className={cn("px-1 py-0.5 rounded border", salesCompleted(filteredOrders.filter(x=>!!x.delivery))>0 ? "bg-green-100 font-semibold text-green-600 border border-green-300": "bg-gray-100")}>{XAF.format(salesCompleted(filteredOrders.filter(x=>!!x.delivery)))}</span>{" sur les livraisons."}</p>
           </CardContent>
         </Card>
         {/**Users */}
@@ -315,12 +323,13 @@ export default function Dashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              {"Produits en rupture"}
+              {"Livraisons"}
             </CardTitle>
-            <TriangleAlert size={16} className="text-orange-600" />
+            <Truck size={16} className="text-indigo-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{toRestock.length}</div>
+            <div className="text-2xl font-bold">{deliveries.length}</div>
+            <p className="text-xs text-muted-foreground mt-2">{"Dont "}<span className={cn("px-1 py-0.5 rounded font-semibold border", startedDeliveries>0 ? "bg-green-100 text-green-600 border-green-300" : "bg-gray-100")}>{startedDeliveries}</span>{" livraisons en cours."}</p>
           </CardContent>
         </Card>
       </div>

@@ -4,6 +4,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -108,9 +109,13 @@ function AssignDriver({ order, isOpen, openChange, zones }: Props) {
       setDrivers(getAgents.data);
     }
     if(isOpen){
-      form.reset();
+      form.reset({
+      orderId: String(order.id),
+      agentId: "",
+      scheduledTime: "",
+      });
     }
-  }, [setDrivers, getAgents.data, getAgents.isSuccess, isOpen, form]);
+  }, [setDrivers, getAgents.data, getAgents.isSuccess, isOpen, form, order]);
 
   return (
     <Dialog open={isOpen} onOpenChange={openChange}>
@@ -156,13 +161,13 @@ function AssignDriver({ order, isOpen, openChange, zones }: Props) {
                         <SelectContent>
                           {drivers.filter(
                             (d) =>
-                              d.zoneId === order.address?.zoneId &&
+                              d.zoneId === zones.find((x) => x.id === order.address?.id)?.id &&
                               d.status === "AVAILABLE"
                           ).length > 0 ? (
                             drivers
                               .filter(
                                 (d) =>
-                                  d.zoneId === order.address?.zoneId &&
+                                  d.zoneId === zones.find((x) => x.id === order.address?.id)?.id &&
                                   d.status === "AVAILABLE"
                               )
                               .map((x) => (
@@ -205,12 +210,12 @@ function AssignDriver({ order, isOpen, openChange, zones }: Props) {
                   </FormItem>
                 )}
               />
-              <div className="flex justify-end gap-2">
+              <DialogFooter className="mt-4">
                 <Button type="submit" disabled={createDelivery.isPending}>{createDelivery.isPending && <Loader size={16} className="animate-spin"/>} {"Assigner"}</Button>
-          <Button variant="outline" onClick={() => openChange(false)}>
+          <Button variant="outline" onClick={(e) =>{e.preventDefault(); openChange(false)}}>
             {"Annuler"}
           </Button>
-        </div>
+        </DialogFooter>
             </form>
           </Form>
 

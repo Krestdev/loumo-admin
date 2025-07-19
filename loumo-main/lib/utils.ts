@@ -1,5 +1,5 @@
 import { units } from "@/data/unit";
-import { AgentStatus, Delivery, Order, OrderStatus, Payment, User } from "@/types/types";
+import { AgentStatus, DeliveryPriority, DeliveryStatus, Order, OrderStatus, Payment, PaymentStatus, User } from "@/types/types";
 import { clsx, type ClassValue } from "clsx";
 import { isAfter, subDays } from "date-fns";
 import { twMerge } from "tailwind-merge";
@@ -75,14 +75,14 @@ export const statusMap: Record<string, Order["status"][]> = {
     }
   };
 
-export const paymentStatusMap: Record<string, Payment["status"][]> = {
+export const paymentStatusMap: Record<string, PaymentStatus[]> = {
     "Payé": ["COMPLETED", "ACCEPTED"],
     "En attente": ["PENDING", "PROCESSING"],
     "Échoué": ["FAILED"],
     "Rejeté": ["REJECTED"],
   };
 
-  export const getOrderStatusLabel = (status: Order["status"]): string => {
+  export const getOrderStatusLabel = (status: OrderStatus): string => {
   switch (status) {
     case "PENDING":
       return "En attente";
@@ -101,7 +101,7 @@ export const paymentStatusMap: Record<string, Payment["status"][]> = {
   }
 };
 
-export const getPriorityName = (priority: Delivery["priority"]) => {
+export const getPriorityName = (priority: DeliveryPriority) => {
   switch (priority) {
     case "URGENT":
       return "Urgent";
@@ -114,7 +114,7 @@ export const getPriorityName = (priority: Delivery["priority"]) => {
   }
 };
 
-export const getStatusColor = (status: Delivery["status"]) => {
+export const getStatusColor = (status: DeliveryStatus) => {
   switch (status) {
     case "NOTSTARTED":
       return "warning";
@@ -129,7 +129,7 @@ export const getStatusColor = (status: Delivery["status"]) => {
   }
 };
 
-export const getPriorityColor = (priority: Delivery["priority"]) => {
+export const getPriorityColor = (priority: DeliveryPriority) => {
   switch (priority) {
     case "URGENT":
       return "destructive";
@@ -178,6 +178,21 @@ export const agentStatusName = (status: AgentStatus):string =>{
   }
 }
 
+export const getDeliveryStatusName = (status : DeliveryStatus):string => {
+  switch(status){
+    case "COMPLETED":
+      return "Terminé";
+    case "CANCELED":
+      return "Annulé";
+    case "NOTSTARTED":
+      return "Non démarré";
+    case "STARTED":
+      return "En cours";
+    default: 
+    return "Inconnu";
+  }
+}
+
 export function getOrdersByDay(orders: Order[], dayOffset: number = 0): Order[] {
   const now = new Date();
   const targetDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + dayOffset);
@@ -207,7 +222,7 @@ export function sortOrdersByNewest(orders: Order[]): Order[] {
 }
 
 export function isExpired(date: Date): boolean {
-  return new Date() > date;
+  return date > new Date(); 
 }
 
 /**Period filter settings */

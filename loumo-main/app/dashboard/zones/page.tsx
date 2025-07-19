@@ -19,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { fetchAll } from "@/hooks/useData";
 import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import AddressQuery from "@/queries/address";
@@ -27,7 +28,6 @@ import OrderQuery from "@/queries/order";
 import ShopQuery from "@/queries/shop";
 import ZoneQuery from "@/queries/zone";
 import { Address, Delivery, Order, Shop, Zone } from "@/types/types";
-import { useQuery } from "@tanstack/react-query";
 import { CirclePlus, Edit, Eye, MapPin, MoreHorizontal, Store, Trash2, Truck } from "lucide-react";
 import React from "react";
 import AddZone from "./add";
@@ -37,38 +37,19 @@ import ViewZoneDetails from "./viewDetails";
 
 export default function ZonesPage() {
   const zonesQuery = new ZoneQuery();
-  const getZones = useQuery({
-    queryKey: ["zones"],
-    queryFn: () => zonesQuery.getAll(),
-    refetchOnWindowFocus: false,
-  });
+  const getZones = fetchAll(zonesQuery.getAll,"zones");
 
   const deliveriesQuery = new DeliveryQuery();
-  const getDeliveries = useQuery({
-    queryKey: ["deliveries"],
-    queryFn: deliveriesQuery.getAll,
-  });
+  const getDeliveries = fetchAll(deliveriesQuery.getAll,"deliveries");
 
   const addressQuery = new AddressQuery();
-  const getAddresses = useQuery({
-    queryKey: ["addresses"],
-    queryFn: () => addressQuery.getAll(),
-    refetchOnWindowFocus: false,
-  });
+  const getAddresses = fetchAll(addressQuery.getAll,"addresses");
 
   const shopQuery = new ShopQuery();
-  const getShops = useQuery({
-    queryKey: ["shops"],
-    queryFn: () => shopQuery.getAll(),
-    refetchOnWindowFocus: false,
-  });
+  const getShops = fetchAll(shopQuery.getAll,"shops");
 
   const ordersQuery = new OrderQuery();
-  const getOrders = useQuery({
-    queryKey: ["orders"],
-    queryFn: ordersQuery.getAll,
-    refetchOnWindowFocus: false,
-  });
+  const getOrders = fetchAll(ordersQuery.getAll,"orders");
 
   const { setLoading } = useStore();
 

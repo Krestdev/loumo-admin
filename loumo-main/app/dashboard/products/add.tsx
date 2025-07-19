@@ -1,6 +1,6 @@
 'use client'
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -111,7 +111,7 @@ function AddProduct({categories, isOpen, openChange}:Props) {
                     </FormItem>
                 )} />
                 <FormField control={form.control} name="description" render={({field})=>(
-                  <FormItem>
+                  <FormItem className="col-span-1 md:col-span-2">
                     <FormLabel>{"Description"}</FormLabel>
                     <FormControl>
                       <Textarea {...field} placeholder="Description du produit"/>
@@ -140,7 +140,7 @@ function AddProduct({categories, isOpen, openChange}:Props) {
               )}/>
             </div>
 
-            <div className="flex gap-2">
+            <DialogFooter className="mt-4">
               <Button type='submit' disabled={productAdd.isPending}>
                 {productAdd.isPending && <Loader className='animate-spin' size={16}/>}
                 {"Ajouter"}
@@ -151,7 +151,7 @@ function AddProduct({categories, isOpen, openChange}:Props) {
               >
                 {"Annuler"}
               </Button>
-            </div>
+            </DialogFooter>
             </form>
           </Form>
           

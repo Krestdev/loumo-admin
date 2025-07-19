@@ -141,7 +141,7 @@ export const sidebarContent: sidebarItemGroup[] = [
         description: "Gérez les points et les récompenses de vos clients",
         url: "/dashboard/loyalty",
         icon: Star,
-        display: true
+        display: false,
       },
     ],
   },

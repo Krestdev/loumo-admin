@@ -7,10 +7,12 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { isExpired } from '@/lib/utils';
+import { fetchAll } from '@/hooks/useData';
+import { cn, isExpired, XAF } from '@/lib/utils';
 import { useStore } from '@/providers/datastore';
 import PromotionQuery from '@/queries/promotion'
-import { Promotion } from '@/types/types';
+import StockQuery from '@/queries/stock';
+import { Promotion, Stock } from '@/types/types';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -21,15 +23,15 @@ import React, { useEffect, useMemo, useState } from 'react'
 function Page() {
 
   const promoQuery = new PromotionQuery();
-  const getPromotions = useQuery({
-    queryKey: ["promotions"],
-    queryFn: () => promoQuery.getAll(),
-    refetchOnWindowFocus: false,
-  });
+  const getPromotions = fetchAll(promoQuery.getAll,"promotions");
+
+  const stockQuery = new StockQuery();
+  const getStocks = fetchAll(stockQuery.getAll,"stocks");
 
   const { setLoading } = useStore();
 
   const [promotions, setPromotions] = useState<Promotion[]>([]);
+  const [stocks, setStocks] = useState<Stock[]>([]);
 
   const [selected, setSelected] = useState<Promotion>();
   const [viewDialog, setViewDialog] = useState<boolean>(false);
@@ -41,13 +43,19 @@ function Page() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
   useEffect(() => {
-    setLoading(getPromotions.isLoading);
+    setLoading(getPromotions.isLoading || getStocks.isLoading);
     if (getPromotions.isSuccess) setPromotions(getPromotions.data);
+    if (getStocks.isSuccess) setStocks(getStocks.data);
   }, [
     setLoading,
+    setPromotions,
+    setStocks,
     getPromotions.isLoading,
     getPromotions.data,
     getPromotions.isSuccess,
+    getStocks.isLoading,
+    getStocks.data,
+    getStocks.isSuccess,
   ]);
 
   const filteredPromotions = useMemo(() => {
@@ -74,17 +82,21 @@ function Page() {
     setViewDialog(true);
   }
 
+  const promotionsActive = promotions.filter((p) => !isExpired(p.expireAt) && p.status === "ACTIVE").length;
+
+  const conversionRate = promotions.filter(x=>!!x.maxUses).reduce((sum, p) => sum + (p.maxUses ?? 0), 0) - promotions.filter(x=>!!x.maxUses).reduce((sum, p) => sum + p.usedCount, 0);
+
   return (
-    <PageLayout isLoading={getPromotions.isLoading} className='flex-1 overflow-auto p-4 space-y-6'>
+    <PageLayout isLoading={getPromotions.isLoading || getStocks.isLoading} className='flex-1 overflow-auto p-4 space-y-6'>
        <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{"Promotions actives"}</CardTitle>
+              <CardTitle className="text-sm font-medium">{"Promotions"}</CardTitle>
               <Gift className="text-muted-foreground" size={16} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{promotions.filter((p) => isExpired(p.expireAt)).length}</div>
-              <p className="text-xs text-muted-foreground">{"En cours"}</p>
+              <div className="text-2xl font-bold">{promotions.length}</div>
+              <p className="text-xs text-muted-foreground">{"Dont "}<span className={cn("px-1 py-0.5 rounded border", promotionsActive>0 ? "bg-green-100 font-semibold text-green-600 border border-green-300": "bg-gray-100")}>{promotionsActive}</span>{" en cours"}</p>
             </CardContent>
           </Card>
 
@@ -94,10 +106,10 @@ function Page() {
               <Target className="text-green-500" size={16} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{/* {promotions.reduce((sum, p) => sum + p.usageCount, 0)} */}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-2xl font-bold">{promotions.reduce((sum, p) => sum + p.usedCount, 0)}</div>
+{/*               <p className="text-xs text-muted-foreground">
                 <span className="text-green-600">{"+23%"}</span>{" vs mois dernier"}
-              </p>
+              </p> */}
             </CardContent>
           </Card>
 
@@ -107,7 +119,7 @@ function Page() {
               <Percent className="text-muted-foreground" size={16} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{"€3,240"}</div>
+              <div className="text-2xl font-bold">{XAF.format(promotions.reduce((total, p)=>total + (p.percentage > 0 ? p.amount*p.usedCount : p.percentage*p.usedCount/100) ,0))}</div>
               <p className="text-xs text-muted-foreground">{"Total économisé"}</p>
             </CardContent>
           </Card>
@@ -118,8 +130,8 @@ function Page() {
               <Target className="text-muted-foreground" size={16} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{"12.8%"}</div>
-              <p className="text-xs text-muted-foreground">{"Codes utilisés"}</p>
+              <div className="text-2xl font-bold">{conversionRate>0 ? conversionRate/promotions.filter(x=>!!x.maxUses).reduce((total, p)=>total + (p.maxUses ?? 0),0) : 0 }{"%"}</div>
+              <p className="text-xs text-muted-foreground"><strong>{promotions.reduce((total, p)=> total + p.usedCount,0)}</strong>{" codes utilisés"}</p>
             </CardContent>
           </Card>
         </div>
@@ -166,10 +178,12 @@ function Page() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{"Promotion"}</TableHead>
                   <TableHead>{"Code"}</TableHead>
+                  <TableHead>{"Description"}</TableHead>
+                  <TableHead>{"Réduction"}</TableHead>
                   <TableHead>{"Expire le"}</TableHead>
                   <TableHead>{"Utilisation"}</TableHead>
+                  <TableHead>{"Variante"}</TableHead>
                   <TableHead>{"Statut"}</TableHead>
                   <TableHead>{"Actions"}</TableHead>
                 </TableRow>
@@ -180,7 +194,7 @@ function Page() {
                   (
                     <TableRow>
                   <TableCell
-                    colSpan={6}
+                    colSpan={7}
                     className="text-center text-gray-500 py-5 sm:text-lg xl:text-xl"
                   >
                     {"Aucune promotion trouvée"}
@@ -196,13 +210,18 @@ function Page() {
                 filteredPromotions.map((promotion) => (
                   <TableRow key={promotion.id}>
                     <TableCell>
-                      <div>
-                        {/* <p className="font-medium">{promotion.name}</p>
-                        <p className="text-sm text-muted-foreground">{promotion.description}</p> */}
-                      </div>
+                      <code className="bg-muted px-2 py-1 rounded text-sm">{promotion.code}</code>
                     </TableCell>
                     <TableCell>
-                      <code className="bg-muted px-2 py-1 rounded text-sm">{promotion.code}</code>
+                        <p>{promotion.description}</p>
+                    </TableCell>
+                    <TableCell>
+                      <div className='text-semibold'>
+                        {promotion.percentage > 0 ?
+                        `-${promotion.percentage}%`:
+                        `-${XAF.format(promotion.amount)}`
+                        }
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
@@ -211,14 +230,25 @@ function Page() {
                     </TableCell>
                     <TableCell>
                       <div>
-                        {/* <p className="font-medium">{promotion.usageCount}</p>
-                        {promotion.usageLimit && (
-                          <p className="text-sm text-muted-foreground">/ {promotion.usageLimit}</p>
-                        )} */}
+                        <p className="font-medium">{promotion.usedCount}
+                          {promotion.maxUses && (
+                          <span className="text-sm text-muted-foreground">/{promotion.maxUses}</span>
+                        )}
+                        </p> 
                       </div>
                     </TableCell>
                     <TableCell>
                       <Badge variant={isExpired(promotion.expireAt) ? "destructive" : "outline"}>{isExpired(promotion.expireAt) ? "Expiré" : "Actif"}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      {
+                        promotion.stock.length> 0 ?
+                        promotion.stock.map((x,id)=>
+                          <div key={id} className='mt-1'>{stocks.find(y=> x === y.id)?.productVariant?.name ?? "N/A"}</div>
+                        )
+                        :
+                        "N/A"
+                      }
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>
