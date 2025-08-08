@@ -1,11 +1,12 @@
 import api from "@/providers/axios";
-import { Product } from "@/types/types";
+import { newProduct, Product, ProductVariant, Stock } from "@/types/types";
 import { toast } from "react-toastify";
 
 export default class ProductQuery {
   route = "/products";
   create = async (
-    data: Omit<Product, "id" | "createdAt" | "updatedAt"> & { categoryId: number }
+    //data: Omit<Product, "id" | "createdAt" | "updatedAt"> & { categoryId: number }
+    data: newProduct
   ): Promise<Product> => {
     const response = await api.post(`${this.route}`, data);
     const product = response.data;

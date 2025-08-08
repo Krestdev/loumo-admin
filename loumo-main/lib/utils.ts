@@ -3,6 +3,7 @@ import { AgentStatus, DeliveryPriority, DeliveryStatus, Order, OrderStatus, Paym
 import { clsx, type ClassValue } from "clsx";
 import { isAfter, subDays } from "date-fns";
 import { twMerge } from "tailwind-merge";
+import {variantName} from "../types/types"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -280,3 +281,5 @@ export function isWithinPeriod(date: Date | string, period: string): boolean {
     unit: units[0],
   };
 }
+ 
+export const createVariantName = ({name, quantity, unit}: variantName): string => `${!!name && name+" "} ${quantity} ${unit}`;

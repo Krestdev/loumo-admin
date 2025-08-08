@@ -292,3 +292,29 @@ export interface ToastData {
     onClick: () => void
   }
 }
+
+export interface variantName {
+  name?: string;
+  unit: string;
+  quantity:number;
+}
+
+export interface newProduct {
+  name: string;
+  description:string;
+  status: boolean;
+  weight: number;
+  categoryId: number;
+  variants: {
+    name: string;
+    weight: number;
+    status: boolean;
+    price: number;
+    //imgUrl: File;
+    stock: {
+      quantity: number;
+      threshold: number;
+      shopId: number;
+    }[]
+  }[];
+}

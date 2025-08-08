@@ -31,7 +31,7 @@ import { fetchAll } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
 import CategoryQuery from "@/queries/category";
 import ProductQuery from "@/queries/product";
-import { Category, Product } from "@/types/types";
+import { Category, Product, Shop } from "@/types/types";
 import { formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Edit, MoreHorizontal, PlusCircle, Search, Trash2 } from "lucide-react";
@@ -41,13 +41,16 @@ import DeleteProduct from "./delete";
 import EditProduct from "./edit";
 import GroupDelete from "./groupDelete";
 import GroupEdit from "./groupEdit";
+import ShopQuery from "@/queries/shop";
 
 export default function ProductsPage() {
 
   const product = new ProductQuery();
   const category = new CategoryQuery();
+  const shopQuery = new ShopQuery();
   const productData = fetchAll(product.getAll,"products");
   const categoryData = fetchAll(category.getAll,"categories");
+  const shopsData = fetchAll(shopQuery.getAll, "shops");
 
   const { setLoading } = useStore();
 
@@ -55,19 +58,27 @@ export default function ProductsPage() {
   const [categories, setCategories] = useState<Category[]>([]);
 
   React.useEffect(() => {
-    setLoading(productData.isLoading || categoryData.isLoading);
-    if (productData.isSuccess && categoryData.isSuccess) {
+    setLoading(productData.isLoading || categoryData.isLoading || shopsData.isLoading);
+    if (productData.isSuccess) {
       setProducts(productData.data);
+    }
+    if (categoryData.isSuccess) {
       setCategories(categoryData.data);
+    }
+    if (shopsData.isSuccess) {
+      setShops(shopsData.data);
     }
   }, [
     productData.isLoading,
     categoryData.isLoading,
+    shopsData.isLoading,
     setLoading,
     categoryData.isSuccess,
     categoryData.data,
     productData.data,
     productData.isSuccess,
+    shopsData.data,
+    shopsData.isSuccess,
   ]);
 
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
@@ -80,6 +91,7 @@ export default function ProductsPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product>();
+  const [shops, setShops] = useState<Shop[]>([]);
 
   const filteredProducts = useMemo(
     () =>
@@ -347,6 +359,7 @@ export default function ProductsPage() {
         isOpen={isAddDialogOpen}
         openChange={setIsAddDialogOpen}
         categories={categories}
+        shops={shops}
       />
       {selectedProduct && (
         <DeleteProduct
