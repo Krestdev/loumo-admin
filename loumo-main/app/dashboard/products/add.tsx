@@ -125,7 +125,7 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
             {
               quantity: "100",
               threshold: "20",
-              shopId: "1"
+              shopId: undefined
             }
           ],
         },
@@ -142,8 +142,8 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
   const stockAction = new StockQuery();
   const queryClient = useQueryClient();
   const onSubmit = async(values: z.infer<typeof formSchema>) => {
-    //console.log(values);
-    try {
+    productAdd.mutate(values);
+    /* try {
       const currentProduct = await productAdd.mutateAsync(values);
       const productId = currentProduct.id;
 
@@ -177,10 +177,10 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
       openChange(false);
     } catch (error) {
       console.error("Une erreur a été rencontrée", error);
-    }
+    } */
   };
   //Stock Form Action
-  const createStock = useMutation({
+  /* const createStock = useMutation({
     mutationFn: ({values, variantId}:{values:z.infer<typeof stockSchema>, variantId:string}) => 
       stockAction.create({
         quantity: Number(values.quantity),
@@ -188,9 +188,9 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
         productVariantId: Number(variantId),
         shopId: Number(values.shopId),
       }),
-  });
+  }); */
   //Variant Stock Action
-  const variantAdd = useMutation({
+ /*  const variantAdd = useMutation({
     mutationFn: ({values, productId}:{values:z.infer<typeof variantSchema>, productId:string}) => {
       if(values.imgUrl){
             return variantAction.create({
@@ -210,7 +210,7 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
         price: Number(values.price),
       })
     },
-  })
+  }) */
   const productAdd = useMutation({
     mutationFn: (values: z.infer<typeof formSchema>) =>{
       return productAction.create({
@@ -256,7 +256,7 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
               {
                 quantity: "100",
                 threshold: "20",
-                shopId: "1"
+                shopId: undefined
               },
             ],
           },
@@ -525,99 +525,100 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
                         <Package size={16} />
                         {"Stocks"}
                       </h4>
-                      {stockFields.map((stockItem: any, stockId: number) => (
-                        <div key={stockId} className="p-3 rounded border grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div className="w-full sm:col-span-2 flex justify-between gap-3 items-center mb-2">
-                            <span className="px-2 py-1 bg-sky-200 rounded text-sm font-medium">{`Stock n°${stockId}`}</span>
-                            <Button
-                              variant={"delete"}
-                              size={"icon"}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                handleRemoveStock(index, stockId);
-                              }}
-                            >
-                              <X size={16} />
-                            </Button>
-                          </div>
-                          <FormField
-                            control={form.control}
-                            name={`variants.${index}.stock.${stockId}.quantity`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>{"Quantité Initiale"}</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    {...field}
-                                    placeholder="3"
-                                    type="number"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name={`variants.${index}.stock.${stockId}.threshold`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>{"Seuil"}</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    {...field}
-                                    placeholder="3"
-                                    type="number"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <div className="sm:col-span-2">
+                      <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+                        {stockFields.map((stockItem: any, stockId: number) => (
+                          <div key={stockId} className="p-3 rounded border grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="w-full sm:col-span-2 flex justify-between gap-3 items-center mb-2">
+                              <span className="px-2 py-1 bg-sky-200 rounded text-sm font-medium">{`Stock n°${stockId}`}</span>
+                              <Button
+                                variant={"delete"}
+                                size={"icon"}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handleRemoveStock(index, stockId);
+                                }}
+                              >
+                                <X size={16} />
+                              </Button>
+                            </div>
                             <FormField
                               control={form.control}
-                              name={`variants.${index}.stock.${stockId}.shopId`}
+                              name={`variants.${index}.stock.${stockId}.quantity`}
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>{"Point de vente"}</FormLabel>
+                                  <FormLabel>{"Quantité Initiale"}</FormLabel>
                                   <FormControl>
-                                    <Select
-                                      defaultValue={field.value}
-                                      onValueChange={field.onChange}
-                                    >
-                                      <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Sélectionner un point de vente" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {shops
-                                          .map((shop) => (
-                                            <SelectItem
-                                              key={shop.id}
-                                              value={String(shop.id)}
-                                              disabled={form.getValues("variants").some(y=>y.stock.some(z=> Number(z.shopId) === shop.id))}
-                                            >
-                                              {shop.name}
-                                            </SelectItem>
-                                          ))}
-                                        {shops.length === 0 && (
-                                          <SelectItem value="#" disabled>
-                                            {"Aucun point de vente enregistré"}
-                                          </SelectItem>
-                                        )}
-                                      </SelectContent>
-                                    </Select>
+                                    <Input
+                                      {...field}
+                                      placeholder="3"
+                                      type="number"
+                                    />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
                               )}
                             />
+                            <FormField
+                              control={form.control}
+                              name={`variants.${index}.stock.${stockId}.threshold`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>{"Seuil"}</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      {...field}
+                                      placeholder="3"
+                                      type="number"
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <div className="sm:col-span-2">
+                              <FormField
+                                control={form.control}
+                                name={`variants.${index}.stock.${stockId}.shopId`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{"Point de vente"}</FormLabel>
+                                    <FormControl>
+                                      <Select
+                                        defaultValue={field.value}
+                                        onValueChange={field.onChange}
+                                      >
+                                        <SelectTrigger className="w-full">
+                                          <SelectValue placeholder="Sélectionner un point de vente" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {shops
+                                            .map((shop) => (
+                                              <SelectItem
+                                                key={shop.id}
+                                                value={String(shop.id)}
+                                                disabled={form.getValues("variants").some(y=>y.stock.some(z=> Number(z.shopId) === shop.id))}
+                                              >
+                                                {shop.name}
+                                              </SelectItem>
+                                            ))}
+                                          {shops.length === 0 && (
+                                            <SelectItem value="#" disabled>
+                                              {"Aucun point de vente enregistré"}
+                                            </SelectItem>
+                                          )}
+                                        </SelectContent>
+                                      </Select>
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                       <Button
-                        variant={"secondary"}
-                        className="bg-gray-200 hover:bg-gray-500 text-gray-900"
+                        variant={"ternary"}
                         onClick={(e) => {
                           e.preventDefault();
                           handleAddStock(index);
