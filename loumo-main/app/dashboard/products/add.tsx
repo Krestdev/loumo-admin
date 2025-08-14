@@ -30,9 +30,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { units } from "@/data/unit";
 import { createVariantName, unitName } from "@/lib/utils";
 import ProductQuery from "@/queries/product";
-import ProductVariantQuery from "@/queries/productVariant";
-import StockQuery from "@/queries/stock";
-import { Category, ProductVariant, Shop } from "@/types/types";
+import { Category, Shop } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Blocks, Loader, Package, Plus, Text, X } from "lucide-react";
@@ -66,10 +64,6 @@ const variantSchema = z.object({
     //.min(2, { message: "Le nom doit comporter au moins 3 caractères" })
     .max(4, { message: "4 caractères maximum" })
     .optional(),
-  quantity: z
-    .string()
-    .refine((val) => Number(val) > 0, { message: "Doit être un nombre" }),
-  unit: z.enum(units),
   weight: z
     .string({ message: "Veuillez renseigner le poids" })
     .refine((val) => !isNaN(Number(val)), {
@@ -97,9 +91,7 @@ const formSchema = z.object({
   category: z.string({ message: "Veuillez sélectionner une catégorie" }),
   status: z.boolean(),
   description: z
-    .string({ message: "Veuillez renseigner une description du produit" })
-    .min(12, { message: "Description trop courte" })
-    .max(240, { message: "240 caractères maximum" }),
+    .string({ message: "Veuillez renseigner une description du produit" }),
   variants: z
     .array(variantSchema)
     .min(1, { message: "Veuillez ajouter au moins une variante" }),
@@ -110,15 +102,13 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      category: "",
+      category: undefined,
       status: true,
       description: "",
       variants: [
         {
-          name: "",
-          quantity: "1",
+          name: undefined,
           weight: "1",
-          unit: "kg",
           status: true,
           price: "500",
           stock: [
@@ -138,8 +128,8 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
   });
 
   const productAction = new ProductQuery();
-  const variantAction = new ProductVariantQuery();
-  const stockAction = new StockQuery();
+  //const variantAction = new ProductVariantQuery();
+  //const stockAction = new StockQuery();
   const queryClient = useQueryClient();
   const onSubmit = async(values: z.infer<typeof formSchema>) => {
     productAdd.mutate(values);
@@ -220,7 +210,7 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
         weight: 0,
         description: values.description,
         variants: values.variants.map(el => ({
-          name: createVariantName({ name: el.name, unit: el.unit, quantity: Number(el.quantity) }),
+          name: el.name ?? "",
           weight: Number(el.weight),
           status: el.status,
           price: Number(el.price),
@@ -241,15 +231,13 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
     if (isOpen) {
       form.reset({
         name: "",
-        category: "",
+        category: undefined,
         status: true,
         description: "",
         variants: [
           {
-            name: "",
-            quantity: "1",
+            name: undefined,
             weight: "1",
-            unit: "kg",
             price: "500",
             status: true,
             stock: [
@@ -408,50 +396,6 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
                           <FormLabel>{"Nom"}</FormLabel>
                           <FormControl>
                             <Input {...field} placeholder="x. Sac, Boite" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name={`variants.${index}.quantity`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{"Quantité"}</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              placeholder="ex. 10"
-                              type="number"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name={`variants.${index}.unit`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{"Unité"}</FormLabel>
-                          <FormControl>
-                            <Select
-                              defaultValue={field.value}
-                              onValueChange={field.onChange}
-                            >
-                              <SelectTrigger className="w-full">
-                                <SelectValue placeholder="kg" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {units.map((x, id) => (
-                                  <SelectItem key={id} value={x}>
-                                    {unitName(x)}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -638,9 +582,7 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
                   e.preventDefault();
                   append({
                     name: "",
-                    quantity: "1",
                     weight: "1",
-                    unit: "kg",
                     price: "500",
                     status: true,
                     stock: [{
