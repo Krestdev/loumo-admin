@@ -67,8 +67,8 @@ export type Agent = {
   status: AgentStatus;
   user?: User;
   delivery?: Delivery[];
-  zone: Zone;
-  zoneId: number;
+  zone: Zone[];
+  zoneId: number[];
 };
 
 export type Category = {

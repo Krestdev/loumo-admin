@@ -182,10 +182,9 @@ function EditZone({ isOpen, openChange, addresses, zone }: Props) {
               render={() => (
                 <FormItem>
                   <FormLabel>{"Quartiers associés"}</FormLabel>
-                  <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto border p-2 rounded-md">
+                  <div className="grid grid-cols-2 gap-2 h-48 overflow-y-auto border p-2 rounded-md">
                     {addresses.length === 0 && <p className="text-sm italic text-gray-600">{"Aucun quartier enregistré."}</p>}
-                    {(addresses.length > 0 && addresses.filter(x=>!x.zoneId).length === 0) && <p className="text-sm italic text-gray-600">{"Aucun quartier disponible."}</p>}
-                    {addresses.filter(x=>!x.zoneId).map((address) => (
+                    {addresses.filter(x=>x.zoneId === zone.id || x.zoneId === null).sort((a,b)=>a.zoneId === zone.id ? -1 : a.zoneId !== null ? 0 : 1).map((address) => (
                       <FormField
                         key={address.id}
                         control={form.control}
