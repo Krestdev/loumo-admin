@@ -51,18 +51,10 @@ export default class UserQuery {
       const { user, token } = response.data;
 
       if (!allowedAdminRoles.includes(user.roleId ?? -1)) {
-        throw new Error("Accès non autorisé pour ce rôle.");
+        throw new Error("401 Accès non autorisé pour ce rôle.");
       }
-
-      toast.success(`Bienvenue ${user.name}`);
       return { user, token };
     })
-    .catch((error) => {
-      const message =
-        error?.response?.data?.message || error.message || "Erreur inconnue";
-      toast.error(message);
-      throw error; // on relance l'erreur pour permettre un catch externe
-    });
 };
 
   getAll = async (): Promise<User[]> => {

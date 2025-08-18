@@ -310,7 +310,7 @@ export interface newProduct {
     weight: number;
     status: boolean;
     price: number;
-    //imgUrl: File;
+    imgUrl?: File;
     stock: {
       quantity: number;
       threshold: number;

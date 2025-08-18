@@ -29,6 +29,8 @@ import ZoneQuery from "@/queries/zone";
 import { Address, Zone } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import {
+  ArrowDownAZ,
+  ArrowUpAz,
   CirclePlus,
   Edit,
   Eye,
@@ -82,6 +84,7 @@ export default function ZonesPage() {
   const [searchTerm, setSearchTerm] = React.useState("");
   const [zoneFilter, setZoneFilter] = React.useState("all");
   const [publishedFilter, setPublishedFilter] = React.useState("all");
+  const [sortDirection, setSortDirection] = React.useState<string>();
 
   React.useEffect(() => {
     setLoading(getZones.isLoading || getAddresses.isLoading);
@@ -113,7 +116,7 @@ export default function ZonesPage() {
   }
 
   const filteredAddresses = React.useMemo(() => {
-    return addresses.filter((address) => {
+    return addresses.sort((a,b)=> sortDirection === "asc" ? a.street.localeCompare(b.street, "fr") : sortDirection === "desc" ? b.street.localeCompare(a.street, "fr") : 0).filter((address) => {
       const matchesSearch =
         address.street.toLowerCase().includes(searchTerm.toLowerCase()) ||
         address.zone?.name.includes(searchTerm.toLowerCase());
@@ -126,7 +129,7 @@ export default function ZonesPage() {
 
       return matchesSearch && matchesZone && matchesStatus;
     });
-  }, [addresses, searchTerm, zoneFilter, publishedFilter]);
+  }, [addresses, searchTerm, zoneFilter, publishedFilter, sortDirection]);
 
   return (
     <PageLayout
@@ -170,7 +173,7 @@ export default function ZonesPage() {
           <CardTitle>{"Filtres"}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="flex gap-4 flex-wrap">
             <div className="relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -180,8 +183,18 @@ export default function ZonesPage() {
                 className="pl-8"
               />
             </div>
+            <Select value={sortDirection} onValueChange={setSortDirection}>
+              <SelectTrigger className="w-32 h-10">
+                {sortDirection === "asc" ? <ArrowDownAZ size={16}/> : <ArrowUpAz size={16}/>}
+                <SelectValue placeholder="Arranger par ordre alphabétique"/>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="asc">{"A-Z"}</SelectItem>
+                <SelectItem value="desc">{"Z-A"}</SelectItem>
+              </SelectContent>
+            </Select>
             <Select value={zoneFilter} onValueChange={setZoneFilter}>
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-40 h-10">
                 <SelectValue placeholder="Zone de livraison" />
               </SelectTrigger>
               <SelectContent>
@@ -194,7 +207,7 @@ export default function ZonesPage() {
               </SelectContent>
             </Select>
             <Select value={publishedFilter} onValueChange={setPublishedFilter}>
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-40 h-10">
                 <SelectValue placeholder="Statut du quartier" />
               </SelectTrigger>
               <SelectContent>

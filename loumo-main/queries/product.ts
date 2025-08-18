@@ -17,6 +17,46 @@ export default class ProductQuery {
     return product;
   };
 
+  createWithImages = async (
+    //data: Omit<Product, "id" | "createdAt" | "updatedAt"> & { categoryId: number }
+    data: newProduct
+  ): Promise<Product> => {
+    const formData = new FormData();
+
+  // Extraire les images
+  const images: File[] = [];
+  const variantsWithoutImg = data.variants.map((v) => {
+    if (v.imgUrl) images.push(v.imgUrl);
+    const { imgUrl, ...rest } = v;
+    return rest;
+  });
+  
+  formData.append("name", data.name);
+  formData.append("description", data.description);
+  formData.append("status", String(data.status));
+  formData.append("categoryId", String(data.categoryId));
+  formData.append("weight", String(data.weight));
+  // Ajouter les variants sans image sous forme de JSON
+  formData.append("variants", JSON.stringify(variantsWithoutImg));
+
+  // Ajouter les images
+  images.forEach((file) => {
+    formData.append("variantImages", file);
+  });
+
+    const response = await api.post(`${this.route}`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+    const product = response.data;
+
+    console.log("👉 Response complète :", product);
+    if (!product) throw new Error("Missing product in response");
+    toast.success(`Variante ${product.name} créée avec succès`);
+    return product;
+  };
+
   getAll = async (): Promise<Product[]> => {
     return api.get(`${this.route}`).then((response) => {
       return response.data;

@@ -33,6 +33,8 @@ import ProductVariantQuery from "@/queries/productVariant";
 import ShopQuery from "@/queries/shop";
 import { Product, ProductVariant, Shop } from "@/types/types";
 import {
+  ArrowDownAZ,
+  ArrowUpAz,
   Candy,
   Edit,
   Eye,
@@ -103,6 +105,7 @@ export default function VariantsPage() {
   >();
   const [deleteDialog, setDeleteDialog] = useState(false);
   const [editDialog, setEditDialog] = useState(false);
+  const [sortDirection, setSortDirection] = useState<string>();
 
   const filteredVariants = React.useMemo(() => {
     const normalize = (str: string) =>
@@ -113,7 +116,7 @@ export default function VariantsPage() {
 
     const term = normalize(searchTerm);
 
-    return variants.filter((variant) => {
+    return variants.sort((a,b)=> sortDirection === "asc" ? a.name.localeCompare(b.name, "fr") : sortDirection === "desc" ? b.name.localeCompare(a.name, "fr") : 0).filter((variant) => {
       const product = products.find((p) => p.id === variant.productId);
 
       const matchesSearch =
@@ -130,7 +133,7 @@ export default function VariantsPage() {
 
       return matchesSearch && matchesProduct && matchesShop;
     });
-  }, [variants, products, searchTerm, productFilter, shopFilter]);
+  }, [variants, products, searchTerm, productFilter, shopFilter, sortDirection]);
 
   const handleEdit = (variant: ProductVariant) => {
     setActiveVariant(variant);
@@ -238,6 +241,16 @@ export default function VariantsPage() {
                 />
               </div>
             </div>
+            <Select value={sortDirection} onValueChange={setSortDirection}>
+              <SelectTrigger className="w-40">
+                {sortDirection === "asc" ? <ArrowDownAZ size={16}/> : <ArrowUpAz size={16}/>}
+                <SelectValue placeholder="Classer par ordre alphabétique"/>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="asc">{"A-Z"}</SelectItem>
+                <SelectItem value="desc">{"Z-A"}</SelectItem>
+              </SelectContent>
+            </Select>
             <Select value={shopFilter} onValueChange={setShopFilter}>
             <SelectTrigger>
               <Store size={16} />

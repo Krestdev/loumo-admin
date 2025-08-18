@@ -113,7 +113,7 @@ export default function Toaster() {
           <ToastContent toast={toast} onClose={() => removeToast(toast.id)} />
         </Toast>
       ))}
-      <ToastViewport className="sm:right-auto sm:left-0" />
+      <ToastViewport className="sm:left-auto sm:right-0" />
     </ToastProvider>
   )
 }

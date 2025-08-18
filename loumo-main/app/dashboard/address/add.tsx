@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { useStore } from "@/providers/datastore";
 import AddressQuery from "@/queries/address";
 import { Zone } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -51,6 +52,10 @@ const formSchema = z.object({
 });
 
 function AddAddress({ isOpen, openChange, zones }: Props) {
+
+  //Store
+  const { addToast } = useStore();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -77,6 +82,7 @@ function AddAddress({ isOpen, openChange, zones }: Props) {
         queryClient.invalidateQueries({queryKey: ["addresses"], refetchType: "active"});
         queryClient.invalidateQueries({queryKey: ["zones"], refetchType: "active"});
         openChange(false);
+        addToast({title: "Quartier ajouté avec succès !", variant:"success"});
       }
   });
 

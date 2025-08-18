@@ -24,13 +24,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import AddressQuery from "@/queries/address";
 import ShopQuery from "@/queries/shop";
 import { Address } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CirclePlus, Loader, PlusCircle } from "lucide-react";
+import { CirclePlus, Loader } from "lucide-react";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -61,8 +62,7 @@ const zoneSchema = z.object({
   status: z.enum(["ACTIVE", "INACTIVE", "PENDING", "DISABLED"]),
   address: addressSchema,
 });
-
-const formSchema = z.object({
+const formDefault = z.object({
   name: z
     .string({ message: "Veuillez renseigner un nom" })
     .min(3, { message: "Trop court" })
@@ -71,27 +71,43 @@ const formSchema = z.object({
     .string({ message: "Veuillez renseigner une adresse" })
     .refine((val) => !isNaN(Number(val)), {
       message: "Renseignez une adresse valable",
-    }).optional(),
-  zone: zoneSchema.optional(),
-}).refine((val) => val.addressId || val.zone, {
-    message: "Vous devez renseigner soit une adresse soit une zone.",
-    path: ["addressId"],
-  })
-  // pas les deux en même temps
-  .refine((val) => !(val.addressId && val.zone), {
-    message: "Vous ne pouvez pas renseigner une adresse ET une zone.",
-    path: ["zone"],
-  });
+    })
+});
+const formSchema = z.object({
+  name: z
+    .string({ message: "Veuillez renseigner un nom" })
+    .min(3, { message: "Trop court" })
+    .max(21, { message: "Trop long" }),
+  zone: zoneSchema
+});
 
 function NewStore({ isOpen, openChange }: Props) {
+  const defaultForm = useForm<z.infer<typeof formDefault>>({
+    resolver: zodResolver(formDefault),
+    defaultValues: {
+      name: "",
+      addressId: undefined,
+    },
+  });
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      addressId: undefined,
-      zone: undefined,
-    },
-  });
+      zone: {
+        name: "",
+        description: "",
+        price: "500",
+        status: "ACTIVE",
+        address: {
+          street: "",
+          local: "",
+          description: "",
+          published: true
+        }
+      }
+    }
+  })
 
   const addressQuery = new AddressQuery();
   const getAllAddresses = useQuery({
@@ -102,28 +118,11 @@ function NewStore({ isOpen, openChange }: Props) {
 
   const queryClient = useQueryClient();
   const shopQuery = new ShopQuery();
-  const createShop = useMutation({
-    mutationFn: async (values: z.infer<typeof formSchema>) => {
-      if (!!values.addressId) {
-        return shopQuery.create({
+  const createShopDefault = useMutation({
+    mutationFn: async (values: z.infer<typeof formDefault>) => shopQuery.create({
           name: values.name,
           addressId: Number(values.addressId),
-        });
-      } else if (!!values.zone) {
-        return shopQuery.create({
-          name: values.name,
-          zone: {
-            name: values.zone.name,
-            address: values.zone.address,
-            description: values.zone.description ?? "No description",
-            price: Number(values.zone.price),
-            status: values.zone.status,
-          },
-          addressId: null,
-        });
-      }
-      return Promise.resolve();
-    },
+        }),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["shops"],
@@ -137,6 +136,35 @@ function NewStore({ isOpen, openChange }: Props) {
     },
   });
 
+  const createShop = useMutation({
+    mutationFn:   async (values: z.infer<typeof formSchema>) => shopQuery.createWithZone({
+      name: values.name,
+      zone: {
+        name: values.zone.name,
+        description: values.zone.description ?? "No description",
+        price: Number(values.zone.price),
+        status: values.zone.status,
+      },
+      addressNew: {
+        street: values.zone.address.street,
+        local: values.zone.address.local,
+        description: values.zone.address.description ?? "",
+        published: values.zone.address.published
+      }
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["shops"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["zones"],
+        refetchType: "active",
+      });
+      openChange(false);
+    },
+  })
+
   const [addresses, setAddresses] = React.useState<Address[]>([]);
 
   React.useEffect(() => {
@@ -148,12 +176,16 @@ function NewStore({ isOpen, openChange }: Props) {
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     createShop.mutate(values);
   };
+  const onSubmitDefault = (values: z.infer<typeof formDefault>) => {
+    createShopDefault.mutate(values);
+  };
 
   React.useEffect(() => {
     if (isOpen) {
       form.reset();
+      defaultForm.reset();
     }
-  }, [isOpen, form]);
+  }, [isOpen, form, defaultForm]);
 
   return (
     <Dialog open={isOpen} onOpenChange={openChange}>
@@ -164,10 +196,16 @@ function NewStore({ isOpen, openChange }: Props) {
             {"Complétez le formulaire pour créer un point de vente"}
           </DialogDescription>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <Tabs>
+          <TabsList>
+            <TabsTrigger value="address">{"Adresse prédéfinie"}</TabsTrigger>
+            <TabsTrigger value="create">{"Créer la zone"}</TabsTrigger>
+          </TabsList>
+          <TabsContent value="address">
+            <Form {...defaultForm}>
+          <form onSubmit={defaultForm.handleSubmit(onSubmitDefault)} className="space-y-6">
             <FormField
-              control={form.control}
+              control={defaultForm.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
@@ -180,7 +218,7 @@ function NewStore({ isOpen, openChange }: Props) {
               )}
             />
             <FormField
-              control={form.control}
+              control={defaultForm.control}
               name="addressId"
               render={({ field }) => (
                 <FormItem>
@@ -195,7 +233,7 @@ function NewStore({ isOpen, openChange }: Props) {
                       </SelectTrigger>
                       <SelectContent>
                         {addresses
-                          .filter((y) => !!y.published)
+                          .filter((y) => !!y.published && !y.zoneId)
                           .map((x) => (
                             <SelectItem key={x.id} value={String(x.id)}>
                               <div>
@@ -213,7 +251,45 @@ function NewStore({ isOpen, openChange }: Props) {
                 </FormItem>
               )}
             />
-            <h3 className="font-semibold flex items-center gap-2"><PlusCircle size={16}/> {"Ajouter une zone"}</h3>
+            <div className="flex justify-end gap-2">
+              <Button type="submit" disabled={createShopDefault.isPending || createShop.isPending}>
+                {(createShopDefault.isPending || createShop.isPending ) ? (
+                  <Loader size={16} className="animate-spin" />
+                ) : (
+                  <CirclePlus size={16} />
+                )}{" "}
+                {"Ajouter"}
+              </Button>
+              <Button
+                variant={"outline"}
+                onClick={(e) => {
+                  e.preventDefault();
+                  defaultForm.reset();
+                  openChange(false);
+                }}
+              >
+                {"Annuler"}
+              </Button>
+            </div>
+          </form>
+        </Form>
+          </TabsContent>
+          <TabsContent value="create">
+            <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{"Nom du point de vente"}</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Entrez un nom" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="zone.name"
@@ -358,6 +434,8 @@ function NewStore({ isOpen, openChange }: Props) {
             </div>
           </form>
         </Form>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

@@ -34,7 +34,7 @@ import ProductQuery from "@/queries/product";
 import { Category, Product, Shop } from "@/types/types";
 import { formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Edit, MoreHorizontal, PlusCircle, Search, Trash2 } from "lucide-react";
+import { ArrowDownAZ, ArrowUpAz, Edit, MoreHorizontal, PlusCircle, Search, Trash2 } from "lucide-react";
 import React, { useMemo, useState } from "react";
 import AddProduct from "./add";
 import DeleteProduct from "./delete";
@@ -92,10 +92,11 @@ export default function ProductsPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product>();
   const [shops, setShops] = useState<Shop[]>([]);
+  const [sortDirection, setSortDirection] = useState<string>("asc");
 
   const filteredProducts = useMemo(
     () =>
-      products.filter((product) => {
+      products.sort((a,b)=> sortDirection === "asc" ? a.name.localeCompare(b.name, "fr") : b.name.localeCompare(a.name, "fr")).filter((product) => {
         const matchesSearch = product?.name
           .toLowerCase()
           .includes(searchTerm.toLowerCase());
@@ -107,7 +108,7 @@ export default function ProductsPage() {
           statusFilter === "all" || String(product.status) === statusFilter;
         return matchesSearch && matchesCategory && matchesStatus;
       }),
-    [products, categories, searchTerm, statusFilter, categoryFilter]
+    [products, categories, searchTerm, statusFilter, categoryFilter, sortDirection]
   );
 
   const handleSelectAll = (checked: boolean) => {
@@ -162,6 +163,16 @@ export default function ProductsPage() {
                 />
               </div>
             </div>
+            <Select value={sortDirection} onValueChange={setSortDirection}>
+              <SelectTrigger className="w-32">
+                {sortDirection === "asc" ? <ArrowDownAZ size={16}/> : <ArrowUpAz size={16}/>}
+                <SelectValue placeholder="Arranger par ordre alphabétique"/>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="asc">{"A-Z"}</SelectItem>
+                <SelectItem value="desc">{"Z-A"}</SelectItem>
+              </SelectContent>
+            </Select>
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
               <SelectTrigger className="w-[150px]">
                 <SelectValue placeholder="Catégorie" />

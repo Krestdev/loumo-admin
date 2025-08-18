@@ -24,15 +24,16 @@ import { fetchAll } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
 import CategoryQuery from "@/queries/category";
 import { Category } from "@/types/types";
-import { Edit, Eye, MoreHorizontal, PlusCircle, Search, Tag, Trash } from "lucide-react";
-import React, { useState } from "react";
+import { ArrowDownAZ, ArrowUpAz, Edit, Eye, MoreHorizontal, PlusCircle, Search, Tag, Trash } from "lucide-react";
+import React, { useMemo, useState } from "react";
 import AddCategory from "./add";
 import DeleteCategory from "./delete";
 import EditCategory from "./edit";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
 export default function CategoriesPage() {
-  const { setLoading, addToast } = useStore();
+  const { setLoading } = useStore();
   const categoryQuery = new CategoryQuery();
   const getCategories = fetchAll(categoryQuery.getAll,"categories");
 
@@ -57,8 +58,10 @@ export default function CategoriesPage() {
   const [selectedCategory, setSelectedCategory] = useState<
     Category | undefined
   >();
+  const [sortDirection, setSortDirection] = useState<string>();
 
-  const filteredCategories = categories.filter((category) => {
+  const filteredCategories = useMemo(()=>{
+    return categories.sort((a,b)=> sortDirection === "asc" ? a.name.localeCompare(b.name, "fr") : sortDirection === "desc" ? b.name.localeCompare(a.name, "fr") : 0).filter((category) => {
     const matchesSearch = category.name
       .toLowerCase()
       .includes(searchTerm.toLowerCase()); //||
@@ -66,6 +69,7 @@ export default function CategoriesPage() {
 
     return matchesSearch;
   });
+  }, [sortDirection, categories, searchTerm]);
 
   const handleEdit = (category: Category) => {
     setSelectedCategory(category);
@@ -165,10 +169,19 @@ export default function CategoriesPage() {
                 className="pl-8"
               />
             </div>
+            <Select value={sortDirection} onValueChange={setSortDirection}>
+              <SelectTrigger className="w-40">
+                {sortDirection === "asc" ? <ArrowDownAZ size={16}/> : <ArrowUpAz size={16}/>}
+                <SelectValue placeholder="Réordonner"/>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="asc">{"A-Z"}</SelectItem>
+                <SelectItem value="desc">{"Z-A"}</SelectItem>
+              </SelectContent>
+            </Select>
             <Button onClick={() => setIsDialogOpen(true)}>
               <PlusCircle size={16} /> {"Ajouter une catégorie"}
             </Button>
-            <Button onClick={()=>{addToast({title: "Hello from toast", variant: "error"})}}>Toast button</Button>
           </div>
         </CardContent>
       </Card>

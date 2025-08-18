@@ -122,7 +122,7 @@ function AddCategory({ isOpen, openChange }: Props) {
               render={({ field:{name, ...props} }) => (
                 <FormItem>
                     <FormControl>
-                        <SwitchLabel name="Headline" {...props} description={"Activez pour afficher la catégorie sur la page d'Accueil du Site."}/>
+                        <SwitchLabel name={`Headline ${name}`} {...props} description={"Activez pour afficher la catégorie sur la page d'Accueil du Site."}/>
                     </FormControl>
                   <FormMessage />
                 </FormItem>

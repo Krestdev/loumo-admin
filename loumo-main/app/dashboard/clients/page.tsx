@@ -30,7 +30,7 @@ import { Order, User, Zone } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Search, Star, Users } from "lucide-react";
+import { ArrowDownAZ, ArrowUpAz, Search, Star, Users } from "lucide-react";
 import React, { useState } from "react";
 import BanClient from "./ban";
 import ViewClient from "./view";
@@ -95,6 +95,7 @@ export default function ClientsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [zoneFilter, setZoneFilter] = useState("all");
   const [periodFilter, setPeriodFilter] = useState("all");
+  const [sortDirection, setSortDirection] = useState<string>();
 
   /**Pour filtrer les périodes */
   function isWithinPeriod(date: Date | string, period: string): boolean {
@@ -120,7 +121,7 @@ export default function ClientsPage() {
   }
 
   const filteredClients = React.useMemo(() => {
-    return users.filter((client) => {
+    return users.sort((a,b)=> sortDirection === "asc" ? a.name.localeCompare(b.name, "fr") : sortDirection === "desc" ? b.name.localeCompare(a.name, "fr") : 0).filter((client) => {
       const matchesSearch =
         client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         client.email.toLowerCase().includes(searchTerm.toLowerCase());
@@ -136,7 +137,7 @@ export default function ClientsPage() {
 
       return matchesSearch && matchesZone && matchesPeriod;
     });
-  }, [users, searchTerm, zoneFilter, periodFilter]);
+  }, [users, searchTerm, zoneFilter, periodFilter, sortDirection]);
 
   const handleView = (element: User) => {
     setSelectedClient(element);
@@ -249,6 +250,16 @@ export default function ClientsPage() {
                 />
               </div>
             </div>
+            <Select value={sortDirection} onValueChange={setSortDirection}>
+              <SelectTrigger className="w-32">
+                {sortDirection === "asc" ? <ArrowDownAZ size={16}/> : <ArrowUpAz size={16}/>}
+                <SelectValue placeholder="Arranger par ordre alphabétique"/>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="asc">{"A-Z"}</SelectItem>
+                <SelectItem value="desc">{"Z-A"}</SelectItem>
+              </SelectContent>
+            </Select>
             <Select value={zoneFilter} onValueChange={setZoneFilter}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Zone" />

@@ -22,7 +22,7 @@ export function LoginForm({
   ...props
 }: React.ComponentProps<"div">) {
 
-  const {login, setToken} = useStore();
+  const {login, setToken, addToast} = useStore();
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -40,6 +40,9 @@ export function LoginForm({
     onSuccess: ({user, token})=>{
       setToken(token);
       login(user);
+    },
+    onError: (error) =>{
+      addToast({title: error.message.includes("401") ? "Accès non autorisé !" : "Une erreur s'est produite", description: error.message, variant: "error"});
     }
   });
 

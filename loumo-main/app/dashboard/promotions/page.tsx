@@ -1,5 +1,5 @@
 'use client'
-import PageLayout from '@/components/page-layout'
+import PageLayout from '@/components/page-layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,14 +10,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { fetchAll } from '@/hooks/useData';
 import { cn, isExpired, XAF } from '@/lib/utils';
 import { useStore } from '@/providers/datastore';
-import PromotionQuery from '@/queries/promotion'
+import PromotionQuery from '@/queries/promotion';
 import StockQuery from '@/queries/stock';
 import { Promotion, Stock } from '@/types/types';
-import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { CirclePlus, Edit, Eye, Gift, MoreHorizontal, Percent, Search, Target, Trash2 } from 'lucide-react';
-import React, { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react';
 
 
 function Page() {

@@ -27,8 +27,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { units } from "@/data/unit";
-import { createVariantName, unitName } from "@/lib/utils";
 import ProductQuery from "@/queries/product";
 import { Category, Shop } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -203,7 +201,7 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
   }) */
   const productAdd = useMutation({
     mutationFn: (values: z.infer<typeof formSchema>) =>{
-      return productAction.create({
+      return productAction.createWithImages({
         name: values.name,
         status: values.status,
         categoryId: Number(values.category),
@@ -214,14 +212,19 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
           weight: Number(el.weight),
           status: el.status,
           price: Number(el.price),
-          //imgUrl: el.imgUrl,
+          imgUrl: el.imgUrl,
           stock: el.stock.map(stockItem => ({
             quantity: Number(stockItem.quantity),
             threshold: Number(stockItem.threshold),
             shopId: Number(stockItem.shopId)
           }))
         }))
-      })}
+      })},
+      onSuccess: ()=>{
+        queryClient.invalidateQueries({queryKey: ["products"], type: "active"});
+        queryClient.invalidateQueries({queryKey: ["variants"], type: "active"});
+        queryClient.invalidateQueries({queryKey: ["stocks"], type: "active"});
+      }
   });
 
   {
@@ -540,7 +543,7 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
                                               <SelectItem
                                                 key={shop.id}
                                                 value={String(shop.id)}
-                                                disabled={form.getValues("variants").some(y=>y.stock.some(z=> Number(z.shopId) === shop.id))}
+                                                disabled={form.getValues("variants").filter(d=> d.name === form.getValues(`variants.${index}.name`)).some(y=>y.stock.some(z=> Number(z.shopId) === shop.id))}
                                               >
                                                 {shop.name}
                                               </SelectItem>
