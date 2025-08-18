@@ -1,52 +1,66 @@
-'use client'
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { cn } from "@/lib/utils"
-import { useStore } from "@/providers/datastore"
-import UserQuery from "@/queries/user"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useMutation } from "@tanstack/react-query"
-import { Loader } from "lucide-react"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form"
+"use client";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import { useStore } from "@/providers/datastore";
+import UserQuery from "@/queries/user";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { Loader } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "./ui/form";
 
 const loginSchema = z.object({
-  email:z.string().email({message: "Email non valide"}),
-  password:z.string()
+  email: z.string().email({ message: "Email non valide" }),
+  password: z.string(),
 });
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-
-  const {login, setToken, addToast} = useStore();
+  const { login, setToken, addToast } = useStore();
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
       password: "",
-    }
+    },
   });
 
   const usersQuery = new UserQuery();
   const adminLogin = useMutation({
-    mutationFn: (values:z.infer<typeof loginSchema>)=> usersQuery.loginAdmin({
-      ...values
-    }),
-    onSuccess: ({user, token})=>{
+    mutationFn: (values: z.infer<typeof loginSchema>) =>
+      usersQuery.loginAdmin({
+        ...values,
+      }),
+    onSuccess: ({ user, token }) => {
+      localStorage.setItem("loumoshop-admin", token);
       setToken(token);
       login(user);
     },
-    onError: (error) =>{
-      addToast({title: error.message.includes("401") ? "Accès non autorisé !" : "Une erreur s'est produite", description: error.message, variant: "error"});
-    }
+    onError: (error) => {
+      addToast({
+        title: error.message.includes("401")
+          ? "Accès non autorisé !"
+          : "Une erreur s'est produite",
+        description: error.message,
+        variant: "error",
+      });
+    },
   });
 
-  const onSubmit = (values:z.infer<typeof loginSchema>) => {
+  const onSubmit = (values: z.infer<typeof loginSchema>) => {
     adminLogin.mutate(values);
   };
 
@@ -60,26 +74,40 @@ export function LoginForm({
                 <div className="flex flex-col items-center text-center">
                   <h1 className="text-2xl font-bold">{"Connexion"}</h1>
                 </div>
-                <FormField control={form.control} name="email" render={({field})=>(
-                  <FormItem>
-                    <FormLabel>{"Adresse mail"}</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="ex. krest@example.com"/>
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )} />
-                <FormField control={form.control} name="password" render={({field})=>(
-                  <FormItem>
-                    <FormLabel>{"Mot de Passe"}</FormLabel>
-                    <FormControl>
-                      <Input type="password" {...field} placeholder="*****"/>
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )} />
-                <Button type="submit" className="w-full" disabled={adminLogin.isPending}>
-                  {adminLogin.isPending && <Loader size={16} className="animate-spin"/>}
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{"Adresse mail"}</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="ex. krest@example.com" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{"Mot de Passe"}</FormLabel>
+                      <FormControl>
+                        <Input type="password" {...field} placeholder="*****" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={adminLogin.isPending}
+                >
+                  {adminLogin.isPending && (
+                    <Loader size={16} className="animate-spin" />
+                  )}
                   {"Se connecter"}
                 </Button>
               </div>
@@ -95,5 +123,5 @@ export function LoginForm({
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
