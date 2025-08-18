@@ -403,10 +403,10 @@ function NewStore({ isOpen, openChange }: Props) {
             <FormField
               control={form.control}
               name="zone.address.published"
-              render={({ field: { name, ...props } }) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <SwitchLabel name="Statut" {...props} />
+                    <SwitchLabel {...field} name="Statut" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

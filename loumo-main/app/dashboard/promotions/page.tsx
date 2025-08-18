@@ -67,6 +67,8 @@ function Page() {
       return matchesSearch && matchesStatus;
     });
   }, [promotions, searchTerm, statusFilter]);
+  
+  if(false)console.log(selected, viewDialog, addDialog, editDialog, deleteDialog);
 
   const handleEdit = (promotion: Promotion): void => {
     setSelected(promotion);

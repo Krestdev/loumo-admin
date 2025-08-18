@@ -95,6 +95,10 @@ const formSchema = z.object({
     .min(1, { message: "Veuillez ajouter au moins une variante" }),
 });
 
+type FormValues = z.infer<typeof formSchema>;
+type Variant = FormValues["variants"][number];
+type StockItem = Variant["stock"][number];
+
 function AddProduct({ categories, isOpen, openChange, shops }: Props) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -258,7 +262,7 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
 
   const handleAddStock = (variantIndex: number) => {
     const variants = form.getValues("variants");
-    const updatedStocks = [
+    const updatedStocks :StockItem[] = [
       ...variants[variantIndex].stock,
       { quantity: "100", threshold: "20", shopId: "1" },
     ];
@@ -267,8 +271,8 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
 
   const handleRemoveStock = (variantIndex: number, stockIndex: number) => {
     const variants = form.getValues("variants");
-    const updatedStocks = variants[variantIndex].stock.filter(
-      (_: any, idx: number) => idx !== stockIndex
+    const updatedStocks :StockItem[] = variants[variantIndex].stock.filter(
+      (_, idx) => idx !== stockIndex
     );
     form.setValue(`variants.${variantIndex}.stock`, updatedStocks);
   };
@@ -357,10 +361,10 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
             <FormField
               control={form.control}
               name="status"
-              render={({ field: { name, ...props } }) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <SwitchLabel name="Statut du Produit" {...props} />
+                    <SwitchLabel {...field} name="Statut du Produit" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -372,7 +376,7 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
                 {"Variantes du produit"}
               </h3>
               {fields.map((field, index) => {
-                const stockFields = form.watch(`variants.${index}.stock`) || [];
+                const stockFields : StockItem[] = form.watch(`variants.${index}.stock`) || [];
                 return (
                   <div
                     key={field.id}
@@ -473,7 +477,7 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
                         {"Stocks"}
                       </h4>
                       <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-                        {stockFields.map((stockItem: any, stockId: number) => (
+                        {stockFields.map((stockItem: StockItem, stockId: number) => (
                           <div key={stockId} className="p-3 rounded border grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div className="w-full sm:col-span-2 flex justify-between gap-3 items-center mb-2">
                               <span className="px-2 py-1 bg-sky-200 rounded text-sm font-medium">{`Stock n°${stockId}`}</span>

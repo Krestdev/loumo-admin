@@ -242,10 +242,10 @@ function AddZone({ isOpen, openChange }: Props) {
                     <FormMessage/>
                   </FormItem>
                 )}/>
-                <FormField control={form.control} name={`addresses.${index}.published`} render={({field: {name, ...props}})=>(
+                <FormField control={form.control} name={`addresses.${index}.published`} render={({field})=>(
                   <FormItem>
                     <FormControl>
-                      <SwitchLabel name="Statut" {...props}/>
+                      <SwitchLabel {...field} name="Statut" />
                     </FormControl>
                     <FormMessage/>
                   </FormItem>
