@@ -170,13 +170,13 @@ function EditDelivery({ isOpen, openChange, delivery, agents }: Props) {
                       <SelectContent>
                         {agents.filter(
                           (d) =>
-                            d.zoneId === delivery.order?.address?.zoneId &&
+                            d.zoneId.some(f => f === delivery.order?.address?.zoneId) &&
                             d.status === "AVAILABLE"
                         ).length > 0 ? (
                           agents
                             .filter(
                               (d) =>
-                                d.zoneId === delivery.order?.address?.zoneId &&
+                                d.zoneId.some(f => f === delivery.order?.address?.zoneId)  &&
                                 d.status === "AVAILABLE"
                             )
                             .map((x) => (

@@ -244,9 +244,13 @@ function Page() {
                     </div>
                     <div className="space-y-2">
                       {driver.zone && (
-                        <div className="flex justify-between text-sm">
-                          <span>{"Zone:"}</span>
-                          <span>{driver.zone.name}</span>
+                        <div className="flex flex-col gap-1 text-sm">
+                          <span>{"Zones:"}</span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {driver.zone.map(el => (
+                              <span key={el.id} className="text-sm px-1.5 py-1 rounded bg-gray-100">{el.name}</span>
+                            ))}
+                          </div>
                         </div>
                       )}
                       <div className="flex justify-between text-sm">

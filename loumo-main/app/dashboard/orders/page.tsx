@@ -41,7 +41,7 @@ import { useStore } from "@/providers/datastore";
 import DeliveryQuery from "@/queries/delivery";
 import OrderQuery from "@/queries/order";
 import ZoneQuery from "@/queries/zone";
-import { Delivery, Order, OrderStatus, Zone } from "@/types/types";
+import { Delivery, Order, OrderStatus, Payment, Zone } from "@/types/types";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import {
   ArrowRightCircle,
@@ -58,7 +58,6 @@ import {
   Store,
 } from "lucide-react";
 import React, { useState } from "react";
-import { paymentStatus } from "../payments/page";
 import AssignDriver from "./assign";
 import EndOrder from "./end";
 import { OrdersPDFDocument } from "./pdf";
@@ -130,6 +129,15 @@ export default function OrdersPage() {
     "PROCESSING",
     "REJECTED",
   ] as const;
+
+  const paymentStatus: Payment["status"][] = [
+    "ACCEPTED",
+    "COMPLETED",
+    "FAILED",
+    "PENDING",
+    "PROCESSING",
+    "REJECTED",
+  ];
 
   const filteredOrders = React.useMemo(() => {
     return orders

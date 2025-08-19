@@ -1,5 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -51,7 +52,7 @@ const agentStatus = [
 
 type AgentProps = {
   status: (typeof agentStatus)[number];
-  zoneId: number;
+  zoneId: number[];
   userId: number;
 };
 
@@ -68,7 +69,7 @@ const formSchema = z.object({
   // roleId: z.number(), Make sure its fixed
   //userId: z.number(), We get it from the first response
   status: z.enum(agentStatus),
-  zoneId: z.string(), //inject here
+  zoneId: z.array(z.string()).refine((val)=> val.some(el => el), {message: "Il doit être affecté au moins à une zone"}), //inject here
 });
 
 function AddDriver({ isOpen, openChange }: Props) {
@@ -97,7 +98,7 @@ function AddDriver({ isOpen, openChange }: Props) {
       tel: "",
       name: "",
       status: "AVAILABLE",
-      zoneId: "",
+      zoneId: [],
     },
   });
 
@@ -133,7 +134,7 @@ function AddDriver({ isOpen, openChange }: Props) {
       createAgent.mutate({
         userId: data.id,
         status,
-        zoneId: Number(zoneId),
+        zoneId: zoneId.map(x=>Number(x)),
       });
     },
   });
@@ -229,21 +230,14 @@ function AddDriver({ isOpen, openChange }: Props) {
                 <FormItem>
                   <FormLabel>{"Zone desservie"}</FormLabel>
                   <FormControl>
-                    <Select
-                      defaultValue={field.value}
-                      onValueChange={field.onChange}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder={"Sélectionner une zone"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {zones.map((x) => (
-                          <SelectItem key={x.id} value={String(x.id)}>
-                            {x.name}
-                          </SelectItem>
+                        {zones.map((x, id) => (
+                          <Checkbox key={id} checked={field.value.some(y=> y === String(x.id))}
+                          onCheckedChange={(checked)=> {
+                            return checked ?
+                            field.onChange([...field.value, String(x.id)])
+                            : field.onChange(field.value.filter((value)=> value !== String(x.id)))
+                          }} />
                         ))}
-                      </SelectContent>
-                    </Select>
                   </FormControl>
                   <FormMessage/>
                 </FormItem>

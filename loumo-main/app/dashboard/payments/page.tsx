@@ -54,7 +54,7 @@ const paymentMethods: Payment["method"][] = [
   "ORANGE_CMR",
 ];
 
-export const paymentStatus: Payment["status"][] = [
+  const paymentStatus: Payment["status"][] = [
   "ACCEPTED",
   "COMPLETED",
   "FAILED",

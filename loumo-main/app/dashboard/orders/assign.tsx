@@ -161,13 +161,15 @@ function AssignDriver({ order, isOpen, openChange, zones }: Props) {
                         <SelectContent>
                           {drivers.filter(
                             (d) =>
-                              d.zoneId === zones.find((x) => x.id === order.address?.id)?.id &&
+                              zones.find((x) => x.id === order.address?.id)?.id &&
+                                d.zoneId?.includes(zones.find((x) => x.id === order.address?.id)!.id) &&
                               d.status === "AVAILABLE"
                           ).length > 0 ? (
                             drivers
                               .filter(
                                 (d) =>
-                                  d.zoneId === zones.find((x) => x.id === order.address?.id)?.id &&
+                                  zones.find((x) => x.id === order.address?.id)?.id &&
+                                d.zoneId?.includes(zones.find((x) => x.id === order.address?.id)!.id) &&
                                   d.status === "AVAILABLE"
                               )
                               .map((x) => (
