@@ -45,7 +45,7 @@ export function LoginForm({
         ...values,
       }),
     onSuccess: ({ user, token }) => {
-      localStorage.setItem("loumoshop-admin", token);
+      //localStorage.setItem("loumoshop-admin", token);
       setToken(token);
       login(user);
     },
