@@ -419,7 +419,7 @@ export default function OrdersPage() {
                 ) : (
                   filteredOrders.map((order) => (
                     <TableRow key={order.id}>
-                      <TableCell className="font-medium">{order.id}</TableCell>
+                      <TableCell className="font-medium">{order.ref}</TableCell>
                       <TableCell>
                         <div>
                           <p className="font-medium">{order.user.name}</p>

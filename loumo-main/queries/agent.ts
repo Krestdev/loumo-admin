@@ -4,7 +4,7 @@ import { Agent } from "@/types/types";
 export default class AgentQuery {
   route = "/agents";
   create = async (
-    data: Omit<Agent, "id" | "code" | "zone"> & {
+    data: Omit<Agent, "id" | "code" | "zone"|"ref"> & {
       userId: number;
     }
   ): Promise<Agent> => {

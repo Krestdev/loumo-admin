@@ -106,7 +106,7 @@ export default function DeliveriesPage() {
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
       delivery.orderId === parseInt(searchTerm.toLowerCase()) ||
-      delivery.trackingCode.toLowerCase().includes(searchTerm.toLowerCase());
+      delivery.ref.toLowerCase().includes(searchTerm.toLowerCase());
       //Status
     const matchesStatus =
       statusFilter === "all" || delivery.status === statusFilter;
@@ -318,7 +318,7 @@ export default function DeliveriesPage() {
                   <TableRow key={delivery.id}>
                     <TableCell>
                       <div>
-                        <p className="text-xs">{delivery.trackingCode}</p>
+                        <p className="text-xs">{delivery.ref}</p>
                       </div>
                     </TableCell>
                     <TableCell>

@@ -27,13 +27,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { fetchAll } from "@/hooks/useData";
 import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import OrderQuery from "@/queries/order";
 import ShopQuery from "@/queries/shop";
 import ZoneQuery from "@/queries/zone";
-import { Order, Shop, Zone } from "@/types/types";
-import { useQuery } from "@tanstack/react-query";
+import { Address, Order, Shop, Zone } from "@/types/types";
 import {
   CirclePlus,
   Edit,
@@ -46,39 +46,38 @@ import {
 } from "lucide-react";
 import React, { useState } from "react";
 import NewStore from "./newStore";
+import DeleteStore from "./delete";
+import EditStore from "./edit";
+import AddressQuery from "@/queries/address";
+import ViewStore from "./view";
 
 export default function StoresPage() {
   const shopQuery = new ShopQuery();
-  const getShops = useQuery({
-    queryKey: ["shops"],
-    queryFn: () => shopQuery.getAll(),
-    refetchOnWindowFocus: false,
-  });
+  const getShops = fetchAll(shopQuery.getAll, "shops", 60000);
 
   const orderQuery = new OrderQuery();
-  const getOrders = useQuery({
-    queryKey: ["orders"],
-    queryFn: () => orderQuery.getAll(),
-    refetchOnWindowFocus: false,
-  });
+  const getOrders = fetchAll(orderQuery.getAll, "orders", 60000);
 
-   const zonesQuery = new ZoneQuery();
-    const getZones = useQuery({
-      queryKey: ["zones"],
-      queryFn: () => zonesQuery.getAll(),
-      refetchOnWindowFocus: false,
-    });
+  const zonesQuery = new ZoneQuery();
+  const getZones = fetchAll(zonesQuery.getAll, "zones", 60000);
+  
+  const addressQuery = new AddressQuery();
+  const getAddresses = fetchAll(addressQuery.getAll, "addresses", 60000);
 
   const [shops, setShops] = useState<Shop[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
+  const [addresses, setAddresses] = useState<Address[]>([]);
   const { setLoading } = useStore();
 
-  //const [selectedStore, setSelectedStore] = useState(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedStore, setSelectedStore] = useState<Shop>();
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+  const [deleteDialog, setDeleteDialog] = useState<boolean>(false);
+  const [editDialog, setEditDialog] = useState<boolean>(false);
+  const [viewDialog, setViewDialog] = useState<boolean>(false);
 
   React.useEffect(() => {
-    setLoading(getShops.isLoading || getOrders.isLoading || getZones.isLoading);
+    setLoading(getShops.isLoading || getOrders.isLoading || getZones.isLoading || getAddresses.isLoading);
     if (getShops.isSuccess) {
       setShops(getShops.data);
     }
@@ -87,6 +86,9 @@ export default function StoresPage() {
     }
     if (getZones.isSuccess) {
       setZones(getZones.data);
+    }
+    if(getAddresses.isSuccess) {
+      setAddresses(getAddresses.data);
     }
   }, [
     setLoading,
@@ -99,6 +101,9 @@ export default function StoresPage() {
     getZones.isLoading,
     getZones.isSuccess,
     getZones.data,
+    getAddresses.isLoading,
+    getAddresses.isSuccess,
+    getAddresses.data,
   ]);
 
 
@@ -132,7 +137,7 @@ export default function StoresPage() {
 
   return (
     <PageLayout
-      isLoading={getShops.isLoading || getOrders.isLoading || getZones.isLoading}
+      isLoading={getShops.isLoading || getOrders.isLoading || getZones.isLoading || getAddresses.isLoading}
       className="flex-1 space-y-4 p-4"
     >
       <div className="flex items-center justify-between space-y-2">
@@ -234,17 +239,17 @@ export default function StoresPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
                             <DropdownMenuItem>
                               <Eye size={16} />
                               {"Voir détails"}
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={()=>{setSelectedStore(store);setEditDialog(true);}}>
                               <Edit size={16} />
                               {"Modifier"}
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-red-600">
+                            <DropdownMenuItem className="text-red-600" onClick={()=>{setSelectedStore(store);setDeleteDialog(true)}}>
                               <Trash2 size={16} />
                               {"Supprimer"}
                             </DropdownMenuItem>
@@ -465,6 +470,9 @@ export default function StoresPage() {
         </TabsContent> */}
       </Tabs>
       <NewStore isOpen={isDialogOpen} openChange={setIsDialogOpen}/>
+      {selectedStore && <DeleteStore isOpen={deleteDialog} openChange={setDeleteDialog} store={selectedStore}/>}
+      {selectedStore && <EditStore isOpen={editDialog} openChange={setEditDialog} store={selectedStore} addresses={addresses}/>}
+      {selectedStore && <ViewStore isOpen={viewDialog} openChange={setViewDialog} store={selectedStore} address={addresses.find(x=>x.id === selectedStore.id)} CA={getMonthlyRevenue({orders:orders, addressId: selectedStore.addressId ?? undefined})} />}
     </PageLayout>
   );
 }

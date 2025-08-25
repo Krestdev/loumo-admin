@@ -42,7 +42,7 @@ function ViewDelivery({isOpen, openChange, delivery, agents}:Props) {
                 <div className="flex justify-between">
                   <span>{"Code suivi:"}</span>
                   <span className="font-mono">
-                    {delivery.trackingCode}
+                    {delivery.ref}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -93,7 +93,7 @@ function ViewDelivery({isOpen, openChange, delivery, agents}:Props) {
                   </p>
                   <div className="flex items-center gap-1 mt-1">
                     <span className="text-xs">
-                      {`${agents.find(x=> x.id === delivery.agentId)?.code}`}
+                      {`${agents.find(x=> x.id === delivery.agentId)?.ref}`}
                     </span>
                   </div>
                 </div>

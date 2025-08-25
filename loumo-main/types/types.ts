@@ -62,8 +62,8 @@ export type Zone = {
 
 export type Agent = {
   id: number;
+  ref:string;
   userId: number;
-  code: string;
   status: AgentStatus;
   user?: User;
   delivery?: Delivery[];
@@ -83,7 +83,7 @@ export type Category = {
 export type Delivery = {
   id: number;
   status: DeliveryStatus;
-  trackingCode: string;
+  ref: string;
   priority: DeliveryPriority;
   agentId: number | null;
   orderId: number;
@@ -115,6 +115,7 @@ export type NotificationT = {
 
 export type Order = {
   id: number;
+  ref: string;
   user: User;
   userId: number;
   note: string;
@@ -163,6 +164,7 @@ export type Permission = {
 export type Product = {
   name: string;
   id: number;
+  ref:string;
   description:string;
   createdAt: Date;
   updatedAt: Date;
@@ -178,6 +180,8 @@ export type ProductVariant = {
   imgUrl?: string;
   id: number;
   weight: number;
+  quantity: number;
+  unit: string;
   status: boolean;
   price: number;
   productId: number;
@@ -187,6 +191,7 @@ export type ProductVariant = {
 
 export type Promotion = {
   id: number;
+  ref:string;
   code: string;
   amount: number;         // e.g. 20 => 20% off
   percentage: number;
