@@ -266,8 +266,8 @@ export default function ZonesPage() {
                     <TableCell>
                       <div>
                         <p className="font-medium">{item.street}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {item.description}
+                        <p className="text-sm text-muted-foreground italic">
+                          {item.description?? "Aucune description"}
                         </p>
                       </div>
                     </TableCell>

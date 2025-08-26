@@ -32,8 +32,8 @@ import z from "zod";
 const formSchema = z.object({
   name: z
     .string({ message: "Veuillez renseigner un nom" })
-    //.min(2, { message: "Le nom doit comporter au moins 3 caractères" })
-    .max(4, {message: "4 caractères maximum"}).optional(),
+    .min(2, { message: "Le nom doit comporter au moins 2 caractères" })
+    .max(12, {message: "12 caractères maximum"}),
   quantity: z.string().refine((val)=>Number(val)>0, {message: "Doit être un nombre"}),
   unit: z.enum(units),
   weight: z.string({ message: "Veuillez renseigner le poids" })
@@ -58,7 +58,7 @@ function PageAdd() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: undefined,
+      name: "",
       weight: "",
       status: true,
       quantity: "",
@@ -73,19 +73,23 @@ function PageAdd() {
         if(values.imgUrl){
             return actions.create({
         productId: Number(values.productId),
-        name: [values.name, values.quantity, values.unit].filter(Boolean).join(" "),
+        name: values.name,
         weight: Number(values.weight),
         status: values.status,
         price: Number(values.price),
-        imgUrl: values.imgUrl
+        imgUrl: values.imgUrl,
+        quantity: Number(values.quantity),
+        unit: values.unit
       });
         }
       return actions.create({
         productId: Number(values.productId),
-        name: [values.name, values.quantity, values.unit].filter(Boolean).join(" "),
+        name: values.name,
         weight: Number(values.weight),
         status: values.status,
         price: Number(values.price),
+        quantity: Number(values.quantity),
+        unit: values.unit
       })},
     onSuccess: () => {
       queryClient.invalidateQueries({

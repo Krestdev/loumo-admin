@@ -18,15 +18,19 @@ export default class AddressQuery {
   create = async (
     data: Omit<Address, "id" | "createdAt" | "updatedAt">
   ): Promise<Address> => {
-    return api.post(`${this.route}`, data).then((response) => response.data);
+    const {description, ...restData} = data;
+    const payload = description?.length === 0 ? restData : data;
+    return api.post(`${this.route}`, payload).then((response) => response.data);
   };
 
   update = async (
     id: number,
     data: Partial<Omit<Address, "id">> & { zoneId?: number }
   ): Promise<Address> => {
+    const {description, ...restData} = data;
+    const payload = description?.length === 0 ? restData : data;
     return api
-      .put(`${this.route}/${id}`, data)
+      .put(`${this.route}/${id}`, payload)
       .then((response) => response.data);
   };
 

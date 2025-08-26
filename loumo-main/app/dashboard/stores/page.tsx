@@ -106,6 +106,9 @@ export default function StoresPage() {
     getAddresses.data,
   ]);
 
+  //console.log(addresses);
+  //console.log(shops)
+
 
   type monthlyRevenueProps = {
     orders: Order[];
@@ -240,7 +243,7 @@ export default function StoresPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={()=>{setSelectedStore(store);setViewDialog(true)}}>
                               <Eye size={16} />
                               {"Voir détails"}
                             </DropdownMenuItem>
@@ -472,7 +475,15 @@ export default function StoresPage() {
       <NewStore isOpen={isDialogOpen} openChange={setIsDialogOpen}/>
       {selectedStore && <DeleteStore isOpen={deleteDialog} openChange={setDeleteDialog} store={selectedStore}/>}
       {selectedStore && <EditStore isOpen={editDialog} openChange={setEditDialog} store={selectedStore} addresses={addresses}/>}
-      {selectedStore && <ViewStore isOpen={viewDialog} openChange={setViewDialog} store={selectedStore} address={addresses.find(x=>x.id === selectedStore.id)} CA={getMonthlyRevenue({orders:orders, addressId: selectedStore.addressId ?? undefined})} />}
+      {selectedStore && 
+        <ViewStore 
+        isOpen={viewDialog} 
+        openChange={setViewDialog} 
+        store={selectedStore} 
+        CA={getMonthlyRevenue({orders:orders, addressId: selectedStore.addressId ?? undefined})} 
+        totalOrders={orders.filter(x=>x.addressId === selectedStore.addressId).length}
+        zones={zones} />
+      }
     </PageLayout>
   );
 }

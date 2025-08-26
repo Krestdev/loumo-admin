@@ -27,6 +27,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { units } from "@/data/unit";
+import { unitName } from "@/lib/utils";
 import ProductQuery from "@/queries/product";
 import { Category, Shop } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -59,14 +61,17 @@ const stockSchema = z.object({
 const variantSchema = z.object({
   name: z
     .string({ message: "Veuillez renseigner un nom" })
-    //.min(2, { message: "Le nom doit comporter au moins 3 caractères" })
-    .max(4, { message: "4 caractères maximum" })
-    .optional(),
+    .min(2, { message: "Le nom doit comporter au moins 2 caractères" })
+    .max(12, { message: "12 caractères maximum" }),
   weight: z
     .string({ message: "Veuillez renseigner le poids" })
     .refine((val) => !isNaN(Number(val)), {
       message: "Le poids doit être un nombre",
     }),
+  quantity: z
+    .string()
+    .refine((val) => Number(val) > 0, { message: "Doit être un nombre" }),
+  unit: z.string({ message: "Veuillez renseigner l'unité" }),
   status: z.boolean(),
   price: z
     .string({ message: "Veuillez renseigner un prix" })
@@ -85,15 +90,32 @@ const variantSchema = z.object({
 });
 
 const formSchema = z.object({
-  name: z.string({ message: "Veuillez entrer un nom" }).min(3, {message: "Trop court"}).max(15,{message: "Trop long"}),
+  name: z
+    .string({ message: "Veuillez entrer un nom" })
+    .min(3, { message: "Trop court" })
+    .max(15, { message: "Trop long" }),
   category: z.string({ message: "Veuillez sélectionner une catégorie" }),
   status: z.boolean(),
-  description: z
-    .string({ message: "Veuillez renseigner une description du produit" }),
+  description: z.string({
+    message: "Veuillez renseigner une description du produit",
+  }),
   variants: z
     .array(variantSchema)
     .min(1, { message: "Veuillez ajouter au moins une variante" }),
-});
+}).superRefine((data, ctx) => {
+    const names = data.variants.map((v) => v.name.trim().toLowerCase());
+    const duplicates = names.filter(
+      (name, index) => names.indexOf(name) !== index
+    );
+
+    if (duplicates.length > 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Les variantes doivent avoir des noms uniques. Doublon trouvé: "${duplicates[0]}"`,
+        path: [`variants.${data.variants.findIndex(x=> x.name.trim().toLocaleLowerCase() === duplicates[0])}.name`],
+      });
+    }
+  });
 
 type FormValues = z.infer<typeof formSchema>;
 type Variant = FormValues["variants"][number];
@@ -112,13 +134,15 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
           name: undefined,
           weight: "1",
           status: true,
+          quantity: "1",
+          unit: "kg",
           price: "500",
           stock: [
             {
               quantity: "100",
               threshold: "20",
-              shopId: undefined
-            }
+              shopId: undefined,
+            },
           ],
         },
       ],
@@ -130,105 +154,41 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
   });
 
   const productAction = new ProductQuery();
-  //const variantAction = new ProductVariantQuery();
-  //const stockAction = new StockQuery();
   const queryClient = useQueryClient();
-  const onSubmit = async(values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     productAdd.mutate(values);
-    /* try {
-      const currentProduct = await productAdd.mutateAsync(values);
-      const productId = currentProduct.id;
-
-      //variants
-
-      for(const variant of values.variants) {
-        const createdVariant = await variantAdd.mutateAsync({values: variant, productId: String(productId)});
-        const variantId = createdVariant.id;
-
-        //stocks
-        for(const stock of variant.stock) {
-          await createStock.mutateAsync({values:stock, variantId:String(variantId)});
-        }
-      }
-      await queryClient.invalidateQueries({
-        queryKey: ["stocks"],
-        refetchType: "active",
-      });
-      await queryClient.invalidateQueries({
-        queryKey: ["variants"],
-        refetchType: "active",
-      });
-      await queryClient.invalidateQueries({
-        queryKey: ["products"],
-        refetchType: "active",
-      });
-      await queryClient.invalidateQueries({
-        queryKey: ["categories"],
-        refetchType: "active",
-      });
-      openChange(false);
-    } catch (error) {
-      console.error("Une erreur a été rencontrée", error);
-    } */
   };
-  //Stock Form Action
-  /* const createStock = useMutation({
-    mutationFn: ({values, variantId}:{values:z.infer<typeof stockSchema>, variantId:string}) => 
-      stockAction.create({
-        quantity: Number(values.quantity),
-        threshold: Number(values.threshold),
-        productVariantId: Number(variantId),
-        shopId: Number(values.shopId),
-      }),
-  }); */
-  //Variant Stock Action
- /*  const variantAdd = useMutation({
-    mutationFn: ({values, productId}:{values:z.infer<typeof variantSchema>, productId:string}) => {
-      if(values.imgUrl){
-            return variantAction.create({
-        productId: Number(productId),
-        name: [values.name, values.quantity, values.unit].filter(Boolean).join(" "),
-        weight: Number(values.weight),
-        status: values.status,
-        price: Number(values.price),
-        imgUrl: values.imgUrl
-      });
-        }
-      return variantAction.create({
-        productId: Number(productId),
-        name: [values.name, values.quantity, values.unit].filter(Boolean).join(" "),
-        weight: Number(values.weight),
-        status: values.status,
-        price: Number(values.price),
-      })
-    },
-  }) */
+
   const productAdd = useMutation({
-    mutationFn: (values: z.infer<typeof formSchema>) =>{
+    mutationFn: (values: z.infer<typeof formSchema>) => {
       return productAction.createWithImages({
         name: values.name,
         status: values.status,
         categoryId: Number(values.category),
         weight: 0,
         description: values.description,
-        variants: values.variants.map(el => ({
-          name: el.name ?? "",
+        variants: values.variants.map((el) => ({
+          name: el.name,
           weight: Number(el.weight),
+          quantity: Number(el.quantity),
+          unit: el.unit,
           status: el.status,
           price: Number(el.price),
           imgUrl: el.imgUrl,
-          stock: el.stock.map(stockItem => ({
+          stock: el.stock.map((stockItem) => ({
             quantity: Number(stockItem.quantity),
             threshold: Number(stockItem.threshold),
-            shopId: Number(stockItem.shopId)
-          }))
-        }))
-      })},
-      onSuccess: ()=>{
-        queryClient.invalidateQueries({queryKey: ["products"], type: "active"});
-        queryClient.invalidateQueries({queryKey: ["variants"], type: "active"});
-        queryClient.invalidateQueries({queryKey: ["stocks"], type: "active"});
-      }
+            shopId: Number(stockItem.shopId),
+          })),
+        })),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"], type: "active" });
+      queryClient.invalidateQueries({ queryKey: ["variants"], type: "active" });
+      queryClient.invalidateQueries({ queryKey: ["stocks"], type: "active" });
+      openChange(false);
+    },
   });
 
   {
@@ -247,11 +207,13 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
             weight: "1",
             price: "500",
             status: true,
+            quantity: "1",
+            unit: "kg",
             stock: [
               {
                 quantity: "100",
                 threshold: "20",
-                shopId: undefined
+                shopId: undefined,
               },
             ],
           },
@@ -262,7 +224,7 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
 
   const handleAddStock = (variantIndex: number) => {
     const variants = form.getValues("variants");
-    const updatedStocks :StockItem[] = [
+    const updatedStocks: StockItem[] = [
       ...variants[variantIndex].stock,
       { quantity: "100", threshold: "20", shopId: "1" },
     ];
@@ -271,7 +233,7 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
 
   const handleRemoveStock = (variantIndex: number, stockIndex: number) => {
     const variants = form.getValues("variants");
-    const updatedStocks :StockItem[] = variants[variantIndex].stock.filter(
+    const updatedStocks: StockItem[] = variants[variantIndex].stock.filter(
       (_, idx) => idx !== stockIndex
     );
     form.setValue(`variants.${variantIndex}.stock`, updatedStocks);
@@ -376,7 +338,8 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
                 {"Variantes du produit"}
               </h3>
               {fields.map((field, index) => {
-                const stockFields : StockItem[] = form.watch(`variants.${index}.stock`) || [];
+                const stockFields: StockItem[] =
+                  form.watch(`variants.${index}.stock`) || [];
                 return (
                   <div
                     key={field.id}
@@ -402,8 +365,69 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
                         <FormItem>
                           <FormLabel>{"Nom"}</FormLabel>
                           <FormControl>
-                            <Input {...field} placeholder="x. Sac, Boite" />
+                            <Input {...field} placeholder="ex. Sac, Boite" />
                           </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`variants.${index}.quantity`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{"Quantité"}</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="ex 10"
+                              type="number"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`variants.${index}.unit`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{"Unité"}</FormLabel>
+                          <FormControl>
+                            <Select
+                              value={field.value}
+                              onValueChange={field.onChange}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="ex. kg" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {units.map((x, id) => (
+                                  <SelectItem key={id} value={x}>
+                                    {unitName(x)}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`variants.${index}.weight`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{"Poids de la variante"}</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                placeholder="Poids en kg"
+                                className="pr-10"
+                              />
+                            </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -424,28 +448,6 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
                             </FormControl>
                             <span className="text-muted-foreground pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-3 text-sm peer-disabled:opacity-50">
                               {"FCFA"}
-                            </span>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name={`variants.${index}.weight`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{"Poids de la variante"}</FormLabel>
-                          <div className="relative">
-                            <FormControl>
-                              <Input
-                                {...field}
-                                placeholder="Poids en kg"
-                                className="pr-10"
-                              />
-                            </FormControl>
-                            <span className="text-muted-foreground absolute right-3 top-1/2 -translate-y-1/2 text-sm">
-                              {"kg"}
                             </span>
                           </div>
                           <FormMessage />
@@ -477,96 +479,117 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
                         {"Stocks"}
                       </h4>
                       <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-                        {stockFields.map((stockItem: StockItem, stockId: number) => (
-                          <div key={stockId} className="p-3 rounded border grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div className="w-full sm:col-span-2 flex justify-between gap-3 items-center mb-2">
-                              <span className="px-2 py-1 bg-sky-200 rounded text-sm font-medium">{`Stock n°${stockId}`}</span>
-                              <Button
-                                variant={"delete"}
-                                size={"icon"}
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  handleRemoveStock(index, stockId);
-                                }}
-                              >
-                                <X size={16} />
-                              </Button>
-                            </div>
-                            <FormField
-                              control={form.control}
-                              name={`variants.${index}.stock.${stockId}.quantity`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>{"Quantité Initiale"}</FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      {...field}
-                                      placeholder="3"
-                                      type="number"
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name={`variants.${index}.stock.${stockId}.threshold`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>{"Seuil"}</FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      {...field}
-                                      placeholder="3"
-                                      type="number"
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            <div className="sm:col-span-2">
+                        {stockFields.map(
+                          (stockItem: StockItem, stockId: number) => (
+                            <div
+                              key={stockId}
+                              className="p-3 rounded border grid grid-cols-1 sm:grid-cols-2 gap-3"
+                            >
+                              <div className="w-full sm:col-span-2 flex justify-between gap-3 items-center mb-2">
+                                <span className="px-2 py-1 bg-sky-200 rounded text-sm font-medium">{`Stock n°${stockId}`}</span>
+                                <Button
+                                  variant={"delete"}
+                                  size={"icon"}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    handleRemoveStock(index, stockId);
+                                  }}
+                                >
+                                  <X size={16} />
+                                </Button>
+                              </div>
                               <FormField
                                 control={form.control}
-                                name={`variants.${index}.stock.${stockId}.shopId`}
+                                name={`variants.${index}.stock.${stockId}.quantity`}
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel>{"Point de vente"}</FormLabel>
+                                    <FormLabel>{"Quantité Initiale"}</FormLabel>
                                     <FormControl>
-                                      <Select
-                                        defaultValue={field.value}
-                                        onValueChange={field.onChange}
-                                      >
-                                        <SelectTrigger className="w-full">
-                                          <SelectValue placeholder="Sélectionner un point de vente" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          {shops
-                                            .map((shop) => (
-                                              <SelectItem
-                                                key={shop.id}
-                                                value={String(shop.id)}
-                                                disabled={form.getValues("variants").filter(d=> d.name === form.getValues(`variants.${index}.name`)).some(y=>y.stock.some(z=> Number(z.shopId) === shop.id))}
-                                              >
-                                                {shop.name}
-                                              </SelectItem>
-                                            ))}
-                                          {shops.length === 0 && (
-                                            <SelectItem value="#" disabled>
-                                              {"Aucun point de vente enregistré"}
-                                            </SelectItem>
-                                          )}
-                                        </SelectContent>
-                                      </Select>
+                                      <Input
+                                        {...field}
+                                        placeholder="3"
+                                        type="number"
+                                      />
                                     </FormControl>
                                     <FormMessage />
                                   </FormItem>
                                 )}
                               />
+                              <FormField
+                                control={form.control}
+                                name={`variants.${index}.stock.${stockId}.threshold`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{"Seuil"}</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        {...field}
+                                        placeholder="3"
+                                        type="number"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <div className="sm:col-span-2">
+                                <FormField
+                                  control={form.control}
+                                  name={`variants.${index}.stock.${stockId}.shopId`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>{"Point de vente"}</FormLabel>
+                                      <FormControl>
+                                        <Select
+                                          defaultValue={field.value}
+                                          onValueChange={field.onChange}
+                                        >
+                                          <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Sélectionner un point de vente" />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            {shops.map((shop) => (
+                                              <SelectItem
+                                                key={shop.id}
+                                                value={String(shop.id)}
+                                                disabled={form
+                                                  .getValues("variants")
+                                                  .filter(
+                                                    (d) =>
+                                                      d.name ===
+                                                      form.getValues(
+                                                        `variants.${index}.name`
+                                                      )
+                                                  )
+                                                  .some((y) =>
+                                                    y.stock.some(
+                                                      (z) =>
+                                                        Number(z.shopId) ===
+                                                        shop.id
+                                                    )
+                                                  )}
+                                              >
+                                                {shop.name}
+                                              </SelectItem>
+                                            ))}
+                                            {shops.length === 0 && (
+                                              <SelectItem value="#" disabled>
+                                                {
+                                                  "Aucun point de vente enregistré"
+                                                }
+                                              </SelectItem>
+                                            )}
+                                          </SelectContent>
+                                        </Select>
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          )
+                        )}
                       </div>
                       <Button
                         variant={"ternary"}
@@ -589,14 +612,18 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
                   e.preventDefault();
                   append({
                     name: "",
+                    quantity: "1",
+                    unit: "kg",
                     weight: "1",
                     price: "500",
                     status: true,
-                    stock: [{
-                            quantity: "100",
-                            threshold: "20",
-                            shopId: "1",
-                          }],
+                    stock: [
+                      {
+                        quantity: "100",
+                        threshold: "20",
+                        shopId: "1",
+                      },
+                    ],
                   });
                 }}
               >

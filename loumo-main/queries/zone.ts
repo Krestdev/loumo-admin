@@ -6,7 +6,9 @@ export default class ZoneQuery {
   create = async (
     data: Omit<Zone, "id" | "addresses"> & { addresses: Partial<Address>[] }
   ): Promise<Zone> => {
-    return api.post(`${this.route}`, data).then((response) => response.data);
+    const {description, ...restData} = data;
+    const payload = description?.length === 0 ? restData : data;
+    return api.post(`${this.route}`, payload).then((response) => response.data);
   };
 
   getAll = async (): Promise<Zone[]> => {
@@ -23,8 +25,10 @@ export default class ZoneQuery {
     id: number,
     data: Partial<Omit<Zone, "id">> & { addressIds: number[] }
   ): Promise<Zone> => {
+    const {description, ...restData} = data;
+    const payload = description?.length === 0 ? restData : data;
     return api
-      .put(`${this.route}/${id}`, data)
+      .put(`${this.route}/${id}`, payload)
       .then((response) => response.data);
   };
 

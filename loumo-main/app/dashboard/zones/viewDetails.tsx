@@ -1,13 +1,14 @@
 "use client";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
 import { XAF } from "@/lib/utils";
 import { Zone } from "@/types/types";
 import { FC } from "react";
@@ -43,46 +44,46 @@ const ViewZoneDetails: FC<Props> = ({ isOpen, openChange, zone }) => {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-3 mt-4 text-sm text-muted-foreground">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
-            <p className="font-medium text-gray-900">{"Nom"}</p>
-            <p>{zone.name}</p>
+            <p className=" text-gray-600">{"Nom"}</p>
+            <p className="font-semibold">{zone.name}</p>
           </div>
 
           <div>
-            <p className="font-medium text-gray-700">{"Description"}</p>
-            <p>{zone.description || "Aucune description"}</p>
+            <p className="text-gray-600">{"Description"}</p>
+            <p className="font-semibold">{zone.description || "Aucune description"}</p>
           </div>
 
           <div>
-            <p className="font-medium text-sky-700">{"Frais de livraison"}</p>
-            <p>{XAF.format(zone.price)}</p>
+            <p className="text-gray-600">{"Frais de livraison"}</p>
+            <p className="font-semibold">{XAF.format(zone.price)}</p>
           </div>
 
           <div>
-            <p className="font-medium text-gray-900">{"Statut"}</p>
+            <p className="text-gray-600">{"Statut"}</p>
             <Badge
               className={`text-xs px-2 py-0.5 rounded-md ${statusColor[zone.status]}`}
             >
               {statusMap[zone.status] ?? zone.status}
             </Badge>
           </div>
-
-          <Separator />
-
-          <div>
-            <p className="font-medium text-gray-900 mb-1">{"Quartiers associés"}</p>
+          <div className="col-span-1 sm:col-span-2 flex flex-col gap-1">
+            <p className="text-gray-600">{"Quartiers associés"}</p>
             {zone.addresses?.length > 0 ? (
-              <ul className="list-disc ml-5">
+              <div className="flex flex-wrap gap-2">
                 {zone.addresses.map((addr) => (
-                  <li key={addr.id}>{addr.street}</li>
+                  <Badge variant={"outline"} key={addr.id}>{addr.street}</Badge>
                 ))}
-              </ul>
+              </div>
             ) : (
-              <p>{"Aucun quartier lié à cette zone."}</p>
+              <p className="italic">{"Aucun quartier lié à cette zone."}</p>
             )}
           </div>
         </div>
+        <DialogClose asChild className="mt-4">
+          <Button variant={"outline"} className="w-fit">{"Fermer"}</Button>
+        </DialogClose>
       </DialogContent>
     </Dialog>
   );

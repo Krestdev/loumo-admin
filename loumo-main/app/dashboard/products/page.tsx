@@ -282,6 +282,9 @@ export default function ProductsPage() {
                       alt="no-image"
                       className="w-1/3 max-w-32 h-auto mx-auto mt-5 opacity-20"
                     />
+                    <Button size={"lg"} onClick={()=>handleAdd()} className="my-5">
+                <PlusCircle size={16} /> {"Ajouter un produit"}
+              </Button>
                   </TableCell>
                 </TableRow>
               ) : (

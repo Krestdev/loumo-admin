@@ -33,7 +33,7 @@ function ViewAddressDetails({ address, isOpen, openChange, zones }: Props) {
           <div className="space-y-6">
             <div className="grid gap-2 p-4 bg-white shadow-md rounded-md">
                 <p className="text-gray-900 font-semibold flex gap-2"><span className="font-light text-gray-600">{"Nom du quartier"}</span>{address.local}</p>
-                <p className="text-gray-900 font-semibold flex gap-2"><span className="font-light text-gray-600">{"Nom de la rue"}</span>{address.street}</p>
+                {/* <p className="text-gray-900 font-semibold flex gap-2"><span className="font-light text-gray-600">{"Nom de la rue"}</span>{address.street}</p> */}
             </div>
             <div className="flex gap-2 flex-col p-4 bg-white shadow-md rounded-md">
                 <p className="font-medium">{"Description"}</p>

@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { units } from "@/data/unit";
-import { splitVariantName, unitName } from "@/lib/utils";
+import { unitName } from "@/lib/utils";
 import ProductVariantQuery from "@/queries/productVariant";
 import { Product, ProductVariant } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -46,12 +46,11 @@ const formSchema = z.object({
   name: z
     .string({ message: "Veuillez renseigner un nom" })
     //.min(2, { message: "Le nom doit comporter au moins 3 caractères" })
-    .max(4, { message: "4 caractères maximum" })
-    .optional(),
+    .max(4, { message: "4 caractères maximum" }),
   quantity: z
     .string()
     .refine((val) => Number(val) > 0, { message: "Doit être un nombre" }),
-  unit: z.enum(units),
+  unit: z.string({message: "Veuillez renseigner l'unité"}),
   weight: z.string({ message: "Veuillez renseigner le poids" }),
   status: z.boolean(),
   price: z.string({ message: "Veuillez renseigner un prix" }),
@@ -63,14 +62,13 @@ function EditVariant({ variant, isOpen, openChange, products }: Props) {
   const actions = new ProductVariantQuery();
   const queryClient = useQueryClient();
 
-  const { name, quantity, unit } = splitVariantName(variant.name);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: name,
-      quantity: quantity,
-      unit: units.find((x) => x === unit),
+      name: variant.name,
+      quantity: String(variant.quantity),
+      unit: variant.unit,
       weight: String(variant.weight),
       status: variant.status,
       price: String(variant.price),
@@ -87,6 +85,8 @@ function EditVariant({ variant, isOpen, openChange, products }: Props) {
         price: Number(values.price),
         status: values.status,
         productId: Number(values.productId),
+        unit: values.unit,
+        quantity: Number(values.quantity)
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({

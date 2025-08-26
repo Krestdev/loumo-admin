@@ -47,10 +47,6 @@ const formSchema = z.object({
     .refine((val) => !!val && !isNaN(Number(val)) && Number(val) > 0, {
       message: "Renseignez une zone valide",
     }),
-  street: z
-    .string()
-    .min(3, { message: "Veuillez donner le nom de la rue" })
-    .max(40, { message: "Trop long" }),
   local: z
     .string()
     .min(3, { message: "Veuillez donner le nom du quartier" })
@@ -64,7 +60,6 @@ function EditAddress({ address, isOpen, openChange, zones }: Props) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       zoneId: String(address.zoneId),
-      street: address.street,
       local: address.local,
       description: address.description ?? "",
       published: address.published,
@@ -77,7 +72,7 @@ function EditAddress({ address, isOpen, openChange, zones }: Props) {
   const updateAddress = useMutation({
     mutationFn: (values: z.infer<typeof formSchema>) =>
       addressQuery.update(address.id, {
-        street: values.street,
+        street: values.local,
         local: values.local,
         published: values.published,
         description: values.description ?? null,
@@ -104,7 +99,6 @@ function EditAddress({ address, isOpen, openChange, zones }: Props) {
     if (isOpen && address) {
       form.reset({
         zoneId: String(address.zoneId),
-        street: address.street,
         local: address.local,
         description: address.description ?? "",
         published: address.published,
@@ -131,19 +125,6 @@ function EditAddress({ address, isOpen, openChange, zones }: Props) {
                   <FormLabel>{"Nom du quartier"}</FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="ex. Elf" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="street"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{"Nom de la rue"}</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="ex. Petit terrain" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

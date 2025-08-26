@@ -115,7 +115,7 @@ function EditStore({ isOpen, openChange, store, addresses }: Props) {
                       </SelectTrigger>
                       <SelectContent>
                         {addresses
-                          .filter((y) => !!y.published && !y.zoneId)
+                          .filter((y) => !!y.published)
                           .map((x) => (
                             <SelectItem key={x.id} value={String(x.id)}>
                               <div>

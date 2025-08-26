@@ -36,10 +36,6 @@ type Props = {
 };
 
 const formSchema = z.object({
-  street: z
-    .string()
-    .min(3, { message: "Veuillez donner le nom de la rue" })
-    .max(40, { message: "Trop long" }),
   local: z
     .string()
     .min(3, { message: "Veuillez donner le nom du quartier" })
@@ -59,7 +55,6 @@ function AddAddress({ isOpen, openChange, zones }: Props) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      street: "",
       local: "",
       description: "",
       published: true,
@@ -72,7 +67,7 @@ function AddAddress({ isOpen, openChange, zones }: Props) {
   const createAddress = useMutation({
     mutationFn: (values: z.infer<typeof formSchema>) =>
       addressQuery.create({
-        street: values.street,
+        street: values.local,
         local: values.local,
         published: values.published,
         description: values.description ?? "",
@@ -93,7 +88,6 @@ function AddAddress({ isOpen, openChange, zones }: Props) {
   React.useEffect(() => {
     if (isOpen) {
       form.reset({
-        street: "",
         local: "",
         description: "",
         published: true,
@@ -121,19 +115,6 @@ function AddAddress({ isOpen, openChange, zones }: Props) {
                   <FormLabel>{"Nom du quartier"}</FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="ex. Elf" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="street"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{"Nom de la rue"}</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="ex. Petit terrain" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
