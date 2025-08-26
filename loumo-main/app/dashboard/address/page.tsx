@@ -174,48 +174,60 @@ export default function ZonesPage() {
         </CardHeader>
         <CardContent>
           <div className="flex gap-4 flex-wrap">
-            <div className="relative">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Rechercher par client ou numéro..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8"
-              />
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{"Recherche"}</label>
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Rechercher par client ou numéro..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
             </div>
-            <Select value={sortDirection} onValueChange={setSortDirection}>
-              <SelectTrigger className="w-32 h-10">
-                {sortDirection === "asc" ? <ArrowDownAZ size={16}/> : <ArrowUpAz size={16}/>}
-                <SelectValue placeholder="Arranger par ordre alphabétique"/>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="asc">{"A-Z"}</SelectItem>
-                <SelectItem value="desc">{"Z-A"}</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={zoneFilter} onValueChange={setZoneFilter}>
-              <SelectTrigger className="w-40 h-10">
-                <SelectValue placeholder="Zone de livraison" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{"Toutes les zones"}</SelectItem>
-                {zones.map((x) => (
-                  <SelectItem key={x.id} value={String(x.id)}>
-                    {x.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={publishedFilter} onValueChange={setPublishedFilter}>
-              <SelectTrigger className="w-40 h-10">
-                <SelectValue placeholder="Statut du quartier" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{"Tous"}</SelectItem>
-                <SelectItem value={String(true)}>{"Actif"}</SelectItem>
-                <SelectItem value={String(false)}>{"Désactivé"}</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{"Classer"}</label>
+              <Select value={sortDirection} onValueChange={setSortDirection}>
+                <SelectTrigger className="w-32 h-10">
+                  {sortDirection === "asc" ? <ArrowDownAZ size={16}/> : <ArrowUpAz size={16}/>}
+                  <SelectValue placeholder="Arranger par ordre alphabétique"/>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="asc">{"A-Z"}</SelectItem>
+                  <SelectItem value="desc">{"Z-A"}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{"Zone"}</label>
+              <Select value={zoneFilter} onValueChange={setZoneFilter}>
+                <SelectTrigger className="w-40 h-10">
+                  <SelectValue placeholder="Zone de livraison" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{"Toutes les zones"}</SelectItem>
+                  {zones.map((x) => (
+                    <SelectItem key={x.id} value={String(x.id)}>
+                      {x.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{"Statut"}</label>
+              <Select value={publishedFilter} onValueChange={setPublishedFilter}>
+                <SelectTrigger className="w-40 h-10">
+                  <SelectValue placeholder="Statut du quartier" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{"Tous"}</SelectItem>
+                  <SelectItem value={String(true)}>{"Actif"}</SelectItem>
+                  <SelectItem value={String(false)}>{"Désactivé"}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>

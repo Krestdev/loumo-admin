@@ -229,59 +229,71 @@ export default function VariantsPage() {
           <CardTitle>{"Filtres"}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4 flex-wrap">
-            <div className="flex-1 min-w-[200px]">
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Rechercher par produit ou variante"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8"
-                />
+          <div className="flex gap-4 flex-wrap items-end">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{"Recherche"}</label>
+              <div className="flex-1 min-w-[200px]">
+                <div className="relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Rechercher par produit ou variante"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-8"
+                  />
+                </div>
               </div>
             </div>
-            <Select value={sortDirection} onValueChange={setSortDirection}>
-              <SelectTrigger className="w-40">
-                {sortDirection === "asc" ? <ArrowDownAZ size={16}/> : <ArrowUpAz size={16}/>}
-                <SelectValue placeholder="Classer par ordre alphabétique"/>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{"Classer par ordre"}</label>
+              <Select value={sortDirection} onValueChange={setSortDirection}>
+                <SelectTrigger className="w-40">
+                  {sortDirection === "asc" ? <ArrowDownAZ size={16}/> : <ArrowUpAz size={16}/>}
+                  <SelectValue placeholder="Classer par ordre alphabétique"/>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="asc">{"A-Z"}</SelectItem>
+                  <SelectItem value="desc">{"Z-A"}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{"Point de vente"}</label>
+              <Select value={shopFilter} onValueChange={setShopFilter}>
+              <SelectTrigger>
+                <Store size={16} />
+                <SelectValue placeholder="Point de vente" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="asc">{"A-Z"}</SelectItem>
-                <SelectItem value="desc">{"Z-A"}</SelectItem>
+                <SelectItem value="all">{"Toutes les boutiques"}</SelectItem>
+                {shops.map((x) => (
+                  <SelectItem key={x.id} value={String(x.id)}>
+                    {x.name}
+                  </SelectItem>
+                ))}
+                {shops.length === 0 && <SelectItem value="disabled" disabled>{"Aucune boutique"}</SelectItem>}
               </SelectContent>
             </Select>
-            <Select value={shopFilter} onValueChange={setShopFilter}>
-            <SelectTrigger>
-              <Store size={16} />
-              <SelectValue placeholder="Point de vente" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{"Toutes les boutiques"}</SelectItem>
-              {shops.map((x) => (
-                <SelectItem key={x.id} value={String(x.id)}>
-                  {x.name}
-                </SelectItem>
-              ))}
-              {shops.length === 0 && <SelectItem value="disabled" disabled>{"Aucune boutique"}</SelectItem>}
-            </SelectContent>
-          </Select>
-            <Select value={productFilter} onValueChange={setProductFilter}>
-              <SelectTrigger className="max-w-[200px]">
-                <Candy size={16}/>
-                <SelectValue placeholder="Produit" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{"Tous les produits"}</SelectItem>
-                {products
-                  .filter((x) => variants.some((y) => y.productId === x.id))
-                  .map((product) => (
-                    <SelectItem key={product.id} value={product.id.toString()}>
-                      {product.name}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{"Produit"}</label>
+              <Select value={productFilter} onValueChange={setProductFilter}>
+                <SelectTrigger className="max-w-[200px]">
+                  <Candy size={16}/>
+                  <SelectValue placeholder="Produit" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{"Tous les produits"}</SelectItem>
+                  {products
+                    .filter((x) => variants.some((y) => y.productId === x.id))
+                    .map((product) => (
+                      <SelectItem key={product.id} value={product.id.toString()}>
+                        {product.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
             <Link href={"/dashboard/variants/add"}>
               <Button>
                 <PlusCircle size={16} /> {"Ajouter"}

@@ -159,26 +159,32 @@ export default function CategoriesPage() {
           <CardTitle>{"Filtres et actions"}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex sm:items-center gap-2 flex-col sm:flex-row">
-            <div className="relative w-full">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Rechercher une catégorie"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8"
-              />
+          <div className="flex sm:items-end gap-2 flex-col sm:flex-row">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{"Recherche"}</label>
+              <div className="relative w-full">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Rechercher une catégorie"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
             </div>
-            <Select value={sortDirection} onValueChange={setSortDirection}>
-              <SelectTrigger className="w-40">
-                {sortDirection === "asc" ? <ArrowDownAZ size={16}/> : <ArrowUpAz size={16}/>}
-                <SelectValue placeholder="Réordonner"/>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="asc">{"A-Z"}</SelectItem>
-                <SelectItem value="desc">{"Z-A"}</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{"Classer par ordre"}</label>
+              <Select value={sortDirection} onValueChange={setSortDirection}>
+                <SelectTrigger className="w-40">
+                  {sortDirection === "asc" ? <ArrowDownAZ size={16}/> : <ArrowUpAz size={16}/>}
+                  <SelectValue placeholder="Réordonner"/>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="asc">{"A-Z"}</SelectItem>
+                  <SelectItem value="desc">{"Z-A"}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <Button onClick={() => setIsDialogOpen(true)}>
               <PlusCircle size={16} /> {"Ajouter une catégorie"}
             </Button>

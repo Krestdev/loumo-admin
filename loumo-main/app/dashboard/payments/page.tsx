@@ -246,21 +246,29 @@ export default function PaymentsPage() {
       <div className="p-6 w-full bg-white rounded-lg flex flex-wrap justify-between items-center gap-4 sm:gap-6 shadow-sm">
         <h4 className="font-semibold text-sm sm:text-base flex gap-2 items-center"><Filter size={16}/> {"Filtres"}</h4>
         <div className="flex gap-3 flex-wrap">
-          <DateRangePicker date={dateRange} onChange={setDateRange} />
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="max-w-40">
-                <Tag size={16}/>
-                <SelectValue placeholder="Statut" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{"Tous"}</SelectItem>
-                {paymentStatus.map((x, id) => (
-                  <SelectItem key={id} value={x}>
-                    {payStatusName(x)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">{"Période"}</label>
+            <DateRangePicker date={dateRange} onChange={setDateRange} />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">{"Statut du paiement"}</label>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="max-w-40">
+                  <Tag size={16}/>
+                  <SelectValue placeholder="Statut" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{"Tous"}</SelectItem>
+                  {paymentStatus.map((x, id) => (
+                    <SelectItem key={id} value={x}>
+                      {payStatusName(x)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">{"Méthode de paiement"}</label>
             <Select value={methodFilter} onValueChange={setMethodFilter}>
               <SelectTrigger className="max-w-40">
                 <DollarSign size={16}/>
@@ -275,6 +283,9 @@ export default function PaymentsPage() {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">{"Point de vente"}</label>
             <Select value={shopFilter} onValueChange={setShopFilter}>
             <SelectTrigger>
               <Store size={16} />
@@ -290,6 +301,7 @@ export default function PaymentsPage() {
               {shops.length === 0 && <SelectItem value="disabled" disabled>{"Aucune boutique"}</SelectItem>}
             </SelectContent>
           </Select>
+          </div>
         </div>
       </div>
 

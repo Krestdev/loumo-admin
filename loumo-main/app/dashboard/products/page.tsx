@@ -151,53 +151,65 @@ export default function ProductsPage() {
           <CardTitle>{"Filtres et actions"}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4 flex-wrap items-center">
-            <div className="flex-1 min-w-[200px]">
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Rechercher un produit..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8"
-                />
+          <div className="flex gap-4 flex-wrap items-end">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{"Recherche"}</label>
+              <div className="flex-1 min-w-[200px]">
+                <div className="relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Rechercher un produit..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-8"
+                  />
+                </div>
               </div>
             </div>
-            <Select value={sortDirection} onValueChange={setSortDirection}>
-              <SelectTrigger className="w-32">
-                {sortDirection === "asc" ? <ArrowDownAZ size={16}/> : <ArrowUpAz size={16}/>}
-                <SelectValue placeholder="Arranger par ordre alphabétique"/>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="asc">{"A-Z"}</SelectItem>
-                <SelectItem value="desc">{"Z-A"}</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Catégorie" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{"Tous"}</SelectItem>
-                {categories
-                  .filter((x) => x.products && x.products.length > 0)
-                  .map((cat) => (
-                    <SelectItem key={cat.id} value={cat.name}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Statut" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{"Tous"}</SelectItem>
-                <SelectItem value="true">{"Actif"}</SelectItem>
-                <SelectItem value="false">{"Désactivé"}</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{"Classer par ordre"}</label>
+              <Select value={sortDirection} onValueChange={setSortDirection}>
+                <SelectTrigger className="w-32">
+                  {sortDirection === "asc" ? <ArrowDownAZ size={16}/> : <ArrowUpAz size={16}/>}
+                  <SelectValue placeholder="Arranger par ordre alphabétique"/>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="asc">{"A-Z"}</SelectItem>
+                  <SelectItem value="desc">{"Z-A"}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{"Catégorie"}</label>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Catégorie" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{"Tous"}</SelectItem>
+                  {categories
+                    .filter((x) => x.products && x.products.length > 0)
+                    .map((cat) => (
+                      <SelectItem key={cat.id} value={cat.name}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{"Statut"}</label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Statut" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{"Tous"}</SelectItem>
+                  <SelectItem value="true">{"Actif"}</SelectItem>
+                  <SelectItem value="false">{"Désactivé"}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             {/**Add Product */}
               <Button onClick={()=>handleAdd()}>
                 <PlusCircle size={16} /> {"Ajouter un produit"}

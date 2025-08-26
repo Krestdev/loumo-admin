@@ -254,104 +254,120 @@ export default function OrdersPage() {
           <CardTitle>{"Filtres"}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            <div className="relative">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Rechercher par client ou numéro..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8"
-              />
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{"Recherche"}</label>
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Rechercher par client ou numéro..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{"Classer par ordre"}</label>
+              <Select
+                value={sortDirection}
+                onValueChange={(value) =>
+                  setSortDirection(value as "asc" | "desc")
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <ArrowUpDown size={16}/>
+                  <SelectValue placeholder="Trier par date" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="desc">{"Les plus récentes"}</SelectItem>
+                  <SelectItem value="asc">{"Les plus anciennes"}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{"Statut"}</label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full">
+                  <BadgeCheck size={16} />
+                  <SelectValue placeholder="Statut commande" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{"Tous les statuts"}</SelectItem>
+                  {orderStatus.map((x, i) => (
+                    <SelectItem key={i} value={x}>
+                      {getOrderStatusLabel(x)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{"Etat du paiement"}</label>
+              <Select value={paymentFilter} onValueChange={setPaymentFilter}>
+                <SelectTrigger className="w-full">
+                  <ArrowRightCircle size={16} />
+                  <SelectValue placeholder="Statut paiement" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{"Tous les paiements"}</SelectItem>
+                  {paymentStatus.map((x, id) => (
+                    <SelectItem key={id} value={x}>
+                      {payStatusName(x)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{"Période"}</label>
+              <Select value={periodFilter} onValueChange={setPeriodFilter}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Période" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{"Toutes les dates"}</SelectItem>
+                  <SelectItem value="1days">{"Aujourd'hui"}</SelectItem>
+                  <SelectItem value="7days">{"Cette semaine"}</SelectItem>
+                  <SelectItem value="30days">{"Ce mois"}</SelectItem>
+                  <SelectItem value="90days">{"Ce trimestre"}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <Select
-              value={sortDirection}
-              onValueChange={(value) =>
-                setSortDirection(value as "asc" | "desc")
-              }
-            >
-              <SelectTrigger className="w-full">
-                <ArrowUpDown size={16}/>
-                <SelectValue placeholder="Trier par date" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="desc">{"Les plus récentes"}</SelectItem>
-                <SelectItem value="asc">{"Les plus anciennes"}</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full">
-                <BadgeCheck size={16} />
-                <SelectValue placeholder="Statut commande" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{"Tous les statuts"}</SelectItem>
-                {orderStatus.map((x, i) => (
-                  <SelectItem key={i} value={x}>
-                    {getOrderStatusLabel(x)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={paymentFilter} onValueChange={setPaymentFilter}>
-              <SelectTrigger className="w-full">
-                <ArrowRightCircle size={16} />
-                <SelectValue placeholder="Statut paiement" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{"Tous les paiements"}</SelectItem>
-                {paymentStatus.map((x, id) => (
-                  <SelectItem key={id} value={x}>
-                    {payStatusName(x)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={periodFilter} onValueChange={setPeriodFilter}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Période" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{"Toutes les dates"}</SelectItem>
-                <SelectItem value="1days">{"Aujourd'hui"}</SelectItem>
-                <SelectItem value="7days">{"Cette semaine"}</SelectItem>
-                <SelectItem value="30days">{"Ce mois"}</SelectItem>
-                <SelectItem value="90days">{"Ce trimestre"}</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={zoneFilter} onValueChange={setZoneFilter}>
-              <SelectTrigger className="w-full">
-                <Store size={16} />
-                <SelectValue placeholder="Zone de livraison" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{"Toutes les zones"}</SelectItem>
-                {zones.map((x) => (
-                  <SelectItem key={x.id} value={x.name}>
-                    {x.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={amountFilter} onValueChange={setAmountFilter}>
-              <SelectTrigger className="w-full">
-                <DollarSign size={16} />
-                <SelectValue placeholder="Montant" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{"Tous les montants"}</SelectItem>
-                <SelectItem value="0-20">{"Moins de 20 000"}</SelectItem>
-                <SelectItem value="20-50">{"20 000 - 50 000"}</SelectItem>
-                <SelectItem value="50-100">{"50 000 - 100 000"}</SelectItem>
-                <SelectItem value="100+">{"Plus de 100 000"}</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{"Zone de livraison"}</label>
+              <Select value={zoneFilter} onValueChange={setZoneFilter}>
+                <SelectTrigger className="w-full">
+                  <Store size={16} />
+                  <SelectValue placeholder="Zone de livraison" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{"Toutes les zones"}</SelectItem>
+                  {zones.map((x) => (
+                    <SelectItem key={x.id} value={x.name}>
+                      {x.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{"Montant"}</label>
+              <Select value={amountFilter} onValueChange={setAmountFilter}>
+                <SelectTrigger className="w-full">
+                  <DollarSign size={16} />
+                  <SelectValue placeholder="Montant" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{"Tous les montants"}</SelectItem>
+                  <SelectItem value="0-20">{"Moins de 20 000"}</SelectItem>
+                  <SelectItem value="20-50">{"20 000 - 50 000"}</SelectItem>
+                  <SelectItem value="50-100">{"50 000 - 100 000"}</SelectItem>
+                  <SelectItem value="100+">{"Plus de 100 000"}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button className="w-full" variant={"default"}>

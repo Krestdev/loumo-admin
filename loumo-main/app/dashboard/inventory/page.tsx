@@ -45,8 +45,7 @@ import {
   AlertTriangle,
   Calendar,
   CirclePlus,
-  Package,
-  Search
+  Package
 } from "lucide-react";
 import React, { useMemo, useState } from "react";
 import Restock from "./add";
@@ -102,6 +101,8 @@ export default function InventoryPage() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<string>("all");
+  const [selectedShop, setSelectedShop] = useState<string>("all");
+  const [stockFilter, setStockFilter] = useState<string>("all");
   //const [selectedThreshold, setSelectedThreshold] = useState("all");
   const [dateFrom, setDateFrom] = useState<Date>();
   const [dateTo, setDateTo] = useState<Date>();
@@ -117,6 +118,14 @@ export default function InventoryPage() {
       const matchesProduct =
         selectedProduct === "all" ||
         String(item.productVariant?.productId) === selectedProduct;
+
+      const matchesShop =
+        selectedShop === "all" ||
+        String(item.shopId) === selectedShop;
+
+      const thresholdFilter =
+        stockFilter === "all" ||
+        stockFilter === "low" ? item.quantity <= item.threshold : false || stockFilter === "ok" ? item.quantity > item.threshold : false;
       /* const matchesThreshold =
       selectedThreshold === "all" || item.status === selectedThreshold; */
 
@@ -126,9 +135,9 @@ export default function InventoryPage() {
       matchesDate = itemDate >= dateFrom && itemDate <= dateTo;
     } */
 
-      return matchesSearch && matchesProduct; //&& matchesThreshold && matchesDate;
+      return matchesSearch && matchesProduct && matchesShop && thresholdFilter; //&& matchesThreshold && matchesDate;
     });
-  }, [stocks, searchTerm, selectedProduct]);
+  }, [stocks, searchTerm, selectedProduct, selectedShop, stockFilter]);
 
   const handleRestock = (item: Stock) => {
     setSelectedStock(item);
@@ -209,20 +218,38 @@ export default function InventoryPage() {
           <CardTitle>{"Filtres"}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-            <div className="space-y-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+            <div className="space-y-2 col-span-1 sm:col-span-2">
               <label className="text-sm font-medium">{"Recherche"}</label>
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Rechercher une variante par nom"
+                  placeholder="Rechercher par nom"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8"
                 />
-              </div>
             </div>
 
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{"Point de vente"}</label>
+              <Select
+                value={selectedShop}
+                onValueChange={setSelectedShop}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Sélectionner" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{"Tous"}</SelectItem>
+                  {shops
+                    .filter((z) => stocks.some(y=> y.shopId === z.id))
+                    .map((x) => (
+                      <SelectItem key={x.id} value={String(x.id)}>
+                        {x.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">{"Produit"}</label>
               <Select
@@ -230,7 +257,7 @@ export default function InventoryPage() {
                 onValueChange={setSelectedProduct}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Tous les produits" />
+                  <SelectValue placeholder="Sélectionner" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{"Tous les produits"}</SelectItem>
@@ -244,7 +271,26 @@ export default function InventoryPage() {
                 </SelectContent>
               </Select>
             </div>
-
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{"Etat du stock"}</label>
+              <Select
+                value={stockFilter}
+                onValueChange={setStockFilter}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Sélectionner" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{"Tous"}</SelectItem>
+                  <SelectItem value={"low"}>
+                    {"Critique"}
+                  </SelectItem>
+                  <SelectItem value={"ok"}>
+                    {"Non critique"}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             {/* <div className="space-y-2">
               <label className="text-sm font-medium">{"Seuil de stock"}</label>
               <Select
@@ -272,6 +318,7 @@ export default function InventoryPage() {
                   <Button
                     variant="outline"
                     className="w-full justify-start text-left font-normal"
+                    size={"lg"}
                   >
                     <Calendar className="mr-2 h-4 w-4" />
                     {dateFrom
@@ -298,6 +345,7 @@ export default function InventoryPage() {
                   <Button
                     variant="outline"
                     className="w-full justify-start text-left font-normal"
+                    size={"lg"}
                   >
                     <Calendar className="mr-2 h-4 w-4" />
                     {dateTo
