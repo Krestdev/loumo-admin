@@ -176,6 +176,23 @@ function PageAdd() {
             />
             <FormField
               control={form.control}
+              name="weight"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{"Poids de la variante"}</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="Poids"
+                        className="pr-10"
+                      />
+                    </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="unit"
               render={({ field }) => (
                 <FormItem>
@@ -208,28 +225,6 @@ function PageAdd() {
                     </FormControl>
                     <span className="text-muted-foreground absolute right-3 top-1/2 -translate-y-1/2 text-sm">
                       {"FCFA"}
-                    </span>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="weight"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{"Poids de la variante"}</FormLabel>
-                  <div className="relative">
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="Poids en kg"
-                        className="pr-10"
-                      />
-                    </FormControl>
-                    <span className="text-muted-foreground absolute right-3 top-1/2 -translate-y-1/2 text-sm">
-                      {"kg"}
                     </span>
                   </div>
                   <FormMessage />

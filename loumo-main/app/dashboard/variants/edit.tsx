@@ -188,6 +188,23 @@ function EditVariant({ variant, isOpen, openChange, products }: Props) {
               />
               <FormField
                 control={form.control}
+                name="weight"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{"Poids"}</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="Poids"
+                          className="pr-10"
+                        />
+                      </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
                 name="unit"
                 render={({ field }) => (
                   <FormItem>
@@ -229,28 +246,6 @@ function EditVariant({ variant, isOpen, openChange, products }: Props) {
                       </FormControl>
                       <span className="text-muted-foreground absolute right-3 top-1/2 -translate-y-1/2 text-sm">
                         {"FCFA"}
-                      </span>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="weight"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{"Poids"}</FormLabel>
-                    <div className="relative">
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder="Poids"
-                          className="pr-10"
-                        />
-                      </FormControl>
-                      <span className="text-muted-foreground absolute right-3 top-1/2 -translate-y-1/2 text-sm">
-                        {"kg"}
                       </span>
                     </div>
                     <FormMessage />

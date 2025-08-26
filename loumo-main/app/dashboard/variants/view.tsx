@@ -31,7 +31,7 @@ function ViewVariant({ isOpen, openChange, variant, products, shops }: Props) {
         <div className="space-y-6">
           <div className="flex items-center gap-4">
             <img
-              src={!variant.imgUrl ? "/images/placeholder.svg" : variant.imgUrl.includes("http") ? variant.imgUrl : `${process.env.NEXT_PUBLIC_API_BASE_URL}${variant.imgUrl}`}
+              src={!variant.imgUrl ? "/images/placeholder.svg" : variant.imgUrl.includes("http") ? variant.imgUrl : `${process.env.NEXT_PUBLIC_API_BASE_URL}${variant.imgUrl.startsWith("/")?variant.imgUrl.slice(1):variant.imgUrl}`}
               alt={variant.name}
               className="h-20 w-20 rounded-md object-cover"
             />
@@ -79,7 +79,7 @@ function ViewVariant({ isOpen, openChange, variant, products, shops }: Props) {
                   {variant.stock.map((x) => (
                     <div key={x.id} className="flex gap-2 text-xs">
                       <span>
-                        {shops.find((y) => y.id === x.id)?.name || "Undefined"}
+                        {shops.find((y) => y.id === x.shopId)?.name || "Undefined"}
                       </span>
                       <span className="font-semibold">{x.quantity}</span>
                     </div>

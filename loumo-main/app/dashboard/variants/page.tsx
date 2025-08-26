@@ -336,7 +336,7 @@ export default function VariantsPage() {
                                 ? "/images/placeholder.svg"
                                 : variant.imgUrl.includes("http")
                                 ? variant.imgUrl
-                                : `${process.env.NEXT_PUBLIC_API_BASE_URL}${variant.imgUrl}`
+                                : `${process.env.NEXT_PUBLIC_API_BASE_URL}${variant.imgUrl.startsWith("/")?variant.imgUrl.slice(1):variant.imgUrl}`
                             }
                             alt={variant.name}
                             className="h-10 w-10 rounded-md object-cover"
@@ -386,7 +386,7 @@ export default function VariantsPage() {
                           {variant.stock.map((x) => (
                             <div key={x.id} className="flex gap-2 text-xs">
                               <span>
-                                {shops.find((y) => y.id === x.id)?.name ??
+                                {shops.find((y) => y.id === x.shopId)?.name ??
                                   "Undefined"}
                               </span>
                               <span className="font-semibold">

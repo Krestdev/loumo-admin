@@ -31,6 +31,9 @@ function DeleteProduct({ product, isOpen, openChange }: Props) {
                 <DialogTitle>{`Supprimer ${product.name}`}</DialogTitle>
                 <DialogDescription>{"Êtes-vous sûr de vouloir supprimer ce produit ?"}</DialogDescription>
             </DialogHeader>
+            <div>
+                <p className='text-gray-600 font-medium text-sm'>{"En supprimant ce produit, vous supprimerez également les variantes associées ainsi que leurs stocks."}</p>
+            </div>
             <div className='flex justify-end gap-2'>
                 <Button variant={"destructive"} onClick={()=>{deleteProduct.mutate(product.id)}} disabled={deleteProduct.isPending}>{ deleteProduct.isPending ? <Loader size={16}/> : <Trash2 size={16}/>} {"Supprimer"}</Button>
                 <Button variant={"outline"} onClick={()=>openChange(false)}>{"Annuler"}</Button>
