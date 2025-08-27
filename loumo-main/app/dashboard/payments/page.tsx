@@ -243,19 +243,18 @@ export default function PaymentsPage() {
       className="p-4 space-y-6"
     >
       {/**Filtres */}
-      <div className="p-6 w-full bg-white rounded-lg flex flex-wrap justify-between items-center gap-4 sm:gap-6 shadow-sm">
+      <div className="p-6 w-full bg-white rounded-lg grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-6 gap-4 shadow-sm">
         <h4 className="font-semibold text-sm sm:text-base flex gap-2 items-center"><Filter size={16}/> {"Filtres"}</h4>
-        <div className="flex gap-3 flex-wrap">
           <div className="space-y-2">
             <label className="text-sm font-medium">{"Période"}</label>
-            <DateRangePicker date={dateRange} onChange={setDateRange} />
+            <DateRangePicker date={dateRange} onChange={setDateRange} className="!w-full" />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">{"Statut du paiement"}</label>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="max-w-40">
+                <SelectTrigger className="w-full">
                   <Tag size={16}/>
-                  <SelectValue placeholder="Statut" />
+                  <SelectValue placeholder="Statut"></SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{"Tous"}</SelectItem>
@@ -270,7 +269,7 @@ export default function PaymentsPage() {
           <div className="space-y-2">
             <label className="text-sm font-medium">{"Méthode de paiement"}</label>
             <Select value={methodFilter} onValueChange={setMethodFilter}>
-              <SelectTrigger className="max-w-40">
+              <SelectTrigger className="w-full">
                 <DollarSign size={16}/>
                 <SelectValue placeholder="Méthode" />
               </SelectTrigger>
@@ -287,7 +286,7 @@ export default function PaymentsPage() {
           <div className="space-y-2">
             <label className="text-sm font-medium">{"Point de vente"}</label>
             <Select value={shopFilter} onValueChange={setShopFilter}>
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <Store size={16} />
               <SelectValue placeholder="Point de vente" />
             </SelectTrigger>
@@ -302,7 +301,6 @@ export default function PaymentsPage() {
             </SelectContent>
           </Select>
           </div>
-        </div>
       </div>
 
       {/* Payment Stats */}

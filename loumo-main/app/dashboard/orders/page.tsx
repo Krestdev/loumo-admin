@@ -258,7 +258,7 @@ export default function OrdersPage() {
             <div className="space-y-2">
               <label className="text-sm font-medium">{"Recherche"}</label>
               <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Rechercher par client ou numéro..."
                   value={searchTerm}
@@ -368,30 +368,32 @@ export default function OrdersPage() {
                 </SelectContent>
               </Select>
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button className="w-full" variant={"default"}>
-                  <Download size={16}/>
-                  {"Exporter"}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-60">
-                <DropdownMenuItem className="w-full">
-                  <PDFDownloadLink
-              document={<OrdersPDFDocument orders={filteredOrders} />}
-              fileName="liste-commandes.pdf"
-              className="w-full"
-            >
-              {({ loading }) =>
-                  loading ? <Loader size={16} className="animate-spin"/> : <span>{"vers PDF"}</span>
-              }
-            </PDFDownloadLink>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={()=>handleExcelExport(filteredOrders)}>
-                  {"vers Excel"}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex items-end">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button className="w-full" variant={"default"}>
+                    <Download size={16}/>
+                    {"Exporter"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-60">
+                  <DropdownMenuItem className="w-full">
+                    <PDFDownloadLink
+                document={<OrdersPDFDocument orders={filteredOrders} />}
+                fileName="liste-commandes.pdf"
+                className="w-full"
+              >
+                {({ loading }) =>
+                    loading ? <Loader size={16} className="animate-spin"/> : <span>{"vers PDF"}</span>
+                }
+              </PDFDownloadLink>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={()=>handleExcelExport(filteredOrders)}>
+                    {"vers Excel"}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </CardContent>
       </Card>
