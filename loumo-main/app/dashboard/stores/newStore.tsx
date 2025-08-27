@@ -32,9 +32,9 @@ import ShopQuery from "@/queries/shop";
 import { Zone } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { CirclePlus, Loader } from "lucide-react";
+import { CirclePlus, Loader, PlusCircle, X } from "lucide-react";
 import React from "react";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
 type Props = {
@@ -58,7 +58,7 @@ const zoneSchema = z.object({
     message: "Doit être un nombre",
   }),
   status: z.enum(["ACTIVE", "INACTIVE", "PENDING", "DISABLED"]),
-  address: addressSchema,
+  addresses: z.array(addressSchema).min(1,{message: "Veuillez ajouter une adresse"}),
 });
 const formDefault = z.object({
   name: z
@@ -97,14 +97,19 @@ function NewStore({ isOpen, openChange, zones }: Props) {
         description: "",
         price: "500",
         status: "ACTIVE",
-        address: {
+        addresses: [{
           local: "",
           description: "",
           published: true
-        }
+        }]
       }
     }
-  })
+  });
+
+  const { fields, append, remove } = useFieldArray({
+        control: form.control,
+        name: "zone.addresses",
+      });
 
 
   const queryClient = useQueryClient();
@@ -136,12 +141,7 @@ function NewStore({ isOpen, openChange, zones }: Props) {
         price: Number(values.zone.price),
         status: values.zone.status,
       },
-      addressNew: {
-        street: formatName(values.zone.address.local),
-        local: formatName(values.zone.address.local),
-        description: values.zone.address.description ?? "",
-        published: values.zone.address.published
-      }
+      addresses: values.zone.addresses.map(el=> el.description !== "" ? el : {local:formatName(el.local), street: formatName(el.local), published: el.published})
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -336,47 +336,61 @@ function NewStore({ isOpen, openChange, zones }: Props) {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="zone.address.local"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{"Nom du quartier"}</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="ex. Beedi" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="zone.address.description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{"Description"}</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="ex. au croisement de..."
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="zone.address.published"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <SwitchLabel {...field} name="Statut" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-1 gap-4">
+          <h3 className="font-semibold">{`Quartiers (${fields.length})`}</h3>
+          {fields.length === 0 && 
+          <span className="text-sm text-gray-600 italic">{"Aucun quartier ajouté"}</span>}
+          {
+                      fields.map((field, index)=>(
+                        <div key={field.id} className="p-3 rounded-md border grid grid-cols-1 gap-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <span className="text-semibold text-lg">{"Adresse"}</span>
+                            <Button variant={"delete"} size={"icon"} onClick={(e)=>{e.preventDefault(); remove(index)}}>
+                              <X size={16} />
+                            </Button>
+                          </div>
+                          <FormField control={form.control} name={`zone.addresses.${index}.local`} render={({field})=>(
+                            <FormItem>
+                              <FormLabel>
+                                {"Nom du quartier"}
+                              </FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="ex. Beedi" />
+                              </FormControl>
+                              <FormMessage/>
+                            </FormItem>
+                          )}/>
+                          <FormField control={form.control} name={`zone.addresses.${index}.description`} render={({field})=>(
+                            <FormItem>
+                              <FormLabel>
+                                {"Description"}
+                              </FormLabel>
+                              <FormControl>
+                                <Textarea {...field} placeholder="Description..." />
+                              </FormControl>
+                              <FormMessage/>
+                            </FormItem>
+                          )}/>
+                          <FormField control={form.control} name={`zone.addresses.${index}.published`} render={({field})=>(
+                            <FormItem>
+                              <FormControl>
+                                <SwitchLabel {...field} name="Statut" />
+                              </FormControl>
+                              <FormMessage/>
+                            </FormItem>
+                          )}/>
+                        </div>
+                      ))
+                    }
+                    <Button variant={"outline"} className="w-full border-dashed shadow-none" onClick={(e)=>{e.preventDefault();append({
+                                local: "",
+                                description: "",
+                                published: true
+                              })}}>
+                                <PlusCircle size={16}/>
+                                {"Ajouter un Quartier"}
+                              </Button>
+          </div>
             <div className="flex justify-end gap-2">
               <Button type="submit" disabled={createShop.isPending}>
                 {createShop.isPending ? (

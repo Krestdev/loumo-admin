@@ -239,7 +239,7 @@ function AddZone({ isOpen, openChange }: Props) {
               </div>
             ))
           }
-          <Button variant={"outline"} className="w-full border-dashed shadow-none" onClick={(e)=>{e.preventDefault();append({
+          <Button variant={"outline"} className="w-full border-dashed shadow-sm bg-white" onClick={(e)=>{e.preventDefault();append({
             local: "",
             description: "",
             published: true

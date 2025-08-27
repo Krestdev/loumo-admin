@@ -213,7 +213,7 @@ export default function StoresPage() {
                           <div className="font-medium">{store.name}</div>
                           <div className="text-sm text-muted-foreground flex items-center">
                             <MapPin className="mr-1 h-3 w-3" />
-                            {store.address?.street ?? "Adresse non définie"}
+                            {zones.find(x=>x.addresses.some(y=>y.id === store.addressId))?.name ?? "Non défini"}
                           </div>
                         </div>
                       </TableCell>

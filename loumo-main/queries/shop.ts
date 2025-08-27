@@ -17,17 +17,30 @@ export default class ShopQuery {
   };
 
   createWithZone = async (
-    data: Partial<Shop> & {zone: ZoneShop} & {addressNew: Partial<Address>;}
-  ): Promise<Shop> => {
-    const {addressNew, ...props} = data;
-    const {zone, ...more} = props;
-    const {description:zoneDescription, ...restZone} = zone;
-    const zonePayload = !!zoneDescription ? zoneDescription.length > 0 ? props : {...more, zone:restZone} : {...more, zone:restZone};
-    const {description:addressDescription, ...rest} = addressNew;
-    const payload = !!addressDescription ? addressDescription.length > 0 ? addressNew : rest : rest; 
-    return api.post(`${this.route}`, {address: payload, ...zonePayload}).then((response)=>response.data);
-  }
+  data: Partial<Shop> & { zone: ZoneShop } & { addresses: Partial<Address>[] }
+): Promise<Shop> => {
+  const { addresses, ...props } = data;
+  const { zone, ...more } = props;
 
+  // Gestion des adresses (tableau)
+  const addressesPayload = addresses.map((addr) => {
+    const { description: addressDescription, ...rest } = addr;
+    return !!addressDescription && addressDescription.length > 0
+      ? addr
+      : rest;
+  });
+
+  // Gestion du zone
+  const { description: zoneDescription, ...restZone } = zone;
+  const payload =
+    !!zoneDescription && zoneDescription.length > 0
+      ? props
+      : { ...more, zone: {...restZone, addresses: addressesPayload} };
+
+  return api
+    .post(`${this.route}`, payload)
+    .then((response) => response.data);
+};
   getAll = async (): Promise<Shop[]> => {
     return api.get(`${this.route}/`).then((response) => {
       return response.data;
