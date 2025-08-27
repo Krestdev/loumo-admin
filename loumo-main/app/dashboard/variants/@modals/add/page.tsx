@@ -27,7 +27,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
 
@@ -119,7 +118,6 @@ function PageAdd() {
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     addVariant.mutate(values);
   };
-  const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
 
   return (
     <ModalLayout
