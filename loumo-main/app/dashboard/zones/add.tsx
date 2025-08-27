@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { formatName } from "@/lib/utils";
 import ZoneQuery from "@/queries/zone";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -80,11 +81,11 @@ function AddZone({ isOpen, openChange }: Props) {
   const createZone= useMutation({
     mutationFn: (values: z.infer<typeof formSchema>) =>
       zoneQuery.create({
-          name: values.name,
+          name: formatName(values.name),
           price: Number(values.price),
           description: values.description ?? "",
           status: values.status,
-          addresses: values.addresses.map(el=> el.description !== "" ? el : {local:el.local, street: el.local, published: el.published})
+          addresses: values.addresses.map(el=> el.description !== "" ? el : {local:formatName(el.local), street: formatName(el.local), published: el.published})
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({

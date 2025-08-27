@@ -30,8 +30,8 @@ function ViewStore({ isOpen, openChange, store, CA, totalOrders, zones }: Props)
                         <span className="text-gray-900 font-medium">{store.name}</span>
                     </div>
                     <div className="flex flex-col gap-1">
-                        <span className="text-gray-600 flex items-center gap-2 text-sm"><MapPinHouse size={16} />{"Adresse"}</span>
-                        <span className="text-gray-900 font-medium">{store.address?.street ?? "Non défini"}</span>
+                        <span className="text-gray-600 flex items-center gap-2 text-sm"><MapPinHouse size={16} />{"Zone"}</span>
+                        <span className="text-gray-900 font-medium">{zones.find(x=>x.addresses.some(y=>y.id === store.addressId))?.name ?? "Non défini"}</span>
                     </div>
                     <div className="flex flex-col gap-1">
                         <span className="text-gray-600 flex items- gap-2 text-sm"><DollarSign size={16}/> {"Chiffre d'Affaires"}</span>
@@ -42,7 +42,7 @@ function ViewStore({ isOpen, openChange, store, CA, totalOrders, zones }: Props)
                         <span className="text-gray-900 font-medium">{totalOrders}</span>
                     </div>
                     <div className="col-span-1 sm:col-span-2 flex flex-col gap-1">
-                        <span className="text-gray-600 flex items-center gap-2 text-sm"><Map size={16}/> {"Zone desservie"}</span>
+                        <span className="text-gray-600 flex items-center gap-2 text-sm"><Map size={16}/> {"Quartiers associés"}</span>
                         <span className="flex flex-wrap gap-1">{zones.find(y=>y.id === store.addressId)?.addresses.map(x=> (
                             <Badge variant={"outline"} key={x.id}>{x.street}</Badge>
                         ))}</span>

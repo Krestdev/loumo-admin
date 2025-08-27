@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { formatName } from '@/lib/utils';
 import ProductQuery from '@/queries/product';
 import { Category, Product } from '@/types/types';
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -47,7 +48,7 @@ function EditProduct({product, categories, isOpen, openChange}:Props) {
     const queryClient = useQueryClient();
     const productUpdate = useMutation({
         mutationFn: (values:z.infer<typeof formSchema>) => actions.update(product.id, {
-            name: values.name,
+            name: formatName(values.name),
             status: values.status,
             categoryId: Number(values.category),
             description: values.description,

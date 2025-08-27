@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { formatName } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import AddressQuery from "@/queries/address";
 import { Zone } from "@/types/types";
@@ -67,8 +68,8 @@ function AddAddress({ isOpen, openChange, zones }: Props) {
   const createAddress = useMutation({
     mutationFn: (values: z.infer<typeof formSchema>) =>
       addressQuery.create({
-        street: values.local,
-        local: values.local,
+        street: formatName(values.local),
+        local: formatName(values.local),
         published: values.published,
         description: values.description ?? "",
         zoneId: Number(values.zoneId),

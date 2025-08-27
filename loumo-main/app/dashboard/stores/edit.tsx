@@ -1,25 +1,32 @@
 import { Button } from "@/components/ui/button";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
 } from "@/components/ui/dialog";
 import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { formatName } from "@/lib/utils";
 import ShopQuery from "@/queries/shop";
-import { Address, Shop } from "@/types/types";
+import { Shop, Zone } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DialogTitle } from "@radix-ui/react-dialog";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader } from "lucide-react";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -29,7 +36,7 @@ interface Props {
   isOpen: boolean;
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
   store: Shop;
-  addresses: Address[];
+  zones: Zone[];
 }
 
 const formSchema = z.object({
@@ -44,8 +51,9 @@ const formSchema = z.object({
     }),
 });
 
-function EditStore({ isOpen, openChange, store, addresses }: Props) {
+function EditStore({ isOpen, openChange, store, zones }: Props) {
   const actions = new ShopQuery();
+  const queryClient = useQueryClient();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -57,9 +65,14 @@ function EditStore({ isOpen, openChange, store, addresses }: Props) {
   const editShop = useMutation({
     mutationFn: (values: z.infer<typeof formSchema>) =>
       actions.update(store.id, {
-        name: values.name,
+        name: formatName(values.name),
         addressId: Number(values.addressId),
       }),
+      onSuccess:()=>{
+        queryClient.invalidateQueries({queryKey: ["shops"], refetchType: "active"});
+        queryClient.invalidateQueries({queryKey: ["zones"], refetchType: "active"});
+        openChange(false);
+      }
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
@@ -104,7 +117,7 @@ function EditStore({ isOpen, openChange, store, addresses }: Props) {
               name="addressId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{"Adresse du Point de vente"}</FormLabel>
+                  <FormLabel>{"Zone"}</FormLabel>
                   <FormControl>
                     <Select
                       defaultValue={field.value}
@@ -114,16 +127,18 @@ function EditStore({ isOpen, openChange, store, addresses }: Props) {
                         <SelectValue placeholder="Sélectionnez une adresse" />
                       </SelectTrigger>
                       <SelectContent>
-                        {addresses
-                          .filter((y) => !!y.published)
-                          .map((x) => (
-                            <SelectItem key={x.id} value={String(x.id)}>
-                              <div>
-                                <div>{x.street}</div>
-                                <div className="font-medium">
-                                  {x.zone?.name}
-                                </div>
-                              </div>
+                        {zones
+                          .filter((zone) =>
+                            zone.addresses.some((add) => !!add.published)
+                          )
+                          .map((zone) => (
+                            <SelectItem
+                              key={zone.id}
+                              value={String(
+                                zone.addresses.find((x) => !!x.published)?.id
+                              )}
+                            >
+                              {zone.name}
                             </SelectItem>
                           ))}
                       </SelectContent>
@@ -134,8 +149,23 @@ function EditStore({ isOpen, openChange, store, addresses }: Props) {
               )}
             />
             <div className="flex justify-end gap-2">
-                <Button type="submit" disabled={editShop.isPending}>{editShop.isPending && <Loader size={16} className="animate-spin"/>}{ editShop.isPending ? "Modification..." :"Sauvegarder les modifications"}</Button>
-                <Button variant={"outline"} onClick={(e)=>{e.preventDefault(); openChange(false)}}>{"Annuler"}</Button>
+              <Button type="submit" disabled={editShop.isPending}>
+                {editShop.isPending && (
+                  <Loader size={16} className="animate-spin" />
+                )}
+                {editShop.isPending
+                  ? "Modification..."
+                  : "Sauvegarder les modifications"}
+              </Button>
+              <Button
+                variant={"outline"}
+                onClick={(e) => {
+                  e.preventDefault();
+                  openChange(false);
+                }}
+              >
+                {"Annuler"}
+              </Button>
             </div>
           </form>
         </Form>

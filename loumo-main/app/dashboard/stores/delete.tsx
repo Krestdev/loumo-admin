@@ -19,6 +19,7 @@ function DeleteStore({isOpen, openChange, store}:Props) {
         mutationFn: (id:number) => actions.delete(id),
         onSuccess: ()=>{
             queryClient.invalidateQueries({queryKey: ["shops"], refetchType: "active"});
+            queryClient.invalidateQueries({queryKey: ["zones"], refetchType: "active"});
             openChange(false);
         }
     })

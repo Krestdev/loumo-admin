@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { units } from "@/data/unit";
-import { unitName } from "@/lib/utils";
+import { formatName, unitName } from "@/lib/utils";
 import ProductQuery from "@/queries/product";
 import { Category, Shop } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -98,7 +98,7 @@ const formSchema = z.object({
   status: z.boolean(),
   description: z.string({
     message: "Veuillez renseigner une description du produit",
-  }),
+  }).min(40,{message: "40 caractères minimum"}),
   variants: z
     .array(variantSchema)
     .min(1, { message: "Veuillez ajouter au moins une variante" }),
@@ -162,13 +162,13 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
   const productAdd = useMutation({
     mutationFn: (values: z.infer<typeof formSchema>) => {
       return productAction.createWithImages({
-        name: values.name,
+        name: formatName(values.name),
         status: values.status,
         categoryId: Number(values.category),
         weight: 0,
         description: values.description,
         variants: values.variants.map((el) => ({
-          name: el.name,
+          name: formatName(el.name),
           weight: Number(el.weight),
           quantity: Number(el.quantity),
           unit: el.unit,

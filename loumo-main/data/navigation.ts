@@ -75,6 +75,14 @@ export const sidebarContent: sidebarItemGroup[] = [
     title: "Produits",
     items: [
       {
+        title: "Catégories",
+        header: "Gestion des Catégories",
+        description: "Gérez les catégories de vos produits",
+        url: "/dashboard/categories",
+        icon: Tag,
+        display: true
+      },
+      {
         title: "Produits",
         header: "Gestion des Produits",
         description: "Gérez votre catalogue de produits",
@@ -96,14 +104,6 @@ export const sidebarContent: sidebarItemGroup[] = [
         description: "Gérez les différentes variantes de vos produits",
         url: "/dashboard/variants",
         icon: Layers,
-        display: true
-      },
-      {
-        title: "Catégories",
-        header: "Gestion des Catégories",
-        description: "Gérez les catégories de vos produits",
-        url: "/dashboard/categories",
-        icon: Tag,
         display: true
       },
       {

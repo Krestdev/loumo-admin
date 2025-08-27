@@ -35,6 +35,6 @@ export default class AddressQuery {
   };
 
   delete = async (id: number): Promise<Address> => {
-    return api.delete(`/${this.route}/${id}`).then((response) => response.data);
+    return api.delete(`${this.route}/${id}`).then((response) => response.data);
   };
 }

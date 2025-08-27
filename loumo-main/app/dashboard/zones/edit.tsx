@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { formatName } from "@/lib/utils";
 import ZoneQuery from "@/queries/zone";
 import { Address, Zone } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -68,7 +69,7 @@ function EditZone({ isOpen, openChange, addresses, zone }: Props) {
   const updateZone = useMutation({
     mutationFn: (values: z.infer<typeof formSchema>) =>
       zoneQuery.update(zone.id, {
-        name: values.name,
+        name: formatName(values.name),
         price: Number(values.price),
         description: values.description ?? "",
         status: values.status,

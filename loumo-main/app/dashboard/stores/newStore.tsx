@@ -11,6 +11,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -26,11 +27,11 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import AddressQuery from "@/queries/address";
+import { formatName } from "@/lib/utils";
 import ShopQuery from "@/queries/shop";
-import { Address, Shop } from "@/types/types";
+import { Zone } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CirclePlus, Loader } from "lucide-react";
 import React from "react";
 import { useForm } from "react-hook-form";
@@ -39,7 +40,7 @@ import { z } from "zod";
 type Props = {
   isOpen: boolean;
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
-  shops: Shop[];
+  zones: Zone[];
 };
 
 const addressSchema = z.object({
@@ -78,7 +79,7 @@ const formSchema = z.object({
   zone: zoneSchema
 });
 
-function NewStore({ isOpen, openChange, shops }: Props) {
+function NewStore({ isOpen, openChange, zones }: Props) {
   const defaultForm = useForm<z.infer<typeof formDefault>>({
     resolver: zodResolver(formDefault),
     defaultValues: {
@@ -105,18 +106,12 @@ function NewStore({ isOpen, openChange, shops }: Props) {
     }
   })
 
-  const addressQuery = new AddressQuery();
-  const getAllAddresses = useQuery({
-    queryKey: ["addresses"],
-    queryFn: () => addressQuery.getAll(),
-    refetchOnWindowFocus: false,
-  });
 
   const queryClient = useQueryClient();
   const shopQuery = new ShopQuery();
   const createShopDefault = useMutation({
     mutationFn: async (values: z.infer<typeof formDefault>) => shopQuery.create({
-          name: values.name,
+          name: formatName(values.name),
           addressId: Number(values.addressId),
         }),
     onSuccess: () => {
@@ -136,14 +131,14 @@ function NewStore({ isOpen, openChange, shops }: Props) {
     mutationFn:   async (values: z.infer<typeof formSchema>) => shopQuery.createWithZone({
       name: values.name,
       zone: {
-        name: values.zone.name,
+        name: formatName(values.zone.name),
         description: values.zone.description ?? "No description",
         price: Number(values.zone.price),
         status: values.zone.status,
       },
       addressNew: {
-        street: values.zone.address.local,
-        local: values.zone.address.local,
+        street: formatName(values.zone.address.local),
+        local: formatName(values.zone.address.local),
         description: values.zone.address.description ?? "",
         published: values.zone.address.published
       }
@@ -161,13 +156,6 @@ function NewStore({ isOpen, openChange, shops }: Props) {
     },
   })
 
-  const [addresses, setAddresses] = React.useState<Address[]>([]);
-
-  React.useEffect(() => {
-    if (getAllAddresses.isSuccess) {
-      setAddresses(getAllAddresses.data);
-    }
-  }, [setAddresses, getAllAddresses.isSuccess, getAllAddresses.data]);
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     createShop.mutate(values);
@@ -218,31 +206,25 @@ function NewStore({ isOpen, openChange, shops }: Props) {
               name="addressId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{"Adresse"}</FormLabel>
+                  <FormLabel>{"Zone"}</FormLabel>
                   <FormControl>
                     <Select
                       defaultValue={field.value}
                       onValueChange={field.onChange}
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Sélectionnez une adresse" />
+                        <SelectValue placeholder="Sélectionnez une zone" />
                       </SelectTrigger>
                       <SelectContent>
-                        {addresses
-                          .filter((y) => !!y.published && !shops.some(z=>z.address?.zoneId === y.zoneId))
-                          .map((x) => (
-                            <SelectItem key={x.id} value={String(x.id)}>
-                              <div>
-                                <div>{x.street}</div>
-                                <div className="font-medium">
-                                  {x.zone?.name}
-                                </div>
-                              </div>
+                          {zones.filter(zone=> zone.addresses.some(add=>!!add.published)).map((zone)=> (
+                            <SelectItem key={zone.id} value={String(zone.addresses.find(x=>!!x.published)?.id)}>
+                              {zone.name}
                             </SelectItem>
                           ))}
                       </SelectContent>
                     </Select>
                   </FormControl>
+                  <FormDescription>{"Sélectionnez la zone à laquelle le point de vente sera rattaché"}</FormDescription>
                   <FormMessage/>
                 </FormItem>
               )}

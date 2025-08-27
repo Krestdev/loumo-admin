@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { units } from "@/data/unit";
-import { unitName } from "@/lib/utils";
+import { formatName, unitName } from "@/lib/utils";
 import ProductQuery from "@/queries/product";
 import ProductVariantQuery from "@/queries/productVariant";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -73,7 +73,7 @@ function PageAdd() {
         if(values.imgUrl){
             return actions.create({
         productId: Number(values.productId),
-        name: values.name,
+        name: formatName(values.name),
         weight: Number(values.weight),
         status: values.status,
         price: Number(values.price),
@@ -84,7 +84,7 @@ function PageAdd() {
         }
       return actions.create({
         productId: Number(values.productId),
-        name: values.name,
+        name: formatName(values.name),
         weight: Number(values.weight),
         status: values.status,
         price: Number(values.price),

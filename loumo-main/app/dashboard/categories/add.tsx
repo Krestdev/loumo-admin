@@ -19,6 +19,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { formatName } from "@/lib/utils";
 import CategoryQuery from "@/queries/category";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -60,7 +61,7 @@ function AddCategory({ isOpen, openChange }: Props) {
   const addCategory = useMutation({
     mutationFn: (values: z.infer<typeof formSchema>) =>
       categoryQuery.create({
-        name: values.name,
+        name: formatName(values.name),
         status: values.status,
         display: values.display,
         imgUrl: values.imgUrl,

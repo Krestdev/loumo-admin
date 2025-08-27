@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { units } from "@/data/unit";
-import { unitName } from "@/lib/utils";
+import { formatName, unitName } from "@/lib/utils";
 import ProductVariantQuery from "@/queries/productVariant";
 import { Product, ProductVariant } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -80,7 +80,7 @@ function EditVariant({ variant, isOpen, openChange, products }: Props) {
   const editVariant = useMutation({
     mutationFn: (values: z.infer<typeof formSchema>) =>
       actions.update(variant.id, {
-        name: values.name,
+        name: formatName(values.name),
         weight: Number(values.weight),
         price: Number(values.price),
         status: values.status,

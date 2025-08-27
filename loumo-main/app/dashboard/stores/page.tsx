@@ -33,7 +33,7 @@ import { useStore } from "@/providers/datastore";
 import OrderQuery from "@/queries/order";
 import ShopQuery from "@/queries/shop";
 import ZoneQuery from "@/queries/zone";
-import { Address, Order, Shop, Zone } from "@/types/types";
+import { Order, Shop, Zone } from "@/types/types";
 import {
   CirclePlus,
   Edit,
@@ -45,10 +45,9 @@ import {
   Trash2
 } from "lucide-react";
 import React, { useState } from "react";
-import NewStore from "./newStore";
 import DeleteStore from "./delete";
 import EditStore from "./edit";
-import AddressQuery from "@/queries/address";
+import NewStore from "./newStore";
 import ViewStore from "./view";
 
 export default function StoresPage() {
@@ -60,14 +59,10 @@ export default function StoresPage() {
 
   const zonesQuery = new ZoneQuery();
   const getZones = fetchAll(zonesQuery.getAll, "zones", 60000);
-  
-  const addressQuery = new AddressQuery();
-  const getAddresses = fetchAll(addressQuery.getAll, "addresses", 60000);
 
   const [shops, setShops] = useState<Shop[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
-  const [addresses, setAddresses] = useState<Address[]>([]);
   const { setLoading } = useStore();
 
   const [selectedStore, setSelectedStore] = useState<Shop>();
@@ -77,7 +72,7 @@ export default function StoresPage() {
   const [viewDialog, setViewDialog] = useState<boolean>(false);
 
   React.useEffect(() => {
-    setLoading(getShops.isLoading || getOrders.isLoading || getZones.isLoading || getAddresses.isLoading);
+    setLoading(getShops.isLoading || getOrders.isLoading || getZones.isLoading);
     if (getShops.isSuccess) {
       setShops(getShops.data);
     }
@@ -86,9 +81,6 @@ export default function StoresPage() {
     }
     if (getZones.isSuccess) {
       setZones(getZones.data);
-    }
-    if(getAddresses.isSuccess) {
-      setAddresses(getAddresses.data);
     }
   }, [
     setLoading,
@@ -101,9 +93,6 @@ export default function StoresPage() {
     getZones.isLoading,
     getZones.isSuccess,
     getZones.data,
-    getAddresses.isLoading,
-    getAddresses.isSuccess,
-    getAddresses.data,
   ]);
 
   //console.log(addresses);
@@ -140,7 +129,7 @@ export default function StoresPage() {
 
   return (
     <PageLayout
-      isLoading={getShops.isLoading || getOrders.isLoading || getZones.isLoading || getAddresses.isLoading}
+      isLoading={getShops.isLoading || getOrders.isLoading || getZones.isLoading}
       className="flex-1 space-y-4 p-4"
     >
       <div className="flex items-center justify-between space-y-2">
@@ -472,9 +461,9 @@ export default function StoresPage() {
           </Card>
         </TabsContent> */}
       </Tabs>
-      <NewStore isOpen={isDialogOpen} openChange={setIsDialogOpen} shops={shops}/>
+      <NewStore isOpen={isDialogOpen} openChange={setIsDialogOpen} zones={zones}/>
       {selectedStore && <DeleteStore isOpen={deleteDialog} openChange={setDeleteDialog} store={selectedStore}/>}
-      {selectedStore && <EditStore isOpen={editDialog} openChange={setEditDialog} store={selectedStore} addresses={addresses}/>}
+      {selectedStore && <EditStore isOpen={editDialog} openChange={setEditDialog} store={selectedStore} zones={zones}/>}
       {selectedStore && 
         <ViewStore 
         isOpen={viewDialog} 

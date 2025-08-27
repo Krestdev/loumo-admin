@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { formatName } from "@/lib/utils";
 import AddressQuery from "@/queries/address";
 import { Address, Zone } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -72,8 +73,8 @@ function EditAddress({ address, isOpen, openChange, zones }: Props) {
   const updateAddress = useMutation({
     mutationFn: (values: z.infer<typeof formSchema>) =>
       addressQuery.update(address.id, {
-        street: values.local,
-        local: values.local,
+        street: formatName(values.local),
+        local: formatName(values.local),
         published: values.published,
         description: values.description ?? null,
         zoneId: Number(values.zoneId),

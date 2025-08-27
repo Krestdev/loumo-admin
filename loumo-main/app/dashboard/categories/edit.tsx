@@ -19,6 +19,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { formatName } from "@/lib/utils";
 import CategoryQuery from "@/queries/category";
 import { Category } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -50,7 +51,7 @@ function EditCategory({ category, isOpen, openChange }: Props) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: category.name,
+      name: formatName(category.name),
       status: category.status,
       display: category.display,
       imgUrl: category.imgUrl,
