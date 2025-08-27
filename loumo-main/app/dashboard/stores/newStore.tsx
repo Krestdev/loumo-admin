@@ -18,6 +18,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import RequiredStar from "@/components/ui/requiredStar";
 import {
   Select,
   SelectContent,
@@ -193,7 +194,7 @@ function NewStore({ isOpen, openChange, zones }: Props) {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{"Nom du point de vente"}</FormLabel>
+                  <FormLabel>{"Nom du point de vente"}<RequiredStar/></FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="Entrez un nom" />
                   </FormControl>
@@ -206,7 +207,7 @@ function NewStore({ isOpen, openChange, zones }: Props) {
               name="addressId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{"Zone"}</FormLabel>
+                  <FormLabel>{"Zone"}<RequiredStar/></FormLabel>
                   <FormControl>
                     <Select
                       defaultValue={field.value}
@@ -260,7 +261,7 @@ function NewStore({ isOpen, openChange, zones }: Props) {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{"Nom du point de vente"}</FormLabel>
+                  <FormLabel>{"Nom du point de vente"}<RequiredStar/></FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="Entrez un nom" />
                   </FormControl>
@@ -273,7 +274,7 @@ function NewStore({ isOpen, openChange, zones }: Props) {
               name="zone.name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{"Nom de la zone"}</FormLabel>
+                  <FormLabel>{"Nom de la zone"}<RequiredStar/></FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="ex. Douala 5è" />
                   </FormControl>
@@ -302,7 +303,7 @@ function NewStore({ isOpen, openChange, zones }: Props) {
               name="zone.price"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{"Frais de livraison (FCFA)"}</FormLabel>
+                  <FormLabel>{"Frais de livraison (FCFA)"}<RequiredStar/></FormLabel>
                   <FormControl>
                     <Input type="number" {...field} />
                   </FormControl>
@@ -315,7 +316,7 @@ function NewStore({ isOpen, openChange, zones }: Props) {
               name="zone.status"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{"Statut"}</FormLabel>
+                  <FormLabel>{"Statut"}<RequiredStar/></FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
@@ -353,6 +354,7 @@ function NewStore({ isOpen, openChange, zones }: Props) {
                             <FormItem>
                               <FormLabel>
                                 {"Nom du quartier"}
+                                <RequiredStar/>
                               </FormLabel>
                               <FormControl>
                                 <Input {...field} placeholder="ex. Beedi" />

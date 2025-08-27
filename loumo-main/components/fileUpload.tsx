@@ -72,7 +72,7 @@ export function FileUploader({
           {previewUrl ? (
             <div className="absolute inset-0">
               <img
-                src={previewUrl}
+                src={previewUrl.includes("http") ? previewUrl : `${process.env.NEXT_PUBLIC_API_BASE_URL}${previewUrl.startsWith("/")?previewUrl.slice(1):previewUrl}`}
                 alt={currentFile?.name || "Uploaded image"}
                 className="size-full object-cover"
               />

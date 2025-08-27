@@ -19,6 +19,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import RequiredStar from "@/components/ui/requiredStar";
 import {
   Select,
   SelectContent,
@@ -187,6 +188,29 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
       queryClient.invalidateQueries({ queryKey: ["products"], type: "active" });
       queryClient.invalidateQueries({ queryKey: ["variants"], type: "active" });
       queryClient.invalidateQueries({ queryKey: ["stocks"], type: "active" });
+      form.reset({
+        name: "",
+        category: undefined,
+        status: true,
+        description: "",
+        variants: [
+          {
+            name: undefined,
+            weight: "1",
+            price: "500",
+            status: true,
+            quantity: "1",
+            unit: "kg",
+            stock: [
+              {
+                quantity: "100",
+                threshold: "20",
+                shopId: undefined,
+              },
+            ],
+          },
+        ],
+      })
       openChange(false);
     },
   });
@@ -194,7 +218,7 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
   {
     /**Clean up the form */
   }
-  React.useEffect(() => {
+  /* React.useEffect(() => {
     if (isOpen) {
       form.reset({
         name: "",
@@ -220,7 +244,7 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
         ],
       });
     }
-  }, [isOpen, form]);
+  }, [isOpen, form]); */
 
   const handleAddStock = (variantIndex: number) => {
     const variants = form.getValues("variants");
@@ -262,7 +286,7 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{"Nom du Produit"}</FormLabel>
+                      <FormLabel>{"Nom du Produit"}<RequiredStar/></FormLabel>
                       <FormControl>
                         <Input
                           {...field}
@@ -278,7 +302,7 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
                   name="category"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{"Catégorie"}</FormLabel>
+                      <FormLabel>{"Catégorie"}<RequiredStar/></FormLabel>
                       <FormControl>
                         <Select
                           defaultValue={field.value}
@@ -305,7 +329,7 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
                   name="description"
                   render={({ field }) => (
                     <FormItem className="col-span-1 md:col-span-2">
-                      <FormLabel>{"Description"}</FormLabel>
+                      <FormLabel>{"Description"}<RequiredStar/></FormLabel>
                       <FormControl>
                         <Textarea
                           {...field}
@@ -335,7 +359,7 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
             <div className="space-y-4">
               <h3 className="text-lg font-medium flex gap-2 items-center">
                 <Blocks size={16} />
-                {"Variantes du produit"}
+                {"Variantes du produit"}<RequiredStar/>
               </h3>
               {fields.map((field, index) => {
                 const stockFields: StockItem[] =

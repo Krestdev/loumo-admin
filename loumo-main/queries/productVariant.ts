@@ -62,10 +62,25 @@ create = async (
 
   update = async (
     id: number,
-    data: Partial<Omit<ProductVariant, "id">> & { productId?: number }
+    data: Omit<ProductVariant, "id" | "stock"> & { productId: number; imgUrl?: File }
   ): Promise<ProductVariant> => {
+    const formData = new FormData();
+
+  formData.append("name", data.name);
+  formData.append("weight", String(data.weight));
+  formData.append("status", String(data.status));
+  formData.append("price", String(data.price));
+  formData.append("productId", String(data.productId));
+
+  if (data.imgUrl) {
+    formData.append("imgUrl", data.imgUrl); // "image" should match your backend field name
+  }
     return api
-      .put(`${this.route}/${id}`, data)
+      .put(`${this.route}/${id}`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  })
       .then((response) => response.data);
   };
 

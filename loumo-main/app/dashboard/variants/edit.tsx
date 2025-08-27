@@ -1,8 +1,8 @@
 "use client";
+import { FileUploader } from "@/components/fileUpload";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -16,6 +16,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import RequiredStar from "@/components/ui/requiredStar";
 import {
   Select,
   SelectContent,
@@ -45,23 +46,32 @@ type Props = {
 const formSchema = z.object({
   name: z
     .string({ message: "Veuillez renseigner un nom" })
-    //.min(2, { message: "Le nom doit comporter au moins 3 caractères" })
-    .max(4, { message: "4 caractères maximum" }),
+    .min(2, { message: "Le nom doit comporter au moins 2 caractères" })
+    .max(12, { message: "12 caractères maximum" }),
+  weight: z
+    .string({ message: "Veuillez renseigner le poids" })
+    .refine((val) => !isNaN(Number(val)), {
+      message: "Le poids doit être un nombre",
+    }),
   quantity: z
     .string()
     .refine((val) => Number(val) > 0, { message: "Doit être un nombre" }),
-  unit: z.string({message: "Veuillez renseigner l'unité"}),
-  weight: z.string({ message: "Veuillez renseigner le poids" }),
+  unit: z.string({ message: "Veuillez renseigner l'unité" }),
   status: z.boolean(),
   price: z.string({ message: "Veuillez renseigner un prix" }),
   productId: z.string({ message: "Veuillez sélectionner le produit parent" }),
-  imgUrl: z.string().optional(),
+  imgUrl: z
+    .any()
+    .refine((file) => file instanceof File || file === undefined, {
+      message: "Veuillez sélectionner un fichier valide",
+    })
+    .optional(),
 });
 
 function EditVariant({ variant, isOpen, openChange, products }: Props) {
   const actions = new ProductVariantQuery();
   const queryClient = useQueryClient();
-
+  console.log(variant);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -86,7 +96,8 @@ function EditVariant({ variant, isOpen, openChange, products }: Props) {
         status: values.status,
         productId: Number(values.productId),
         unit: values.unit,
-        quantity: Number(values.quantity)
+        quantity: Number(values.quantity),
+        imgUrl: values.imgUrl
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -105,6 +116,8 @@ function EditVariant({ variant, isOpen, openChange, products }: Props) {
     if (isOpen && variant) {
       form.reset({
         name: variant.name,
+        quantity: String(variant.quantity),
+        unit: variant.unit,
         weight: String(variant.weight),
         status: variant.status,
         price: String(variant.price),
@@ -130,13 +143,16 @@ function EditVariant({ variant, isOpen, openChange, products }: Props) {
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-2 place-items-start">
-               <FormField
+            <div className="flex flex-col gap-2">
+              <FormField
                 control={form.control}
                 name="productId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{"Produit Lié"}</FormLabel>
+                    <FormLabel>
+                      {"Produit Associé"}
+                      <RequiredStar />
+                    </FormLabel>
                     <FormControl>
                       <Select
                         defaultValue={field.value}
@@ -165,7 +181,10 @@ function EditVariant({ variant, isOpen, openChange, products }: Props) {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{"Nom de la variante"}</FormLabel>
+                    <FormLabel>
+                      {"Nom de la variante"}
+                      <RequiredStar />
+                    </FormLabel>
                     <FormControl>
                       <Input {...field} placeholder="ex. Sac, Boite" />
                     </FormControl>
@@ -178,7 +197,10 @@ function EditVariant({ variant, isOpen, openChange, products }: Props) {
                 name="quantity"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{"Quantité"}</FormLabel>
+                    <FormLabel>
+                      {"Quantité"}
+                      <RequiredStar />
+                    </FormLabel>
                     <FormControl>
                       <Input {...field} placeholder="ex. 10" type="number" />
                     </FormControl>
@@ -191,14 +213,13 @@ function EditVariant({ variant, isOpen, openChange, products }: Props) {
                 name="weight"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{"Poids"}</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder="Poids"
-                          className="pr-10"
-                        />
-                      </FormControl>
+                    <FormLabel>
+                      {"Poids de la variante"}
+                      <RequiredStar />
+                    </FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Poids" className="pr-10" />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -208,7 +229,10 @@ function EditVariant({ variant, isOpen, openChange, products }: Props) {
                 name="unit"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{"Unité"}</FormLabel>
+                    <FormLabel>
+                      {"Unité"}
+                      <RequiredStar />
+                    </FormLabel>
                     <FormControl>
                       <Select
                         defaultValue={field.value}
@@ -252,8 +276,27 @@ function EditVariant({ variant, isOpen, openChange, products }: Props) {
                   </FormItem>
                 )}
               />
+              <div className="col-span-2">
+                <FormField
+                  control={form.control}
+                  name="imgUrl"
+                  render={({ field: { onChange, value, ...rest } }) => (
+                    <FormItem>
+                      <FormLabel>{"Image de la variante"}</FormLabel>
+                      <FormControl>
+                        <FileUploader
+                          onChange={onChange}
+                          value={value}
+                          {...rest}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
-            <DialogClose className="mt-4">
+            <div className="mt-4 flex items-center gap-2 justify-end">
               <Button type="submit" disabled={editVariant.isPending}>
                 {editVariant.isPending && (
                   <Loader size={16} className="animate-spin" />
@@ -270,7 +313,7 @@ function EditVariant({ variant, isOpen, openChange, products }: Props) {
               >
                 {"Annuler"}
               </Button>
-            </DialogClose>
+            </div>
           </form>
         </Form>
       </DialogContent>

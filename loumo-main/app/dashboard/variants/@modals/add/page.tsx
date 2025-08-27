@@ -1,4 +1,5 @@
 "use client";
+import { FileUploader } from "@/components/fileUpload";
 import ModalLayout from "@/components/modal-layout";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +11,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import RequiredStar from "@/components/ui/requiredStar";
 import {
   Select,
   SelectContent,
@@ -33,15 +35,22 @@ const formSchema = z.object({
   name: z
     .string({ message: "Veuillez renseigner un nom" })
     .min(2, { message: "Le nom doit comporter au moins 2 caractères" })
-    .max(12, {message: "12 caractères maximum"}),
-  quantity: z.string().refine((val)=>Number(val)>0, {message: "Doit être un nombre"}),
+    .max(12, { message: "12 caractères maximum" }),
+  quantity: z
+    .string()
+    .refine((val) => Number(val) > 0, { message: "Doit être un nombre" }),
   unit: z.enum(units),
-  weight: z.string({ message: "Veuillez renseigner le poids" })
-  .refine((val) => !isNaN(Number(val)), {
-    message: "Le poids doit être un nombre",
-  }),
+  weight: z
+    .string({ message: "Veuillez renseigner le poids" })
+    .refine((val) => !isNaN(Number(val)), {
+      message: "Le poids doit être un nombre",
+    }),
   status: z.boolean(),
-  price: z.string({ message: "Veuillez renseigner un prix" }).refine((val)=>!isNaN(Number(val)),{message: "Le prix doit être un nombre"}),
+  price: z
+    .string({ message: "Veuillez renseigner un prix" })
+    .refine((val) => !isNaN(Number(val)), {
+      message: "Le prix doit être un nombre",
+    }),
   productId: z.string({ message: "Veuillez sélectionner le produit parent" }),
   imgUrl: z
     .any()
@@ -69,19 +78,19 @@ function PageAdd() {
   const actions = new ProductVariantQuery();
   const productQuery = new ProductQuery();
   const addVariant = useMutation({
-    mutationFn: (values: z.infer<typeof formSchema>) =>{
-        if(values.imgUrl){
-            return actions.create({
-        productId: Number(values.productId),
-        name: formatName(values.name),
-        weight: Number(values.weight),
-        status: values.status,
-        price: Number(values.price),
-        imgUrl: values.imgUrl,
-        quantity: Number(values.quantity),
-        unit: values.unit
-      });
-        }
+    mutationFn: (values: z.infer<typeof formSchema>) => {
+      if (values.imgUrl) {
+        return actions.create({
+          productId: Number(values.productId),
+          name: formatName(values.name),
+          weight: Number(values.weight),
+          status: values.status,
+          price: Number(values.price),
+          imgUrl: values.imgUrl,
+          quantity: Number(values.quantity),
+          unit: values.unit,
+        });
+      }
       return actions.create({
         productId: Number(values.productId),
         name: formatName(values.name),
@@ -89,8 +98,9 @@ function PageAdd() {
         status: values.status,
         price: Number(values.price),
         quantity: Number(values.quantity),
-        unit: values.unit
-      })},
+        unit: values.unit,
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["variants"],
@@ -120,12 +130,15 @@ function PageAdd() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2 place-items-start">
-             <FormField
+            <FormField
               control={form.control}
               name="productId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{"Produit parent"}</FormLabel>
+                  <FormLabel>
+                    {"Produit parent"}
+                    <RequiredStar />
+                  </FormLabel>
                   <FormControl>
                     <Select
                       defaultValue={field.value}
@@ -153,7 +166,10 @@ function PageAdd() {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{"Nom de la variante"}</FormLabel>
+                  <FormLabel>
+                    {"Nom de la variante"}
+                    <RequiredStar />
+                  </FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="ex. Sac, Boite" />
                   </FormControl>
@@ -166,7 +182,10 @@ function PageAdd() {
               name="quantity"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{"Quantité"}</FormLabel>
+                  <FormLabel>
+                    {"Quantité"}
+                    <RequiredStar />
+                  </FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="ex. 10" type="number" />
                   </FormControl>
@@ -179,14 +198,13 @@ function PageAdd() {
               name="weight"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{"Poids de la variante"}</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="Poids"
-                        className="pr-10"
-                      />
-                    </FormControl>
+                  <FormLabel>
+                    {"Poids de la variante"}
+                    <RequiredStar />
+                  </FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Poids" className="pr-10" />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -196,16 +214,24 @@ function PageAdd() {
               name="unit"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{"Unité"}</FormLabel>
+                  <FormLabel>
+                    {"Unité"}
+                    <RequiredStar />
+                  </FormLabel>
                   <FormControl>
-                    <Select defaultValue={field.value} onValueChange={field.onChange}>
+                    <Select
+                      defaultValue={field.value}
+                      onValueChange={field.onChange}
+                    >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="kg"/>
+                        <SelectValue placeholder="kg" />
                       </SelectTrigger>
                       <SelectContent>
-                        {units.map((x, id)=>
-                          <SelectItem key={id} value={x}>{unitName(x)}</SelectItem>
-                        )}
+                        {units.map((x, id) => (
+                          <SelectItem key={id} value={x}>
+                            {unitName(x)}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </FormControl>
@@ -218,7 +244,10 @@ function PageAdd() {
               name="price"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{"Prix"}</FormLabel>
+                  <FormLabel>
+                    {"Prix"}
+                    <RequiredStar />
+                  </FormLabel>
                   <div className="relative">
                     <FormControl>
                       <Input {...field} placeholder="Prix" className="pr-12" />
@@ -233,38 +262,22 @@ function PageAdd() {
             />
             <div className="col-span-1 md:col-span-2">
               <FormField
-  control={form.control}
-  name="imgUrl"
-  render={({ field: { onChange, value, ...rest } }) => (
-    <FormItem>
-      <FormLabel>{"Image de la variante"}</FormLabel>
-      <FormControl>
-        <div>
-          <Input
-            type="file"
-            accept="image/*"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) {
-                setPreviewUrl(URL.createObjectURL(file)); // generate preview
-                onChange(file); // send file to form
-              }
-            }}
-            {...rest}
-          />
-          {previewUrl && (
-            <img
-              src={previewUrl}
-              alt={value ?? "apercu"}
-              className="mt-2 h-32 rounded object-cover"
-            />
-          )}
-        </div>
-      </FormControl>
-      <FormMessage />
-    </FormItem>
-  )}
-/>
+                control={form.control}
+                name="imgUrl"
+                render={({ field: { onChange, value, ...rest } }) => (
+                  <FormItem>
+                    <FormLabel>{"Image de la variante"}</FormLabel>
+                    <FormControl>
+                      <FileUploader
+                        onChange={onChange}
+                        value={value}
+                        {...rest}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
           </div>
           <div className="flex justify-end gap-2">

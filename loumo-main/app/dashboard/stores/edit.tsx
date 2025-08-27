@@ -14,6 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import RequiredStar from "@/components/ui/requiredStar";
 import {
   Select,
   SelectContent,
@@ -104,7 +105,7 @@ function EditStore({ isOpen, openChange, store, zones }: Props) {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{"Nom du Point de vente"}</FormLabel>
+                  <FormLabel>{"Nom du Point de vente"}<RequiredStar/></FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="ex. Loumo-Mboppi" />
                   </FormControl>
@@ -117,7 +118,7 @@ function EditStore({ isOpen, openChange, store, zones }: Props) {
               name="addressId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{"Zone"}</FormLabel>
+                  <FormLabel>{"Zone"}<RequiredStar/></FormLabel>
                   <FormControl>
                     <Select
                       defaultValue={field.value}

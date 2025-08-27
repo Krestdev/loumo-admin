@@ -1,8 +1,10 @@
 'use client'
+import SwitchLabel from '@/components/switchLabel';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import RequiredStar from '@/components/ui/requiredStar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
@@ -27,7 +29,7 @@ const formSchema = z.object({
     name: z.string({message: "Veuillez entrer un nom"}),
     category: z.string({message: "Veuillez sélectionner une catégorie"}),
     status: z.boolean(),
-    description: z.string({message: "Veuillez renseigner une description du produit"}).min(12, {message: "Description trop courte"}).max(240,{message:"240 caractères maximum"})
+    description: z.string({message: "Veuillez renseigner une description du produit"}).min(40, {message: "Description trop courte"})
 })
 
 function EditProduct({product, categories, isOpen, openChange}:Props) {
@@ -88,7 +90,7 @@ function EditProduct({product, categories, isOpen, openChange}:Props) {
               <div className="grid gap-4 md:grid-cols-2 place-items-start">
                     <FormField control={form.control} name="name" render={({field})=>(
                         <FormItem>
-                            <FormLabel>{"Nom du Produit"}</FormLabel>
+                            <FormLabel>{"Nom du Produit"}<RequiredStar/></FormLabel>
                             <FormControl>
                                 <Input {...field} placeholder='Entrer le nom du produit' />
                             </FormControl>
@@ -97,7 +99,7 @@ function EditProduct({product, categories, isOpen, openChange}:Props) {
                     )} />
                 <FormField control={form.control} name="category" render={({field})=>(
                     <FormItem>
-                        <FormLabel>{"Catégorie"}</FormLabel>
+                        <FormLabel>{"Catégorie"}<RequiredStar/></FormLabel>
                         <FormControl>
                             <Select defaultValue={field.value} onValueChange={field.onChange}>
                                 <SelectTrigger>
@@ -115,7 +117,7 @@ function EditProduct({product, categories, isOpen, openChange}:Props) {
                 )} />
                 <FormField control={form.control} name="description" render={({field})=>(
                   <FormItem>
-                    <FormLabel>{"Description"}</FormLabel>
+                    <FormLabel>{"Description"}<RequiredStar/></FormLabel>
                     <FormControl>
                       <Textarea {...field} placeholder="Description du produit"/>
                     </FormControl>
@@ -125,23 +127,15 @@ function EditProduct({product, categories, isOpen, openChange}:Props) {
             </div>
 
             {/* Status */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">{"Statut"}</h3>
               <FormField control={form.control} name="status" render={({field})=> (
                 <FormItem>
                     <FormLabel>{"Statut du Produit"}</FormLabel>
-                    <div className='flex gap-2 items-center'>
                         <FormControl>
-                            <Switch checked={field.value} onCheckedChange={field.onChange}/>
+                            <SwitchLabel {...field} name="Statut du Produit" />
                         </FormControl>
-                        <span className='text-sm text-muted-foreground'>
-                            {field.value ? "Actif" : "Désactivé"}
-                        </span>
-                    </div>
                     <FormMessage/>
                 </FormItem>
               )}/>
-            </div>
 
             <div className="flex gap-2">
               <Button type='submit' disabled={productUpdate.isPending}>
