@@ -117,6 +117,35 @@ export const sidebarContent: sidebarItemGroup[] = [
     ],
   },
   {
+    title: "Points de vente",
+    items: [
+      {
+        title: "Zones de livraison",
+        header: "Gestion des Zones de livraison",
+        description: "Gérez les zones de livraisons et les adresses",
+        url: "/dashboard/zones",
+        icon: Map,
+        display: true
+      },
+      {
+        title: "Quartiers",
+        header: "Gestion des Quartiers",
+        description: "Gérez les quartiers affectés aux zones",
+        url: "/dashboard/address",
+        icon: MapPin,
+        display: true
+      },
+      {
+        title: "Points de vente",
+        header: "Gestion des Points de vente",
+        description: "Créez et gérez vos points de vente",
+        url: "/dashboard/stores",
+        icon: Store,
+        display: true
+      },
+    ],
+  },
+  {
     title: "Marketing",
     items: [
       {
@@ -162,35 +191,6 @@ export const sidebarContent: sidebarItemGroup[] = [
         description: "Gérez les rôles et leurs permissions d'accès",
         url: "/dashboard/roles",
         icon: Shield,
-        display: true
-      },
-    ],
-  },
-  {
-    title: "Points de vente",
-    items: [
-      {
-        title: "Quartiers",
-        header: "Gestion des Quartiers",
-        description: "Gérez les quartiers affectés aux zones",
-        url: "/dashboard/address",
-        icon: MapPin,
-        display: true
-      },
-      {
-        title: "Zones de livraison",
-        header: "Gestion des Zones de livraison",
-        description: "Gérez les zones de livraisons et les adresses",
-        url: "/dashboard/zones",
-        icon: Map,
-        display: true
-      },
-      {
-        title: "Points de vente",
-        header: "Gestion des Points de vente",
-        description: "Créez et gérez vos points de vente",
-        url: "/dashboard/stores",
-        icon: Store,
         display: true
       },
     ],

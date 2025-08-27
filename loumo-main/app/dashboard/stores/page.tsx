@@ -472,7 +472,7 @@ export default function StoresPage() {
           </Card>
         </TabsContent> */}
       </Tabs>
-      <NewStore isOpen={isDialogOpen} openChange={setIsDialogOpen}/>
+      <NewStore isOpen={isDialogOpen} openChange={setIsDialogOpen} shops={shops}/>
       {selectedStore && <DeleteStore isOpen={deleteDialog} openChange={setDeleteDialog} store={selectedStore}/>}
       {selectedStore && <EditStore isOpen={editDialog} openChange={setEditDialog} store={selectedStore} addresses={addresses}/>}
       {selectedStore && 

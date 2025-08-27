@@ -39,10 +39,6 @@ type Props = {
 };
 
 const addressSchema = z.object({
-  street: z
-    .string()
-    .min(3, { message: "Veuillez donner le nom de la rue" })
-    .max(40, { message: "Trop long" }),
   local: z
     .string()
     .min(3, { message: "Veuillez donner le nom du quartier" })
@@ -88,7 +84,7 @@ function AddZone({ isOpen, openChange }: Props) {
           price: Number(values.price),
           description: values.description ?? "",
           status: values.status,
-          addresses: values.addresses.map(el=> el.description !== "" ? el : {local:el.local, street: el.street, published: el.published})
+          addresses: values.addresses.map(el=> el.description !== "" ? el : {local:el.local, street: el.local, published: el.published})
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -220,17 +216,6 @@ function AddZone({ isOpen, openChange }: Props) {
                     <FormMessage/>
                   </FormItem>
                 )}/>
-                <FormField control={form.control} name={`addresses.${index}.street`} render={({field})=>(
-                  <FormItem>
-                    <FormLabel>
-                      {"Nom de la rue"}
-                    </FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="ex. petit terrain" />
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}/>
                 <FormField control={form.control} name={`addresses.${index}.description`} render={({field})=>(
                   <FormItem>
                     <FormLabel>
@@ -254,7 +239,6 @@ function AddZone({ isOpen, openChange }: Props) {
             ))
           }
           <Button variant={"outline"} className="w-full border-dashed shadow-none" onClick={(e)=>{e.preventDefault();append({
-            street: "",
             local: "",
             description: "",
             published: true

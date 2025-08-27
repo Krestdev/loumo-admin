@@ -20,7 +20,12 @@ export default class ShopQuery {
     data: Partial<Shop> & {zone: ZoneShop} & {addressNew: Partial<Address>;}
   ): Promise<Shop> => {
     const {addressNew, ...props} = data;
-    return api.post(`${this.route}`, {address: addressNew, ...props}).then((response)=>response.data);
+    const {zone, ...more} = props;
+    const {description:zoneDescription, ...restZone} = zone;
+    const zonePayload = !!zoneDescription ? zoneDescription.length > 0 ? props : {...more, zone:restZone} : {...more, zone:restZone};
+    const {description:addressDescription, ...rest} = addressNew;
+    const payload = !!addressDescription ? addressDescription.length > 0 ? addressNew : rest : rest; 
+    return api.post(`${this.route}`, {address: payload, ...zonePayload}).then((response)=>response.data);
   }
 
   getAll = async (): Promise<Shop[]> => {

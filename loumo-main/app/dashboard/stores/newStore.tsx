@@ -28,7 +28,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import AddressQuery from "@/queries/address";
 import ShopQuery from "@/queries/shop";
-import { Address } from "@/types/types";
+import { Address, Shop } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CirclePlus, Loader } from "lucide-react";
@@ -39,13 +39,10 @@ import { z } from "zod";
 type Props = {
   isOpen: boolean;
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
+  shops: Shop[];
 };
 
 const addressSchema = z.object({
-  street: z
-    .string()
-    .min(3, { message: "Veuillez donner le nom de la rue" })
-    .max(40, { message: "Trop long" }),
   local: z
     .string()
     .min(3, { message: "Veuillez donner le nom du quartier" })
@@ -81,7 +78,7 @@ const formSchema = z.object({
   zone: zoneSchema
 });
 
-function NewStore({ isOpen, openChange }: Props) {
+function NewStore({ isOpen, openChange, shops }: Props) {
   const defaultForm = useForm<z.infer<typeof formDefault>>({
     resolver: zodResolver(formDefault),
     defaultValues: {
@@ -100,7 +97,6 @@ function NewStore({ isOpen, openChange }: Props) {
         price: "500",
         status: "ACTIVE",
         address: {
-          street: "",
           local: "",
           description: "",
           published: true
@@ -146,7 +142,7 @@ function NewStore({ isOpen, openChange }: Props) {
         status: values.zone.status,
       },
       addressNew: {
-        street: values.zone.address.street,
+        street: values.zone.address.local,
         local: values.zone.address.local,
         description: values.zone.address.description ?? "",
         published: values.zone.address.published
@@ -233,7 +229,7 @@ function NewStore({ isOpen, openChange }: Props) {
                       </SelectTrigger>
                       <SelectContent>
                         {addresses
-                          .filter((y) => !!y.published && !y.zoneId)
+                          .filter((y) => !!y.published && !shops.some(z=>z.address?.zoneId === y.zoneId))
                           .map((x) => (
                             <SelectItem key={x.id} value={String(x.id)}>
                               <div>
@@ -366,19 +362,6 @@ function NewStore({ isOpen, openChange }: Props) {
                   <FormLabel>{"Nom du quartier"}</FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="ex. Beedi" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="zone.address.street"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{"Nom de la rue"}</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="ex. petit terrain" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
