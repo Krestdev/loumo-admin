@@ -6,6 +6,6 @@ export const fetchAll = <T>(queryFn: () => Promise<T[]>, key: string, refetchInt
     queryKey: [key],
     queryFn,
     refetchOnWindowFocus: false,
-    retryDelay: 50000,
+    retryDelay: 60000,
     refetchInterval
   });
