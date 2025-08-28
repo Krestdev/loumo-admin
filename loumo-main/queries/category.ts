@@ -43,8 +43,8 @@ export default class CategoryQuery {
   ): Promise<Category> => {
     const formData = new FormData();
     if(data.name)formData.append("name", data.name);
-    if(data.status)formData.append("status",String(data.status));
-    if(data.display)formData.append("display",String(data.display));
+    if(data.status !== undefined)formData.append("status",String(data.status));
+    if(data.display !== undefined)formData.append("display",String(data.display));
     if(data.imgUrl instanceof File)formData.append("imgUrl", data.imgUrl);
     return api
       .put(`${this.route}/${id}`, formData, {

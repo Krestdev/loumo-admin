@@ -75,6 +75,7 @@ function EditCategory({ category, isOpen, openChange }: Props) {
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
+    console.log(values)
     editCategory.mutate(values);
   };
 
