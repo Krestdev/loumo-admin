@@ -12,6 +12,8 @@ type Store = {
   setIsHydrated: (v: boolean) => void;
   token: string | null;
   setToken: (token: string) => void;
+  lastActivity: number;
+  updateActivity: () => void;
 };
 type LoadingState = {
   isLoading: boolean;
@@ -30,6 +32,7 @@ export const useStore = create<Store & LoadingState & ToastStore>()(
       isHydrated: false,
       token: null,
       isLoading: false,
+      lastActivity: Date.now(),
       toasts: [],
       setLoading: (value) => set(() => ({ isLoading: value })),
       user: null,
@@ -43,6 +46,7 @@ export const useStore = create<Store & LoadingState & ToastStore>()(
         set(() => ({
           user: null,
         })),
+      updateActivity: () => set({ lastActivity: Date.now() }),
       setIsHydrated: (v) => set({ isHydrated: v }),
       addToast: (toast) =>
         set((state) => ({
