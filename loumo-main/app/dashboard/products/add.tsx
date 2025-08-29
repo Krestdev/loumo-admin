@@ -63,7 +63,7 @@ const variantSchema = z.object({
   name: z
     .string({ message: "Veuillez renseigner un nom" })
     .min(2, { message: "Le nom doit comporter au moins 2 caractères" })
-    .max(12, { message: "12 caractères maximum" }),
+    .max(21, { message: "21 caractères maximum" }),
   weight: z
     .string({ message: "Veuillez renseigner le poids" })
     .refine((val) => !isNaN(Number(val)), {
@@ -94,7 +94,7 @@ const formSchema = z.object({
   name: z
     .string({ message: "Veuillez entrer un nom" })
     .min(3, { message: "Trop court" })
-    .max(15, { message: "Trop long" }),
+    .max(27, { message: "Trop long" }),
   category: z.string({ message: "Veuillez sélectionner une catégorie" }),
   status: z.boolean(),
   description: z.string({
