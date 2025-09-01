@@ -68,20 +68,17 @@ const formSchema = z.object({
   price: z.string({ message: "Veuillez renseigner un prix" }),
   productId: z.string({ message: "Veuillez sélectionner le produit parent" }),
   imgUrl: z
-    .union([z.string(), z.instanceof(File)])
-    .refine((file) => file instanceof File || typeof file === "string", {
-      message: "Veuillez sélectionner un fichier valide",
-    })
-    .refine(
-      (file) =>
-        !file ||
-        typeof file === "string" ||
-        ACCEPTED_IMAGE_TYPES.includes(file.type),
-      {
-        message: "Format accepté: JPG, JPEG, PNG, WEBP uniquement",
-      }
-    )
-    .optional(),
+    .union([z.string(), z.instanceof(File), z.null()])
+  .refine(
+    (file) =>
+      file === null ||
+      typeof file === "string" ||
+      ACCEPTED_IMAGE_TYPES.includes((file as File)?.type ?? ""),
+    {
+      message: "Format accepté: JPG, JPEG, PNG, WEBP uniquement",
+    }
+  )
+  .optional(),
 });
 
 function EditVariant({ variant, isOpen, openChange, products }: Props) {
@@ -99,7 +96,7 @@ function EditVariant({ variant, isOpen, openChange, products }: Props) {
       status: variant.status,
       price: String(variant.price),
       productId: String(variant.productId),
-      imgUrl: variant.imgUrl,
+      imgUrl: variant.imgUrl ?? undefined, 
     },
   });
 
