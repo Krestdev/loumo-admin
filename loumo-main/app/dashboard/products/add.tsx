@@ -13,6 +13,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -393,6 +394,7 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
                           <FormControl>
                             <Input {...field} placeholder="ex. Sac, Boite" />
                           </FormControl>
+                          <FormDescription>{"Tenez compte que nous afficherons sur le site nom + quantité + unité. ex. Sac 25 kg"}</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
