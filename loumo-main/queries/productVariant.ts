@@ -19,7 +19,7 @@ export default class ProductVariantQuery {
 }; */
 
 create = async (
-  data: Omit<ProductVariant, "id" | "stock"> & { productId: number; imgUrl?: File }
+  data: Omit<ProductVariant, "id" | "stock" | "imgUrl"> & { productId: number } & { imgUrl?: File }
 ): Promise<Omit<ProductVariant, "stock">> => {
   const formData = new FormData();
 
@@ -62,7 +62,7 @@ create = async (
 
   update = async (
     id: number,
-    data: Omit<ProductVariant, "id" | "stock"> & { productId: number; imgUrl?: File }
+    data: Omit<ProductVariant, "id" | "stock" | "imgUrl"> & { productId: number } & { imgUrl?: File } 
   ): Promise<ProductVariant> => {
     const formData = new FormData();
 

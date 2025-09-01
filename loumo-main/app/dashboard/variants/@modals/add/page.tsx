@@ -30,6 +30,8 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import z from "zod";
 
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+
 const formSchema = z.object({
   name: z
     .string({ message: "Veuillez renseigner un nom" })
@@ -52,9 +54,9 @@ const formSchema = z.object({
     }),
   productId: z.string({ message: "Veuillez sélectionner le produit parent" }),
   imgUrl: z
-    .any()
-    .refine((file) => file instanceof File || file === undefined, {
-      message: "Veuillez sélectionner un fichier valide",
+    .custom<File>()
+    .refine((file) => !file || ACCEPTED_IMAGE_TYPES.includes(file.type), {
+      message: "Format accepté: JPG, JPEG, PNG, WEBP uniquement",
     })
     .optional(),
 });

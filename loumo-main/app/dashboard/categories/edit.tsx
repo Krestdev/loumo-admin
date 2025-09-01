@@ -35,15 +35,31 @@ type Props = {
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
+const ACCEPTED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+];
+
 const formSchema = z.object({
   name: z.string().min(2, { message: "Trop court" }),
   status: z.boolean(),
   display: z.boolean(),
   imgUrl: z
-    .any()
+    .union([z.string(), z.instanceof(File)])
     .refine((file) => file instanceof File || typeof file === "string", {
       message: "Veuillez sélectionner un fichier valide",
     })
+    .refine(
+      (file) =>
+        !file ||
+        typeof file === "string" ||
+        ACCEPTED_IMAGE_TYPES.includes(file.type),
+      {
+        message: "Format accepté: JPG, JPEG, PNG, WEBP uniquement",
+      }
+    )
     .optional(),
 });
 
@@ -66,7 +82,7 @@ function EditCategory({ category, isOpen, openChange }: Props) {
         name: values.name,
         status: values.status,
         display: values.display,
-        imgUrl: values.imgUrl
+        imgUrl: values.imgUrl,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
@@ -75,7 +91,7 @@ function EditCategory({ category, isOpen, openChange }: Props) {
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values)
+    console.log(values);
     editCategory.mutate(values);
   };
 
@@ -138,7 +154,8 @@ function EditCategory({ category, isOpen, openChange }: Props) {
                     <SwitchLabel
                       name="Headline"
                       {...props}
-                      description={ !!name &&
+                      description={
+                        !!name &&
                         "Activez pour afficher la catégorie sur la page d'Accueil du Site."
                       }
                     />

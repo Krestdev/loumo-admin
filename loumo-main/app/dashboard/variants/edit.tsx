@@ -43,6 +43,13 @@ type Props = {
   products: Product[];
 };
 
+const ACCEPTED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+];
+
 const formSchema = z.object({
   name: z
     .string({ message: "Veuillez renseigner un nom" })
@@ -61,10 +68,19 @@ const formSchema = z.object({
   price: z.string({ message: "Veuillez renseigner un prix" }),
   productId: z.string({ message: "Veuillez sélectionner le produit parent" }),
   imgUrl: z
-    .any()
-    .refine((file) => file instanceof File || file === undefined, {
+    .union([z.string(), z.instanceof(File)])
+    .refine((file) => file instanceof File || typeof file === "string", {
       message: "Veuillez sélectionner un fichier valide",
     })
+    .refine(
+      (file) =>
+        !file ||
+        typeof file === "string" ||
+        ACCEPTED_IMAGE_TYPES.includes(file.type),
+      {
+        message: "Format accepté: JPG, JPEG, PNG, WEBP uniquement",
+      }
+    )
     .optional(),
 });
 
@@ -88,8 +104,20 @@ function EditVariant({ variant, isOpen, openChange, products }: Props) {
   });
 
   const editVariant = useMutation({
-    mutationFn: (values: z.infer<typeof formSchema>) =>
-      actions.update(variant.id, {
+    mutationFn: (values: z.infer<typeof formSchema>) =>{
+      if(values.imgUrl instanceof File){
+        return actions.update(variant.id, {
+          name: formatName(values.name),
+          weight: Number(values.weight),
+          price: Number(values.price),
+          status: values.status,
+          productId: Number(values.productId),
+          unit: values.unit,
+          quantity: Number(values.quantity),
+          imgUrl: values.imgUrl,
+        })
+      }
+      return actions.update(variant.id, {
         name: formatName(values.name),
         weight: Number(values.weight),
         price: Number(values.price),
@@ -97,8 +125,8 @@ function EditVariant({ variant, isOpen, openChange, products }: Props) {
         productId: Number(values.productId),
         unit: values.unit,
         quantity: Number(values.quantity),
-        imgUrl: values.imgUrl
-      }),
+      })
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["variants"],

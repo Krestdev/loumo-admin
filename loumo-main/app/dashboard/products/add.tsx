@@ -46,6 +46,8 @@ type Props = {
   shops: Shop[];
 };
 
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+
 const stockSchema = z.object({
   quantity: z.string().refine((val) => !isNaN(Number(val)), {
     message: "Quantité invalide",
@@ -80,9 +82,9 @@ const variantSchema = z.object({
       message: "Le prix doit être un nombre",
     }),
   imgUrl: z
-    .any()
-    .refine((file) => file instanceof File || file === undefined, {
-      message: "Veuillez sélectionner un fichier valide",
+    .custom<File>()
+    .refine((file) => !file || ACCEPTED_IMAGE_TYPES.includes(file.type), {
+      message: "Format accepté: JPG, JPEG, PNG, WEBP uniquement",
     })
     .optional(),
   stock: z.array(stockSchema).min(1, {

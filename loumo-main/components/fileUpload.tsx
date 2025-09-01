@@ -89,7 +89,7 @@ export function FileUploader({
                 {"Déposez votre image ici ou cliquez pour la parcourir"}
               </p>
               <p className="text-muted-foreground text-xs">
-                {`Taille max: ${maxSizeMB}MB`}
+                {`JPG, PNG, WEBP (max. ${maxSizeMB}MB)`}
               </p>
             </div>
           )}

@@ -33,15 +33,18 @@ type Props = {
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+
 const formSchema = z.object({
   name: z.string().min(2, { message: "Trop court" }),
   status: z.boolean(),
   display: z.boolean(),
   imgUrl: z
-  .any()
-  .refine((file) => file instanceof File, {
-    message: "Veuillez sélectionner un fichier valide",
-  }).optional(),
+  .custom<File>()
+  .refine((file) => !file || ACCEPTED_IMAGE_TYPES.includes(file.type), {
+      message: "Format accepté: JPG, JPEG, PNG, WEBP uniquement",
+  })
+  .optional(),
 
 });
 
