@@ -354,7 +354,7 @@ export default function VariantsPage() {
                             className="h-10 w-10 rounded-md object-cover"
                           />
                           <div>
-                            <p className="font-medium">{variant.name}</p>
+                            <p className="font-medium">{variant.name.concat(" ",String(variant.quantity), " ", variant.unit)}</p>
                             {/* {variant.isDefault && (
                               <Badge variant="outline" className="text-xs">
                                 Par défaut
