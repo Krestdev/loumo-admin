@@ -12,7 +12,7 @@ export interface navigationHeader {
 }
 
 export interface navigationElement extends navigationHeader {
-  display:boolean;
+  display: boolean;
 }
 
 export interface sidebarItemGroup {
@@ -24,17 +24,38 @@ export type DeliveryPriority = "LOW" | "NORMAL" | "HIGH" | "URGENT";
 
 export type ZoneStatus = "ACTIVE" | "INACTIVE" | "PENDING" | "DISABLED";
 
-export type AgentStatus = "AVAILABLE"|"SUSPENDED"|"FULL"|"UNAVAILABLE"|"UNVERIFIED";
+export type AgentStatus =
+  | "AVAILABLE"
+  | "SUSPENDED"
+  | "FULL"
+  | "UNAVAILABLE"
+  | "UNVERIFIED";
 
-export type DeliveryStatus = "NOTSTARTED"|"STARTED"|"COMPLETED"|"CANCELED";
+export type DeliveryStatus =
+  | "NOTSTARTED"
+  | "STARTED"
+  | "COMPLETED"
+  | "CANCELED";
 
-export type OrderStatus = "FAILED"|"COMPLETED"|"PROCESSING"|"REJECTED"|"ACCEPTED"|"PENDING";
+export type OrderStatus =
+  | "FAILED"
+  | "COMPLETED"
+  | "PROCESSING"
+  | "REJECTED"
+  | "ACCEPTED"
+  | "PENDING";
 
-export type PaymentStatus = "FAILED"|"COMPLETED"|"PROCESSING"|"REJECTED"|"ACCEPTED"|"PENDING";
+export type PaymentStatus =
+  | "FAILED"
+  | "COMPLETED"
+  | "PROCESSING"
+  | "REJECTED"
+  | "ACCEPTED"
+  | "PENDING";
 
-export type PaymentMethod = "MTN_MOMO_CMR" | "ORANGE_CMR"| "CASH";
+export type PaymentMethod = "MTN_MOMO_CMR" | "ORANGE_CMR" | "CASH";
 
-export type PromotionStatus =  "ACTIVE" | "EXPIRED" | "UPCOMING" | "DISABLED";
+export type PromotionStatus = "ACTIVE" | "EXPIRED" | "UPCOMING" | "DISABLED";
 
 export type Address = {
   street: string;
@@ -62,7 +83,7 @@ export type Zone = {
 
 export type Agent = {
   id: number;
-  ref:string;
+  ref: string;
   userId: number;
   status: AgentStatus;
   user?: User;
@@ -164,8 +185,8 @@ export type Permission = {
 export type Product = {
   name: string;
   id: number;
-  ref:string;
-  description:string;
+  ref: string;
+  description: string;
   createdAt: Date;
   updatedAt: Date;
   weight: number;
@@ -191,22 +212,20 @@ export type ProductVariant = {
 
 export type Promotion = {
   id: number;
-  ref:string;
+  ref: string;
   code: string;
-  amount: number;         // e.g. 20 => 20% off
+  amount: number; // e.g. 20 => 20% off
   percentage: number;
-  expireAt: Date;             // expiry date/time
-  startAt: Date;             // optional start date
-  maxUses?: number;           // optional max number of uses
-  usedCount: number;         // optional number of times it’s been used
-  status: PromotionStatus;   // optional computed status
-  description: string;       // optional text shown to users
+  expireAt: Date; // expiry date/time
+  startAt: Date; // optional start date
+  maxUses?: number; // optional max number of uses
+  usedCount: number; // optional number of times it’s been used
+  status: PromotionStatus; // optional computed status
+  description: string; // optional text shown to users
   createdAt: Date;
   updatedAt?: Date;
-  stock: Stock["id"][];            // link to affected stock items
+  stock: Stock["id"][]; // link to affected stock items
 };
-
-
 
 export type Role = {
   id: number;
@@ -287,39 +306,43 @@ export type Setting = {
 
 export type ToastVariant = "default" | "success" | "error" | "warning";
 export interface ToastData {
-  id: string
-  title: string
-  description?: string
-  duration?: number
-  variant?: ToastVariant
+  id: string;
+  title: string;
+  description?: string;
+  duration?: number;
+  variant?: ToastVariant;
   action?: {
-    label: string
-    onClick: () => void
-  }
+    label: string;
+    onClick: () => void;
+  };
 }
 
 export interface variantName {
   name?: string;
   unit: string;
-  quantity:number;
+  quantity: number;
 }
 
 export interface newProduct {
   name: string;
-  description:string;
+  description: string;
   status: boolean;
   weight: number;
   categoryId: number;
-  variants: {
-    name: string;
-    weight: number;
-    status: boolean;
-    price: number;
-    imgUrl?: File;
-    stock: {
-      quantity: number;
-      threshold: number;
-      shopId: number;
-    }[]
-  }[];
+  variants: newVariant[];
 }
+
+export type newVariant = {
+  name: string;
+  quantity:number;
+  imgUrl?: File;
+  weight: number;
+  status: boolean;
+  price: number;
+  unit: string;
+  stock: {
+    quantity: number;
+    threshold: number;
+    shopId: number;
+  }[];
+};

@@ -20,17 +20,39 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { units } from "@/data/unit";
+import { fetchAll } from "@/hooks/useData";
 import { formatName, unitName } from "@/lib/utils";
 import ProductQuery from "@/queries/product";
 import ProductVariantQuery from "@/queries/productVariant";
+import ShopQuery from "@/queries/shop";
+import { Shop } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader } from "lucide-react";
+import { Loader, Package, Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { useFieldArray, useForm } from "react-hook-form";
 import z from "zod";
 
-const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+const ACCEPTED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+];
+
+const stockSchema = z.object({
+  quantity: z.string().refine((val) => !isNaN(Number(val)), {
+    message: "Quantité invalide",
+  }),
+  threshold: z
+    .string()
+    .refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
+      message: "Seuil invalide",
+    }),
+  shopId: z.string().min(1, "Choisir un magasin"),
+  //productVariantId: z.string().min(1, "Choisir une variante de produit"),
+});
 
 const formSchema = z.object({
   name: z
@@ -59,11 +81,23 @@ const formSchema = z.object({
       message: "Format accepté: JPG, JPEG, PNG, WEBP uniquement",
     })
     .optional(),
+  stock: z.array(stockSchema).min(1, {
+    message: "Veuillez initialiser le stock pour un point de vente",
+  }),
 });
 
 function PageAdd() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const shopQuery = new ShopQuery();
+  const shopsData = fetchAll(shopQuery.getAll, "shops");
+  const [shops, setShops] = useState<Shop[]>([]);
+
+  useEffect(()=>{
+    if (shopsData.isSuccess) {
+      setShops(shopsData.data);
+    }
+  },[shopsData.isSuccess, shopsData.data, setShops]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -73,7 +107,19 @@ function PageAdd() {
       status: true,
       quantity: "",
       unit: "g",
+      stock: [
+        {
+          quantity: "100",
+          threshold: "20",
+          shopId: undefined,
+        },
+      ],
     },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "stock",
   });
 
   const actions = new ProductVariantQuery();
@@ -90,6 +136,11 @@ function PageAdd() {
           imgUrl: values.imgUrl,
           quantity: Number(values.quantity),
           unit: values.unit,
+          stock: values.stock.map((stockItem) => ({
+            quantity: Number(stockItem.quantity),
+            threshold: Number(stockItem.threshold),
+            shopId: Number(stockItem.shopId),
+          }))
         });
       }
       return actions.create({
@@ -100,6 +151,11 @@ function PageAdd() {
         price: Number(values.price),
         quantity: Number(values.quantity),
         unit: values.unit,
+        stock: values.stock.map((stockItem) => ({
+            quantity: Number(stockItem.quantity),
+            threshold: Number(stockItem.threshold),
+            shopId: Number(stockItem.shopId),
+          }))
       });
     },
     onSuccess: () => {
@@ -278,6 +334,116 @@ function PageAdd() {
                   </FormItem>
                 )}
               />
+            </div>
+            <div className="p-3 md:col-span-2 rounded-sm border border-secondary/50 grid gap-4">
+              <h4 className="font-semibold text-lg flex items-center gap-2">
+                <Package size={16} />
+                {"Stocks"}
+              </h4>
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+                {fields.map((field, index) => (
+                  <div
+                    key={index}
+                    className="p-3 rounded border grid grid-cols-1 sm:grid-cols-2 gap-3"
+                  >
+                    <div className="w-full sm:col-span-2 flex justify-between gap-3 items-center mb-2">
+                      <span className="px-2 py-1 bg-sky-200 rounded text-sm font-medium">{`Stock n°${index}`}</span>
+                      <Button
+                        variant={"delete"}
+                        size={"icon"}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          remove(index);
+                        }}
+                      >
+                        <X size={16} />
+                      </Button>
+                    </div>
+                    <FormField
+                      control={form.control}
+                      name={`stock.${index}.quantity`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{"Quantité Initiale"}</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="3" type="number" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`stock.${index}.threshold`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{"Seuil"}</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="3" type="number" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="sm:col-span-2">
+                      <FormField
+                        control={form.control}
+                        name={`stock.${index}.shopId`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{"Point de vente"}</FormLabel>
+                            <FormControl>
+                              <Select
+                                defaultValue={field.value}
+                                onValueChange={field.onChange}
+                              >
+                                <SelectTrigger className="w-full">
+                                  <SelectValue placeholder="Sélectionner un point de vente" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {shops.map((shop) => (
+                                    <SelectItem
+                                      key={shop.id}
+                                      value={String(shop.id)}
+                                      disabled={form
+                                        .getValues("stock")
+                                        .some((y) =>
+                                           Number(y.shopId) === shop.id
+                                        )}
+                                    >
+                                      {shop.name}
+                                    </SelectItem>
+                                  ))}
+                                  {shops.length === 0 && (
+                                    <SelectItem value="#" disabled>
+                                      {"Aucun point de vente enregistré"}
+                                    </SelectItem>
+                                  )}
+                                </SelectContent>
+                              </Select>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <Button
+                variant={"ternary"}
+                onClick={(e) => {
+                  e.preventDefault();
+                  append({
+                    quantity: "100",
+                    threshold: "20",
+                    shopId: "1",
+                  });
+                }}
+              >
+                {"Ajouter un stock"}
+                <Plus size={16} />
+              </Button>
             </div>
           </div>
           <div className="flex justify-end gap-2">

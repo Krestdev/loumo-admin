@@ -106,7 +106,8 @@ const formSchema = z.object({
   variants: z
     .array(variantSchema)
     .min(1, { message: "Veuillez ajouter au moins une variante" }),
-}).superRefine((data, ctx) => {
+})
+/* .superRefine((data, ctx) => {
     const names = data.variants.map((v) => v.name.trim().toLowerCase());
     const duplicates = names.filter(
       (name, index) => names.indexOf(name) !== index
@@ -119,7 +120,7 @@ const formSchema = z.object({
         path: [`variants.${data.variants.findIndex(x=> x.name.trim().toLocaleLowerCase() === duplicates[0])}.name`],
       });
     }
-  });
+  }); */
 
 type FormValues = z.infer<typeof formSchema>;
 type Variant = FormValues["variants"][number];

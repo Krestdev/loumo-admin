@@ -1,5 +1,5 @@
 import api from "@/providers/axios";
-import { ProductVariant } from "@/types/types";
+import { newVariant, ProductVariant } from "@/types/types";
 import { toast } from "react-toastify";
 
 export default class ProductVariantQuery {
@@ -19,15 +19,19 @@ export default class ProductVariantQuery {
 }; */
 
 create = async (
-  data: Omit<ProductVariant, "id" | "stock" | "imgUrl"> & { productId: number } & { imgUrl?: File }
+  data: newVariant & { productId: number }
+  // old Omit<ProductVariant, "id" | "stock" | "imgUrl"> & { productId: number } & { imgUrl?: File }
 ): Promise<Omit<ProductVariant, "stock">> => {
   const formData = new FormData();
 
   formData.append("name", data.name);
+  formData.append("unit", data.unit);
+  formData.append("quantity", String(data.quantity));
   formData.append("weight", String(data.weight));
   formData.append("status", String(data.status));
   formData.append("price", String(data.price));
   formData.append("productId", String(data.productId));
+  formData.append("stock", JSON.stringify(data.stock));
 
   if (data.imgUrl) {
     formData.append("imgUrl", data.imgUrl); // "image" should match your backend field name

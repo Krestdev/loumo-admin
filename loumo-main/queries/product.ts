@@ -21,6 +21,21 @@ export default class ProductQuery {
     //data: Omit<Product, "id" | "createdAt" | "updatedAt"> & { categoryId: number }
     data: newProduct
   ): Promise<Product> => {
+
+    const existingProducts = await this.getAll(); //Getting existing products to prevent doubles
+
+     // 2️⃣ Normalize names (trim + lowercase)
+  const normalizedName = data.name.trim().toLowerCase();
+  const productNames = existingProducts.map((p) =>
+    p.name.trim().toLowerCase()
+  );
+
+  // 3️⃣ Check duplicates
+  if (productNames.includes(normalizedName)) {
+    toast.error(`Le produit "${data.name}" existe déjà`);
+    throw new Error(`Duplicate product name: ${data.name}`);
+  }
+
     const formData = new FormData();
 
   // Extraire les images
