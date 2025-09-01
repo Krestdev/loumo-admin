@@ -324,7 +324,7 @@ export default function ProductsPage() {
                         <div className="flex flex-wrap gap-2">
                           {product.variants.map((x) => (
                             <Badge key={x.id} variant={"outline"}>
-                              {x.name}
+                              {x.name.concat(" ",String(x.quantity), " ", x.unit)}
                             </Badge>
                           ))}
                         </div>
