@@ -25,7 +25,7 @@ type Props = {
 }
 
 const formSchema = z.object({
-    name: z.string({message: "Veuillez entrer un nom"}),
+    name: z.string({message: "Veuillez entrer un nom"}).min(2, {message: "Trop court"}).max(27, {message: "Trop long"}),
     category: z.string({message: "Veuillez sélectionner une catégorie"}),
     status: z.boolean(),
     description: z.string({message: "Veuillez renseigner une description du produit"}).min(40, {message: "Description trop courte"})
