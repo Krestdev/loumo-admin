@@ -100,7 +100,7 @@ function Restock({ stock, isOpen, openChange, products, shops }: Props) {
           </div>
         </div>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 gap-5">
             <FormField
               control={form.control}
               name="quantity"

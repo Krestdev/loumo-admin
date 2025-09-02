@@ -385,6 +385,7 @@ export default function InventoryPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>{"Produit"}</TableHead>
+                <TableHead>{"Variante"}</TableHead>
                 <TableHead>{"Boutique"}</TableHead>
                 <TableHead>{"Stock actuel"}</TableHead>
                 {/* <TableHead>{"Seuil min"}</TableHead> */}
@@ -397,7 +398,7 @@ export default function InventoryPage() {
               {filteredData.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={6}
+                    colSpan={7}
                     className="text-center text-gray-500 py-5 sm:text-lg xl:text-xl"
                   >
                     {"Aucun produit trouvé"}
@@ -411,13 +412,14 @@ export default function InventoryPage() {
               ) : (
                 filteredData.map((item) => (
                   <TableRow key={item.id}>
-                    <TableCell className="font-medium">{`${
+                    <TableCell>{
                       products.find((x) =>
                         x.variants?.some((y) => y.id === item.productVariantId)
                       )?.name ?? "Non défini"
-                    } - ${
-                      item.productVariant && item.productVariant.name
-                    }`}</TableCell>
+                    }</TableCell>
+                    <TableCell className="font-medium">{
+                      item.productVariant?.name ?? "Non défini"
+                    }</TableCell>
                     <TableCell>
                       {shops.find((x) => x.id === item.shopId)?.name ??
                         "Non défini"}

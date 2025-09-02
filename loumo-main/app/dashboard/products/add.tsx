@@ -389,6 +389,7 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
                         <X size={16} />
                       </Button>
                     </div>
+                    <div className="col-span-1 md:col-span-2 grid grid-cols-1 min-[560px]:grid-cols-3 gap-2 place-items-start">
                     <FormField
                       control={form.control}
                       name={`variants.${index}.name`}
@@ -447,6 +448,7 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
                         </FormItem>
                       )}
                     />
+                    </div>
                     <FormField
                       control={form.control}
                       name={`variants.${index}.weight`}

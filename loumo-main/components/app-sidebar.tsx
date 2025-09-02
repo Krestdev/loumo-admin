@@ -36,7 +36,7 @@ import { useStore } from "@/providers/datastore"
 export function AppSidebar() {
   const pathname = usePathname();
   const { state } = useSidebar();
-  const { logout } = useStore();  
+  const { logout, user } = useStore();  
 
   return (
     <Sidebar className="border-r">
@@ -89,8 +89,8 @@ export function AppSidebar() {
               </Avatar>
               {state === "expanded" && (
                 <div className="flex flex-col items-start text-sm flex-1">
-                  <span className="font-medium">{"Admin"}</span>
-                  <span className="text-xs text-muted-foreground">{"admin@loumo-shop.com"}</span>
+                  <span className="font-medium">{user?.name ?? "Missing name"}</span>
+                  <span className="text-xs text-muted-foreground">{user?.email ?? "Cant find email"}</span>
                 </div>
               )}
             </Button>

@@ -220,68 +220,71 @@ function PageAdd() {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    {"Nom de la variante"}
-                    <RequiredStar />
-                  </FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="ex. Sac, Boite" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="quantity"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    {"Quantité"}
-                    <RequiredStar />
-                  </FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="ex. 10" type="number" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="unit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    {"Unité"}
-                    <RequiredStar />
-                  </FormLabel>
-                  <FormControl>
-                    <Select
-                      defaultValue={field.value}
-                      onValueChange={field.onChange}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="kg" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {units.map((x, id) => (
-                          <SelectItem key={id} value={x}>
-                            {unitName(x)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="col-span-1 md:col-span-2 grid grid-cols-1 min-[580px]:grid-cols-3 gap-2">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      {"Nom de la variante"}
+                      <RequiredStar />
+                    </FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="ex. Sac, Boite" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="quantity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      {"Quantité"}
+                      <RequiredStar />
+                    </FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="ex. 10" type="number" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="unit"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      {"Unité"}
+                      <RequiredStar />
+                    </FormLabel>
+                    <FormControl>
+                      <Select
+                        defaultValue={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="kg" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {units.map((x, id) => (
+                            <SelectItem key={id} value={x}>
+                              {unitName(x)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+            </div>
             <FormField
               control={form.control}
               name="weight"
@@ -291,9 +294,14 @@ function PageAdd() {
                     {"Poids de la variante (en kg)"}
                     <RequiredStar />
                   </FormLabel>
+                  <div className="relative">
                   <FormControl>
                     <Input {...field} placeholder="Poids" className="pr-10" />
                   </FormControl>
+                  <span className="text-muted-foreground absolute right-3 top-1/2 -translate-y-1/2 text-sm">
+                      {"kg"}
+                    </span>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}

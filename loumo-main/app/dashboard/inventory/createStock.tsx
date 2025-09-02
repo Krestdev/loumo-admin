@@ -117,7 +117,7 @@ function CreateStockPage({isOpen, openChange}:Props) {
         </DialogDescription>
       </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 gap-5">
             <FormField
               control={form.control}
               name="productVariantId"
@@ -129,7 +129,7 @@ function CreateStockPage({isOpen, openChange}:Props) {
                     defaultValue={field.value}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Choisir une variante" />
                       </SelectTrigger>
                     </FormControl>
@@ -159,7 +159,7 @@ function CreateStockPage({isOpen, openChange}:Props) {
                     defaultValue={field.value}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Choisir un Point de vente" />
                       </SelectTrigger>
                     </FormControl>
