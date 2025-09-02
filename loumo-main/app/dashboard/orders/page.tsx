@@ -31,7 +31,7 @@ import { fetchAll } from "@/hooks/useData";
 import {
   getDeliveryStatusName,
   getOrderStatusLabel,
-  isWithinPeriod,
+  //isWithinPeriod,
   paymentStatusMap,
   payStatusName,
   statusMap,
@@ -63,6 +63,8 @@ import EndOrder from "./end";
 import { OrdersPDFDocument } from "./pdf";
 import ViewOrder from "./view";
 import { exportToExcel } from "@/lib/exportToExcel";
+import { DateRange } from "react-day-picker";
+import { DateRangePicker } from "@/components/dateRangePicker";
 
 export default function OrdersPage() {
   const ordersQuery = new OrderQuery();
@@ -82,13 +84,17 @@ export default function OrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | undefined>();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [periodFilter, setPeriodFilter] = useState("all");
+  //const [periodFilter, setPeriodFilter] = useState("all");
   const [amountFilter, setAmountFilter] = useState("all");
   const [zoneFilter, setZoneFilter] = useState("all");
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc"); // "desc" = latest first
   const [viewDialog, setViewDialog] = useState(false);
   const [endDialog, setEndDialog] = useState(false);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: undefined,
+    to: undefined,
+  });
 
   const [assignDriverDialog, setAssignDriverDialog] = useState(false);
 
@@ -155,9 +161,17 @@ export default function OrdersPage() {
           (order.payment?.status &&
             paymentStatusMap[paymentFilter]?.includes(order.payment.status));
 
-        const matchesPeriod =
+        /* const matchesPeriod =
           periodFilter === "all" ||
-          isWithinPeriod(order.createdAt, periodFilter);
+          isWithinPeriod(order.createdAt, periodFilter); */
+
+        const matchesDate =
+          (!dateRange?.from ||
+            new Date(order.createdAt) >=
+              new Date(dateRange.from.setHours(0, 0, 0, 0))) &&
+          (!dateRange?.to ||
+            new Date(order.createdAt) <=
+              new Date(dateRange.to.setHours(23, 59, 59, 999)));
 
         const matchesZone =
           zoneFilter === "all" || order.address?.zone?.name === zoneFilter;
@@ -182,9 +196,10 @@ export default function OrdersPage() {
           matchesSearch &&
           matchesStatus &&
           matchesPayment &&
-          matchesPeriod &&
+          //matchesPeriod &&
           matchesZone &&
-          matchesAmount
+          matchesAmount &&
+          matchesDate
         );
       })
       .sort((a, b) => {
@@ -197,10 +212,11 @@ export default function OrdersPage() {
     searchTerm,
     statusFilter,
     paymentFilter,
-    periodFilter,
+    //periodFilter,
     zoneFilter,
     amountFilter,
     sortDirection,
+    dateRange,
   ]);
 
   const handleView = (order: Order) => {
@@ -268,7 +284,9 @@ export default function OrdersPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">{"Classer par ordre"}</label>
+              <label className="text-sm font-medium">
+                {"Classer par ordre"}
+              </label>
               <Select
                 value={sortDirection}
                 onValueChange={(value) =>
@@ -276,7 +294,7 @@ export default function OrdersPage() {
                 }
               >
                 <SelectTrigger className="w-full">
-                  <ArrowUpDown size={16}/>
+                  <ArrowUpDown size={16} />
                   <SelectValue placeholder="Trier par date" />
                 </SelectTrigger>
                 <SelectContent>
@@ -303,7 +321,9 @@ export default function OrdersPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">{"Etat du paiement"}</label>
+              <label className="text-sm font-medium">
+                {"Etat du paiement"}
+              </label>
               <Select value={paymentFilter} onValueChange={setPaymentFilter}>
                 <SelectTrigger className="w-full">
                   <ArrowRightCircle size={16} />
@@ -321,6 +341,14 @@ export default function OrdersPage() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">{"Période"}</label>
+              <DateRangePicker
+                date={dateRange}
+                onChange={setDateRange}
+                className="!w-full"
+              />
+            </div>
+            {/* <div className="space-y-2">
+              <label className="text-sm font-medium">{"Période"}</label>
               <Select value={periodFilter} onValueChange={setPeriodFilter}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Période" />
@@ -333,10 +361,12 @@ export default function OrdersPage() {
                   <SelectItem value="90days">{"Ce trimestre"}</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
+            </div> */}
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">{"Zone de livraison"}</label>
+              <label className="text-sm font-medium">
+                {"Zone de livraison"}
+              </label>
               <Select value={zoneFilter} onValueChange={setZoneFilter}>
                 <SelectTrigger className="w-full">
                   <Store size={16} />
@@ -372,23 +402,29 @@ export default function OrdersPage() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button className="w-full" variant={"default"}>
-                    <Download size={16}/>
+                    <Download size={16} />
                     {"Exporter"}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-60">
                   <DropdownMenuItem className="w-full">
                     <PDFDownloadLink
-                document={<OrdersPDFDocument orders={filteredOrders} />}
-                fileName="liste-commandes.pdf"
-                className="w-full"
-              >
-                {({ loading }) =>
-                    loading ? <Loader size={16} className="animate-spin"/> : <span>{"vers PDF"}</span>
-                }
-              </PDFDownloadLink>
+                      document={<OrdersPDFDocument orders={filteredOrders} />}
+                      fileName="liste-commandes.pdf"
+                      className="w-full"
+                    >
+                      {({ loading }) =>
+                        loading ? (
+                          <Loader size={16} className="animate-spin" />
+                        ) : (
+                          <span>{"vers PDF"}</span>
+                        )
+                      }
+                    </PDFDownloadLink>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={()=>handleExcelExport(filteredOrders)}>
+                  <DropdownMenuItem
+                    onClick={() => handleExcelExport(filteredOrders)}
+                  >
                     {"vers Excel"}
                   </DropdownMenuItem>
                 </DropdownMenuContent>

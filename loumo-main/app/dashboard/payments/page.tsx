@@ -205,7 +205,7 @@ export default function PaymentsPage() {
     }
   };
 
-  const successPayments: Payment[] = payments.filter(
+  const successPayments: Payment[] = filteredPayments.filter(
     (x) => x.status === "COMPLETED"
   );
 
@@ -227,10 +227,10 @@ export default function PaymentsPage() {
       .reduce((total, o) => total + o.total, 0);
 
   // Ventes du jour (offset = 0)
-  const todaySales = getSalesByOffset(orders, 0);
+  const todaySales = getSalesByOffset(filteredPayments.map(x=> x.order), 0);
 
   // Ventes d’hier (offset = -1)
-  const yesterdaySales = getSalesByOffset(orders, -1);
+  const yesterdaySales = getSalesByOffset(filteredPayments.map(x=> x.order), -1);
 
   // Différence et variation
   const salesDiff = todaySales - yesterdaySales;
@@ -354,7 +354,7 @@ export default function PaymentsPage() {
           <CardContent>
             <div className="text-2xl font-bold">
               {
-                orders.filter((x) => !x.payment && x.status !== "REJECTED")
+                filteredPayments.map(x=> x.order).filter((x) => !x.payment && x.status !== "REJECTED")
                   .length
               }
             </div>
@@ -374,7 +374,7 @@ export default function PaymentsPage() {
           <CardContent>
             <div className="text-2xl font-bold">
               {XAF.format(
-                payments.reduce(
+                filteredPayments.reduce(
                   (total, el) => total + (el.order?.deliveryFee ?? 0),
                   0
                 )

@@ -242,22 +242,6 @@ function EditVariant({ variant, isOpen, openChange, products }: Props) {
               />
               <FormField
                 control={form.control}
-                name="weight"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      {"Poids de la variante"}
-                      <RequiredStar />
-                    </FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Poids" className="pr-10" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
                 name="unit"
                 render={({ field }) => (
                   <FormItem>
@@ -281,6 +265,22 @@ function EditVariant({ variant, isOpen, openChange, products }: Props) {
                           ))}
                         </SelectContent>
                       </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="weight"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      {"Poids de la variante (en kg)"}
+                      <RequiredStar />
+                    </FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Poids" className="pr-10" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

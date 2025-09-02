@@ -170,7 +170,7 @@ export type Payment = {
   id: number;
   status: PaymentStatus;
   orderId: number;
-  order?: Order;
+  order: Order;
   total: number;
   ref: string;
   method: PaymentMethod;

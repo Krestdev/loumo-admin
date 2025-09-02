@@ -422,23 +422,6 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
                     />
                     <FormField
                       control={form.control}
-                      name={`variants.${index}.weight`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{"Poids de la variante"}</FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                placeholder="Poids"
-                                className="pr-10"
-                              />
-                            </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
                       name={`variants.${index}.unit`}
                       render={({ field }) => (
                         <FormItem>
@@ -460,6 +443,23 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
                               </SelectContent>
                             </Select>
                           </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`variants.${index}.weight`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{"Poids de la variante (en kg)"}</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                placeholder="Poids"
+                                className="pr-10"
+                              />
+                            </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
