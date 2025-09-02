@@ -61,12 +61,15 @@ const formSchema = z.object({
     .max(21, { message: "21 caractères maximum" }),
   quantity: z
     .string()
+    .refine((val) => !isNaN(Number(val)), {
+      message: "Doit être un nombre",
+    })
     .refine((val) => Number(val) > 0, { message: "Doit être un nombre" }),
   unit: z.enum(units),
   weight: z
     .string({ message: "Veuillez renseigner le poids" })
     .refine((val) => !isNaN(Number(val)), {
-      message: "Le poids doit être un nombre",
+      message: "Doit être un nombre",
     }),
   status: z.boolean(),
   price: z

@@ -66,17 +66,19 @@ create = async (
 
   update = async (
     id: number,
-    data: Omit<ProductVariant, "id" | "stock" | "imgUrl"> & { productId: number } & { imgUrl?: File } 
+    data: Omit<ProductVariant, "id" | "stock" | "imgUrl"> & { productId: number } & { imgUrl?: File | string } 
   ): Promise<ProductVariant> => {
     const formData = new FormData();
 
   formData.append("name", data.name);
   formData.append("weight", String(data.weight));
+  formData.append("unit", data.unit);
+  formData.append("quantity", String(data.quantity));
   formData.append("status", String(data.status));
   formData.append("price", String(data.price));
   formData.append("productId", String(data.productId));
 
-  if (data.imgUrl) {
+  if (!!data.imgUrl) {
     formData.append("imgUrl", data.imgUrl); // "image" should match your backend field name
   }
     return api

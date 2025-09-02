@@ -62,10 +62,16 @@ const formSchema = z.object({
     }),
   quantity: z
     .string()
-    .refine((val) => Number(val) > 0, { message: "Doit être un nombre" }),
+    .refine((val) => !isNaN(Number(val)), {
+      message: "Doit être un nombre",
+    })
+    .refine((val) => Number(val) > 0, { message: "Doit être supérieur à 0" }),
   unit: z.string({ message: "Veuillez renseigner l'unité" }),
   status: z.boolean(),
-  price: z.string({ message: "Veuillez renseigner un prix" }),
+  price: z.string({ message: "Veuillez renseigner un prix" })
+  .refine((val) => !isNaN(Number(val)), {
+      message: "Doit être un nombre",
+    }),
   productId: z.string({ message: "Veuillez sélectionner le produit parent" }),
   imgUrl: z
     .union([z.string(), z.instanceof(File), z.null()])
@@ -84,15 +90,14 @@ const formSchema = z.object({
 function EditVariant({ variant, isOpen, openChange, products }: Props) {
   const actions = new ProductVariantQuery();
   const queryClient = useQueryClient();
-  console.log(variant);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: variant.name,
+      weight: String(variant.weight),
       quantity: String(variant.quantity),
       unit: variant.unit,
-      weight: String(variant.weight),
       status: variant.status,
       price: String(variant.price),
       productId: String(variant.productId),
@@ -106,11 +111,11 @@ function EditVariant({ variant, isOpen, openChange, products }: Props) {
         return actions.update(variant.id, {
           name: formatName(values.name),
           weight: Number(values.weight),
+          unit: values.unit,
+          quantity: Number(values.quantity),
           price: Number(values.price),
           status: values.status,
           productId: Number(values.productId),
-          unit: values.unit,
-          quantity: Number(values.quantity),
           imgUrl: values.imgUrl,
         })
       }
@@ -122,6 +127,7 @@ function EditVariant({ variant, isOpen, openChange, products }: Props) {
         productId: Number(values.productId),
         unit: values.unit,
         quantity: Number(values.quantity),
+        imgUrl: variant.imgUrl
       })
     },
     onSuccess: () => {
@@ -134,6 +140,7 @@ function EditVariant({ variant, isOpen, openChange, products }: Props) {
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
+    //console.log(values)
     editVariant.mutate(values);
   };
 

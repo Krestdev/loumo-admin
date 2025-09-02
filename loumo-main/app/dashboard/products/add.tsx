@@ -74,13 +74,16 @@ const variantSchema = z.object({
     }),
   quantity: z
     .string()
-    .refine((val) => Number(val) > 0, { message: "Doit être un nombre" }),
+    .refine((val) => !isNaN(Number(val)), {
+      message: "Doit être un nombre",
+    })
+    .refine((val) => Number(val) > 0, { message: "Doit être supérieur à 0" }),
   unit: z.string({ message: "Veuillez renseigner l'unité" }),
   status: z.boolean(),
   price: z
     .string({ message: "Veuillez renseigner un prix" })
     .refine((val) => !isNaN(Number(val)), {
-      message: "Le prix doit être un nombre",
+      message: "Doit être un nombre",
     }),
   imgUrl: z
     .custom<File>()
@@ -284,7 +287,7 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
                 <Text size={16} />
                 {"Informations générales"}
               </h3>
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-2 place-items-start">
                 <FormField
                   control={form.control}
                   name="name"
@@ -371,7 +374,7 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
                 return (
                   <div
                     key={field.id}
-                    className="p-3 rounded-sm border grid grid-cols-1 gap-4 md:grid-cols-2"
+                    className="p-3 rounded-sm border grid grid-cols-1 gap-4 md:grid-cols-2 place-items-start"
                   >
                     <div className="md:col-span-2 flex items-center justify-between flex-wrap gap-2 pb-2">
                       <span className="text-sm font-semibold px-2 py-1 bg-primary/20 rounded">{`Variante n°${index}`}</span>
