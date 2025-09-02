@@ -53,7 +53,7 @@ const agentStatus = [
 
 type AgentProps = {
   status: (typeof agentStatus)[number];
-  zoneId: number[];
+  zoneIds: number[];
 };
 
 const formSchema = z.object({
@@ -64,7 +64,7 @@ const formSchema = z.object({
   name: z.string().min(3, { message: "Trop court" }),
   imageUrl: z.string().optional(),
   status: z.enum(agentStatus),
-  zoneId: z.array(z.string()).refine((val)=> val, {message: "Ne peut pas être vide"}), //inject here
+  zoneIds: z.array(z.string()).refine((val)=> val, {message: "Ne peut pas être vide"}), //inject here
 });
 
 function EditDriver({ agent, isOpen, openChange }: Props) {
@@ -75,7 +75,7 @@ function EditDriver({ agent, isOpen, openChange }: Props) {
       tel: agent.user?.tel ?? "",
       name: agent.user?.name ?? "",
       status: agent.status,
-      zoneId: agent.zoneId.map(e => String(e)),
+      zoneIds: agent.zoneIds.map(e => String(e)),
     },
   });
 
@@ -101,10 +101,10 @@ function EditDriver({ agent, isOpen, openChange }: Props) {
   }, [setZones, getZones.isSuccess, getZones.data]);
 
   const editAgent = useMutation({
-    mutationFn: ({ status, zoneId }: AgentProps) =>
+    mutationFn: ({ status, zoneIds }: AgentProps) =>
       agentQuery.update(agent.id, {
         status,
-        zoneId,
+        zoneIds,
       }),
     onSuccess: () => {
       agentSuccess.current = true;
@@ -140,7 +140,7 @@ function EditDriver({ agent, isOpen, openChange }: Props) {
     editDriver.mutate(values);
     editAgent.mutate({
       status: values.status,
-      zoneId: values.zoneId.map(e => Number(e)),
+      zoneIds: values.zoneIds.map(e => Number(e)),
     });
   };
 
@@ -227,7 +227,7 @@ function EditDriver({ agent, isOpen, openChange }: Props) {
               getZones.isSuccess && (
                 <FormField
                   control={form.control}
-                  name="zoneId"
+                  name="zoneIds"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{"Zone desservie"}</FormLabel>

@@ -89,7 +89,7 @@ export type Agent = {
   user?: User;
   delivery?: Delivery[];
   zone: Zone[];
-  zoneId: number[];
+  zoneIds: number[];
 };
 
 export type Category = {

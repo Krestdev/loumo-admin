@@ -52,7 +52,7 @@ const agentStatus = [
 
 type AgentProps = {
   status: (typeof agentStatus)[number];
-  zoneId: number[];
+  zoneIds: number[];
   userId: number;
 };
 
@@ -69,7 +69,7 @@ const formSchema = z.object({
   // roleId: z.number(), Make sure its fixed
   //userId: z.number(), We get it from the first response
   status: z.enum(agentStatus),
-  zoneId: z.array(z.string()).refine((val)=> val.some(el => el), {message: "Il doit être affecté au moins à une zone"}), //inject here
+  zoneIds: z.array(z.string()).refine((val)=> val.some(el => el), {message: "Il doit être affecté au moins à une zone"}), //inject here
 });
 
 function AddDriver({ isOpen, openChange }: Props) {
@@ -98,7 +98,7 @@ function AddDriver({ isOpen, openChange }: Props) {
       tel: "",
       name: "",
       status: "AVAILABLE",
-      zoneId: [],
+      zoneIds: [],
     },
   });
 
@@ -106,10 +106,10 @@ function AddDriver({ isOpen, openChange }: Props) {
   const agentQuery = new AgentQuery();
 
   const createAgent = useMutation({
-    mutationFn: ({ status, zoneId, userId }: AgentProps) =>
+    mutationFn: ({ status, zoneIds, userId }: AgentProps) =>
       agentQuery.create({
         status,
-        zoneId,
+        zoneIds,
         userId,
       }),
       onSuccess: ()=>{
@@ -130,11 +130,11 @@ function AddDriver({ isOpen, openChange }: Props) {
         });
     },
     onSuccess: (data: User) => {
-      const { status, zoneId } = form.getValues();
+      const { status, zoneIds } = form.getValues();
       createAgent.mutate({
         userId: data.id,
         status,
-        zoneId: zoneId.map(x=>Number(x)),
+        zoneIds: zoneIds.map(x=>Number(x)),
       });
     },
   });
@@ -225,19 +225,24 @@ function AddDriver({ isOpen, openChange }: Props) {
             />
             <FormField
               control={form.control}
-              name="zoneId"
+              name="zoneIds"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{"Zone desservie"}</FormLabel>
                   <FormControl>
+                    <div className="mt-1 grid grid-cols-2 gap-2">
                         {zones.map((x, id) => (
-                          <Checkbox key={id} checked={field.value.some(y=> y === String(x.id))}
-                          onCheckedChange={(checked)=> {
-                            return checked ?
-                            field.onChange([...field.value, String(x.id)])
-                            : field.onChange(field.value.filter((value)=> value !== String(x.id)))
-                          }} />
+                          <div key={id} className="inline-flex gap-1">
+                            <Checkbox key={id} checked={field.value.some(y=> y === String(x.id))}
+                            onCheckedChange={(checked)=> {
+                              return checked ?
+                              field.onChange([...field.value, String(x.id)])
+                              : field.onChange(field.value.filter((value)=> value !== String(x.id)))
+                            }} />
+                            <span className="text-sm font-medium">{x.name}</span>
+                          </div>
                         ))}
+                    </div>
                   </FormControl>
                   <FormMessage/>
                 </FormItem>

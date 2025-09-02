@@ -94,7 +94,7 @@ function AssignToDriver({driver, isOpen, openChange}:Props) {
                       { getOrders.isLoading ? 
                       <SelectItem value="no-selection" disabled className="animate-ping">{"En cours de chargement ..."}</SelectItem>
                       :
-                       orders.filter(x=> driver.zoneId.some(el => el === x.address?.zoneId)).map(y=>  //x.address?.zoneId === driver.zoneId 
+                       orders.filter(x=> driver.zoneIds.some(el => el === x.address?.zoneId)).map(y=>  //x.address?.zoneId === driver.zoneId 
                         <SelectItem key={y.id} value={String(y.id)}>
                           <div className="grid">
                             <p className="text-sm font-medium">{`Commande ${y.id} - de ${y.user.name}`}</p>
