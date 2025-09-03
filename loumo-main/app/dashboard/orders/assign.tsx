@@ -159,27 +159,22 @@ function AssignDriver({ order, isOpen, openChange, zones }: Props) {
                           <SelectValue placeholder="Sélectionner un livreur" />
                         </SelectTrigger>
                         <SelectContent>
-                          {drivers.filter(
-                            (d) =>
-                              zones.find((x) => x.id === order.address?.id)?.id &&
-                                d.zoneIds?.includes(zones.find((x) => x.id === order.address?.id)!.id) &&
-                              d.status === "AVAILABLE"
-                          ).length > 0 ? (
+                          {drivers.length > 0 ? (
                             drivers
-                              .filter(
+                              /* .filter(
                                 (d) =>
                                   zones.find((x) => x.id === order.address?.id)?.id &&
                                 d.zoneIds?.includes(zones.find((x) => x.id === order.address?.id)!.id) &&
                                   d.status === "AVAILABLE"
-                              )
-                              .map((x) => (
-                                <SelectItem key={x.id} value={String(x.id)}>
-                                  {x.user?.name ?? x.id}
+                              ) */
+                              .map((driver) => (
+                                <SelectItem key={driver.id} value={String(driver.id)} disabled={driver.status !== "AVAILABLE" || !driver.zone.some(y => y.id === order.address?.zoneId)}>
+                                  {`${driver.user?.name ?? driver.id}${driver.status !== "AVAILABLE" ? " (Non disponible)" : !driver.zone.some(y => y.id === order.address?.zoneId) ? " (Pas dans la zone)" : null}`}
                                 </SelectItem>
                               ))
                           ) : (
                             <SelectItem value="no-value" disabled>
-                              {"Aucun livreur disponible dans cette zone"}
+                              {"Aucun livreur enregistré"}
                             </SelectItem>
                           )}
                         </SelectContent>

@@ -239,7 +239,8 @@ export default function ClientsPage() {
         </CardHeader>
         <CardContent>
           <div className="flex gap-4 flex-wrap">
-            <div className="flex-1 min-w-[200px]">
+            <div className="space-y-2 flex-1 min-w-[200px]">
+              <label className="text-sm font-medium">{"Recherche"}</label>
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input

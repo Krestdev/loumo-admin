@@ -1,5 +1,6 @@
 "use client";
 
+import { DateRangePicker } from "@/components/dateRangePicker";
 import PageLayout from "@/components/page-layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,14 +29,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { fetchAll } from "@/hooks/useData";
+import { exportToExcel } from "@/lib/exportToExcel";
 import {
   getDeliveryStatusName,
   getOrderStatusLabel,
-  //isWithinPeriod,
-  paymentStatusMap,
   payStatusName,
-  statusMap,
-  XAF,
+  XAF
 } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import DeliveryQuery from "@/queries/delivery";
@@ -58,13 +57,11 @@ import {
   Store,
 } from "lucide-react";
 import React, { useState } from "react";
+import { DateRange } from "react-day-picker";
 import AssignDriver from "./assign";
 import EndOrder from "./end";
 import { OrdersPDFDocument } from "./pdf";
 import ViewOrder from "./view";
-import { exportToExcel } from "@/lib/exportToExcel";
-import { DateRange } from "react-day-picker";
-import { DateRangePicker } from "@/components/dateRangePicker";
 
 export default function OrdersPage() {
   const ordersQuery = new OrderQuery();
@@ -154,12 +151,11 @@ export default function OrdersPage() {
 
         const matchesStatus =
           statusFilter === "all" ||
-          statusMap[statusFilter]?.includes(order.status);
+          order.status === statusFilter;
 
         const matchesPayment =
           paymentFilter === "all" ||
-          (order.payment?.status &&
-            paymentStatusMap[paymentFilter]?.includes(order.payment.status));
+          paymentFilter === (order.payment ? order.payment?.status : "undefined") ;
 
         /* const matchesPeriod =
           periodFilter === "all" ||
@@ -174,7 +170,7 @@ export default function OrdersPage() {
               new Date(dateRange.to.setHours(23, 59, 59, 999)));
 
         const matchesZone =
-          zoneFilter === "all" || order.address?.zone?.name === zoneFilter;
+          zoneFilter === "all" || order.address?.zoneId === Number(zoneFilter);
 
         const matchesAmount = (() => {
           const amount = order.total;
@@ -218,6 +214,7 @@ export default function OrdersPage() {
     sortDirection,
     dateRange,
   ]);
+
 
   const handleView = (order: Order) => {
     setSelectedOrder(order);
@@ -336,6 +333,7 @@ export default function OrdersPage() {
                       {payStatusName(x)}
                     </SelectItem>
                   ))}
+                  <SelectItem value="undefined">{"Non Payé"}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -375,7 +373,7 @@ export default function OrdersPage() {
                 <SelectContent>
                   <SelectItem value="all">{"Toutes les zones"}</SelectItem>
                   {zones.map((x) => (
-                    <SelectItem key={x.id} value={x.name}>
+                    <SelectItem key={x.id} value={String(x.id)}>
                       {x.name}
                     </SelectItem>
                   ))}
