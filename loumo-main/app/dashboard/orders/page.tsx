@@ -40,7 +40,7 @@ import { useStore } from "@/providers/datastore";
 import DeliveryQuery from "@/queries/delivery";
 import OrderQuery from "@/queries/order";
 import ZoneQuery from "@/queries/zone";
-import { Delivery, Order, OrderStatus, Payment, Zone } from "@/types/types";
+import { Delivery, Order, OrderStatus, Payment, Product, Zone } from "@/types/types";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import {
   ArrowRightCircle,
@@ -62,6 +62,7 @@ import AssignDriver from "./assign";
 import EndOrder from "./end";
 import { OrdersPDFDocument } from "./pdf";
 import ViewOrder from "./view";
+import ProductQuery from "@/queries/product";
 
 export default function OrdersPage() {
   const ordersQuery = new OrderQuery();
@@ -73,9 +74,13 @@ export default function OrdersPage() {
   const deliveryQuery = new DeliveryQuery();
   const getDeliveries = fetchAll(deliveryQuery.getAll, "deliveries", 30000);
 
+  const productQuery = new ProductQuery();
+  const getProducts = fetchAll(productQuery.getAll, "products", 30000);
+
   const [orders, setOrders] = useState<Order[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const { setLoading } = useStore();
 
   const [selectedOrder, setSelectedOrder] = useState<Order | undefined>();
@@ -108,6 +113,9 @@ export default function OrdersPage() {
     if (getDeliveries.isSuccess) {
       setDeliveries(getDeliveries.data);
     }
+    if (getProducts.isSuccess) {
+      setProducts(getProducts.data);
+    }
   }, [
     setLoading,
     setZones,
@@ -122,6 +130,9 @@ export default function OrdersPage() {
     getDeliveries.data,
     getDeliveries.isLoading,
     getDeliveries.isSuccess,
+    getProducts.data,
+    getProducts.isLoading,
+    getProducts.isSuccess,
   ]);
 
   const orderStatus: OrderStatus[] = [
@@ -257,7 +268,7 @@ export default function OrdersPage() {
   return (
     <PageLayout
       isLoading={
-        orderData.isLoading || getZones.isLoading || getDeliveries.isLoading
+        orderData.isLoading || getZones.isLoading || getDeliveries.isLoading || getProducts.isLoading
       }
       className="flex-1 overflow-auto p-4 space-y-6"
     >
@@ -606,6 +617,7 @@ export default function OrdersPage() {
       )}
       {selectedOrder && (
         <ViewOrder
+        products={products}
           order={selectedOrder}
           openChange={setViewDialog}
           isOpen={viewDialog}

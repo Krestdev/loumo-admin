@@ -375,7 +375,7 @@ export default function Dashboard() {
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">{`#ORD-${order.id}`}</span>
+                          <span className="font-medium uppercase">{order.ref}</span>
                           <Badge
                             variant={
                               order.status === "ACCEPTED"

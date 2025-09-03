@@ -27,6 +27,8 @@ import OrderQuery from "@/queries/order";
 import PaymentQuery from "@/queries/payment";
 import ShopQuery from "@/queries/shop";
 import { Order, Payment, Shop } from "@/types/types";
+import { formatRelative } from "date-fns";
+import { fr } from "date-fns/locale";
 import {
   AlertCircle,
   Ban,
@@ -542,7 +544,7 @@ export default function PaymentsPage() {
                       <TableCell className="font-medium">
                         {payment.id}
                       </TableCell>
-                      <TableCell>{`#ORD-${payment.orderId}`}</TableCell>
+                      <TableCell className="uppercase">{payment.ref}</TableCell>
                       <TableCell>{currentOrder?.user.name ?? "--"}</TableCell>
                       <TableCell>
                         {XAF.format(currentOrder?.total ?? 0)}
@@ -560,7 +562,7 @@ export default function PaymentsPage() {
                           </Badge>
                         </div>
                       </TableCell>
-                      <TableCell>{`payment.date`}</TableCell>
+                      <TableCell>{formatRelative(new Date(payment.updatedAt ?? payment.createdAt), new Date(), {locale: fr})}</TableCell>
                     </TableRow>
                   );
                 })

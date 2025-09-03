@@ -20,7 +20,7 @@ import {
 import { fetchAll } from "@/hooks/useData";
 import { XAF } from "@/lib/utils";
 import ProductVariantQuery from "@/queries/productVariant";
-import { Delivery, Order, ProductVariant, Zone } from "@/types/types";
+import { Delivery, Order, Product, ProductVariant, Zone } from "@/types/types";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { format } from "date-fns";
 import {
@@ -39,9 +39,10 @@ type Props = {
   isOpen: boolean;
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
   delivery?: Delivery;
+  products: Product[];
 };
 
-function ViewOrder({ order, isOpen, openChange, zones, delivery }: Props) {
+function ViewOrder({ order, isOpen, openChange, zones, delivery, products }: Props) {
   const variantQuery = new ProductVariantQuery();
   const getVariants = fetchAll(variantQuery.getAll, "variants");
   const [variants, setVariants] = React.useState<ProductVariant[]>([]);
@@ -139,9 +140,15 @@ function ViewOrder({ order, isOpen, openChange, zones, delivery }: Props) {
                       order.orderItems.map((item, index) => (
                         <TableRow key={index}>
                           <TableCell>{`${
-                            variants.find((x) => x.id === item.productVariantId)
+                            products.find(y=> y.variants?.some(z=> z.id === item.productVariantId))?.variants?.find((x) => x.id === item.productVariantId)
                               ?.name
-                          }`}</TableCell>
+                          } ${
+                            variants.find((x) => x.id === item.productVariantId)
+                              ?.quantity
+                          } ${
+                            variants.find((x) => x.id === item.productVariantId)
+                              ?.unit
+                          } (${products.find(y=> y.variants?.some(z=> z.id === item.productVariantId)) ? products.find(y=> y.variants?.some(z=> z.id === item.productVariantId))?.name : "Non défini"})`}</TableCell>
                           <TableCell>{item.quantity}</TableCell>
                           <TableCell>
                             {XAF.format(
@@ -150,7 +157,12 @@ function ViewOrder({ order, isOpen, openChange, zones, delivery }: Props) {
                               )?.price ?? 0
                             )}
                           </TableCell>
-                          <TableCell>{XAF.format(item.total)}</TableCell>
+                          <TableCell>{XAF.format(
+                              variants.find(
+                                (x) => x.id === item.productVariantId
+                              )?.price ?? 0
+                              * item.quantity
+                            )}</TableCell>
                         </TableRow>
                       ))
                     ) : (
@@ -173,7 +185,7 @@ function ViewOrder({ order, isOpen, openChange, zones, delivery }: Props) {
                   </div>
                   <div className="flex justify-between font-bold">
                     <span>{"Total:"}</span>
-                    <span>{XAF.format(order.total)}</span>
+                    <span>{XAF.format(order.total + order.deliveryFee)}</span>
                   </div>
                 </div>
               </CardContent>

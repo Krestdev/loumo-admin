@@ -174,6 +174,8 @@ export type Payment = {
   total: number;
   ref: string;
   method: PaymentMethod;
+  createdAt: Date;
+  updatedAt?: Date;
 };
 
 export type Permission = {
