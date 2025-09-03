@@ -381,7 +381,7 @@ export default function VariantsPage() {
                           )} */}
                         </div>
                       </TableCell>
-                      <TableCell>{`${variant.weight} ${variant.unit}`}</TableCell>
+                      <TableCell>{`${variant.weight} kg`}</TableCell>
                       <TableCell>
                         <div className="space-y-1">
                           {variant.stock.length > 0 && (

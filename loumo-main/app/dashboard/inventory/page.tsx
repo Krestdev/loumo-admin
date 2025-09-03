@@ -1,9 +1,9 @@
 "use client";
 
+import { DateRangePicker } from "@/components/dateRangePicker";
 import PageLayout from "@/components/page-layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import {
   Card,
   CardContent,
@@ -12,11 +12,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -36,33 +31,37 @@ import { fetchAll } from "@/hooks/useData";
 import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import ProductQuery from "@/queries/product";
+import ProductVariantQuery from "@/queries/productVariant";
 import ShopQuery from "@/queries/shop";
 import StockQuery from "@/queries/stock";
-import { Product, Shop, Stock } from "@/types/types";
-import { format, formatRelative } from "date-fns";
+import { Product, ProductVariant, Shop, Stock } from "@/types/types";
+import { format, formatRelative, isToday } from "date-fns";
 import { fr } from "date-fns/locale";
 import { AlertTriangle, Calendar, CirclePlus, Package } from "lucide-react";
 import React, { useMemo, useState } from "react";
+import { DateRange } from "react-day-picker";
 import Restock from "./add";
 import CreateStockPage from "./createStock";
-import { isToday } from "date-fns";
 
 export default function InventoryPage() {
   const stockQuery = new StockQuery();
   const shopQuery = new ShopQuery();
   const productQuery = new ProductQuery();
+  const variantQuery = new ProductVariantQuery();
   const getStocks = fetchAll(stockQuery.getAll, "stocks");
   const getShops = fetchAll(shopQuery.getAll, "shops");
   const getProducts = fetchAll(productQuery.getAll, "products");
+  const getVariants = fetchAll(variantQuery.getAll, "variants");
 
   const { setLoading } = useStore();
   const [stocks, setStocks] = useState<Stock[]>([]);
   const [shops, setShops] = useState<Shop[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [variants, setVariants] = useState<ProductVariant[]>([]);
 
   React.useEffect(() => {
     setLoading(
-      getShops.isLoading || getStocks.isLoading || getProducts.isLoading
+      getShops.isLoading || getStocks.isLoading || getProducts.isLoading || getVariants.isLoading
     );
     if (getShops.isSuccess) {
       setShops(getShops.data);
@@ -72,6 +71,9 @@ export default function InventoryPage() {
     }
     if (getProducts.isSuccess) {
       setProducts(getProducts.data);
+    }
+    if (getVariants.isSuccess) {
+      setVariants(getVariants.data);
     }
   }, [
     setLoading,
@@ -84,15 +86,19 @@ export default function InventoryPage() {
     getProducts.isLoading,
     getProducts.data,
     getProducts.isSuccess,
+    getVariants.isLoading,
+    getVariants.data,
+    getVariants.isSuccess,
   ]);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<string>("all");
   const [selectedShop, setSelectedShop] = useState<string>("all");
   const [stockFilter, setStockFilter] = useState<string>("all");
-  //const [selectedThreshold, setSelectedThreshold] = useState("all");
-  const [dateFrom, setDateFrom] = useState<Date>();
-  const [dateTo, setDateTo] = useState<Date>();
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: undefined,
+    to: undefined,
+  });
   const [selectedStock, setSelectedStock] = useState<Stock>();
   const [addDialog, setAddDialog] = useState<boolean>(false);
 
@@ -100,7 +106,17 @@ export default function InventoryPage() {
 
   const filteredData = useMemo(() => {
     return stocks.filter((item) => {
-      const matchesSearch = item.productVariant?.name.includes(searchTerm);
+      const matchesSearch =
+        item.productVariant?.name
+          .toLocaleLowerCase()
+          .includes(searchTerm.toLocaleLowerCase()) ||
+        products.some(
+          (y) =>
+            y.name
+              .toLocaleLowerCase()
+              .includes(searchTerm.toLocaleLowerCase()) &&
+            y.variants?.some((z) => z.id === item.productVariantId)
+        );
 
       const matchesProduct =
         selectedProduct === "all" ||
@@ -117,15 +133,31 @@ export default function InventoryPage() {
         (stockFilter === "ok" && item.quantity > item.threshold) ||
         (stockFilter === "out" && item.quantity === 0);
 
-      /* let matchesDate = true;
-    if (dateFrom && dateTo) {
-      const itemDate = new Date(item.lastRestock);
-      matchesDate = itemDate >= dateFrom && itemDate <= dateTo;
-    } */
+      const matchesDate =
+        (!dateRange?.from ||
+          new Date(item.restockDate ?? Date.now()) >=
+            new Date(dateRange.from.setHours(0, 0, 0, 0))) &&
+        (!dateRange?.to ||
+          new Date(item.restockDate ?? Date.now()) <=
+            new Date(dateRange.to.setHours(23, 59, 59, 999)));
 
-      return matchesSearch && matchesProduct && matchesShop && matchesThreshold; //&& matchesThreshold && matchesDate;
+      return (
+        matchesSearch &&
+        matchesProduct &&
+        matchesShop &&
+        matchesThreshold &&
+        matchesDate
+      );
     });
-  }, [stocks, searchTerm, selectedProduct, selectedShop, stockFilter]);
+  }, [
+    stocks,
+    searchTerm,
+    selectedProduct,
+    selectedShop,
+    stockFilter,
+    products,
+    dateRange,
+  ]);
 
   const lastUpdate = useMemo(() => {
     if (stocks.length === 0) return null;
@@ -149,7 +181,7 @@ export default function InventoryPage() {
   return (
     <PageLayout
       isLoading={
-        getShops.isLoading || getStocks.isLoading || getProducts.isLoading
+        getShops.isLoading || getStocks.isLoading || getProducts.isLoading || getVariants.isLoading
       }
       className="flex-1 overflow-auto p-4 space-y-6"
     >
@@ -310,59 +342,13 @@ export default function InventoryPage() {
                 </SelectContent>
               </Select>
             </div>
-
             <div className="space-y-2">
-              <label className="text-sm font-medium">{"Date début"}</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal"
-                    size={"lg"}
-                  >
-                    <Calendar className="mr-2 h-4 w-4" />
-                    {dateFrom
-                      ? format(dateFrom, "dd/MM/yyyy", { locale: fr })
-                      : "Sélectionner"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <CalendarComponent
-                    mode="single"
-                    selected={dateFrom}
-                    onSelect={setDateFrom}
-                    disabled
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">{"Date fin"}</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal"
-                    size={"lg"}
-                  >
-                    <Calendar className="mr-2 h-4 w-4" />
-                    {dateTo
-                      ? format(dateTo, "dd/MM/yyyy", { locale: fr })
-                      : "Sélectionner"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <CalendarComponent
-                    mode="single"
-                    selected={dateTo}
-                    onSelect={setDateTo}
-                    initialFocus
-                    disabled
-                  />
-                </PopoverContent>
-              </Popover>
+              <label className="text-sm font-medium">{"Période"}</label>
+              <DateRangePicker
+                date={dateRange}
+                onChange={setDateRange}
+                className="!w-full"
+              />
             </div>
           </div>
         </CardContent>
@@ -384,8 +370,8 @@ export default function InventoryPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{"Produit"}</TableHead>
                 <TableHead>{"Variante"}</TableHead>
+                <TableHead>{"Produit"}</TableHead>
                 <TableHead>{"Boutique"}</TableHead>
                 <TableHead>{"Stock actuel"}</TableHead>
                 {/* <TableHead>{"Seuil min"}</TableHead> */}
@@ -412,14 +398,14 @@ export default function InventoryPage() {
               ) : (
                 filteredData.map((item) => (
                   <TableRow key={item.id}>
-                    <TableCell>{
-                      products.find((x) =>
+                    <TableCell className="font-medium">
+                      {item.productVariant ? `${item.productVariant.name} ${item.productVariant.quantity} ${item.productVariant.unit}`  : "Non défini"}
+                    </TableCell>
+                    <TableCell>
+                      {products.find((x) =>
                         x.variants?.some((y) => y.id === item.productVariantId)
-                      )?.name ?? "Non défini"
-                    }</TableCell>
-                    <TableCell className="font-medium">{
-                      item.productVariant?.name ?? "Non défini"
-                    }</TableCell>
+                      )?.name ?? "Non défini"}
+                    </TableCell>
                     <TableCell>
                       {shops.find((x) => x.id === item.shopId)?.name ??
                         "Non défini"}
@@ -486,7 +472,7 @@ export default function InventoryPage() {
           shops={shops}
         />
       )}
-      <CreateStockPage isOpen={createDialog} openChange={setCreateDialog} />
+      <CreateStockPage isOpen={createDialog} openChange={setCreateDialog} shops={shops} variants={variants} products={products}/>
     </PageLayout>
   );
 }
