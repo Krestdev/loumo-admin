@@ -169,7 +169,7 @@ function AssignDriver({ order, isOpen, openChange, zones }: Props) {
                               ) */
                               .map((driver) => (
                                 <SelectItem key={driver.id} value={String(driver.id)} disabled={driver.status !== "AVAILABLE" || !driver.zone.some(y => y.id === order.address?.zoneId)}>
-                                  {`${driver.user?.name ?? driver.id}${driver.status !== "AVAILABLE" ? " (Non disponible)" : !driver.zone.some(y => y.id === order.address?.zoneId) ? " (Pas dans la zone)" : null}`}
+                                  {`${driver.user?.name ?? driver.id}${driver.status !== "AVAILABLE" ? " (Non disponible)" : !driver.zone.some(y => y.id === order.address?.zoneId) ? " (Pas dans la zone)" : ""}`}
                                 </SelectItem>
                               ))
                           ) : (

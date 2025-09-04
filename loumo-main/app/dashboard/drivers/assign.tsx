@@ -6,14 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { XAF } from "@/lib/utils";
 import DeliveryQuery from "@/queries/delivery";
-import OrderQuery from "@/queries/order";
 import { Agent, Order } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader } from "lucide-react";
 import React from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "react-toastify";
 import { z } from "zod";
 import { deliverySchema } from "../orders/assign";
 
@@ -21,10 +19,11 @@ type Props = {
   driver:Agent;
   isOpen: boolean;
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
+  orders: Order[];
 };
 
 
-function AssignToDriver({driver, isOpen, openChange}:Props) {
+function AssignToDriver({driver, isOpen, openChange, orders}:Props) {
 
   const form = useForm<z.infer<typeof deliverySchema>>({
     resolver: zodResolver(deliverySchema),
@@ -36,7 +35,6 @@ function AssignToDriver({driver, isOpen, openChange}:Props) {
   });
 
   const queryDelivery = new DeliveryQuery();
-  const orderQuery = new OrderQuery();
   const queryClient = useQueryClient();
   const createDelivery = useMutation({
     mutationFn: (values: z.infer<typeof deliverySchema>) => queryDelivery.create({
@@ -52,26 +50,9 @@ function AssignToDriver({driver, isOpen, openChange}:Props) {
     }
   });
 
-  const getOrders = useQuery({
-    queryKey: ["orders"],
-    queryFn: () => orderQuery.getAll(),
-  });
-
-  const [orders, setOrders] = React.useState<Order[]>([]);
-
   const onSubmit = (values:z.infer<typeof deliverySchema>) => {
     createDelivery.mutate(values);
   }
-
-  React.useEffect(()=>{
-    if(getOrders.isError){
-      toast.error("Erreur lors du chargement des commandes")
-      openChange(false)
-    }
-    if(getOrders.isSuccess){
-      setOrders(getOrders.data)
-    }
-  },[openChange, getOrders.isError, setOrders, getOrders.isSuccess, getOrders.data])
 
   return (
     <Dialog open={isOpen} onOpenChange={openChange}>
@@ -91,14 +72,13 @@ function AssignToDriver({driver, isOpen, openChange}:Props) {
                       <SelectValue placeholder="Sélectionner une commande"/>
                     </SelectTrigger>
                     <SelectContent>
-                      { getOrders.isLoading ? 
-                      <SelectItem value="no-selection" disabled className="animate-ping">{"En cours de chargement ..."}</SelectItem>
-                      :
-                       orders.filter(x=> driver.zoneIds.some(el => el === x.address?.zoneId)).map(y=>  //x.address?.zoneId === driver.zoneId 
-                        <SelectItem key={y.id} value={String(y.id)}>
+                      {orders.length === 0 && 
+                      <SelectItem value="--" disabled>{"Aucune commande enregistrée"}</SelectItem>}
+                      { orders.map(order=>
+                        <SelectItem key={order.id} value={String(order.id)} disabled={!driver.zone.some(el=>el.id === order.address?.id) || !order.delivery}>
                           <div className="grid">
-                            <p className="text-sm font-medium">{`Commande ${y.id} - de ${y.user.name}`}</p>
-                            <span className="text-xs text-muted-foreground">{XAF.format(y.total)}</span>
+                            <p className="text-sm font-medium">{`Commande ${order.id} - de ${order.user.name}`}</p>
+                            <span className="text-xs text-muted-foreground">{XAF.format(order.total)}</span>
                           </div>
                         </SelectItem>
                       )}

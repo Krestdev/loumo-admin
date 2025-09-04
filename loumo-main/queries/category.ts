@@ -5,12 +5,13 @@ import { toast } from "react-toastify";
 export default class CategoryQuery {
   route = "/categories";
   create = async (
-    data: Omit<Category, "id" | "imgUrl"> & { productIds?: number[], imgUrl?: null | File}
+    data: Omit<Category, "id" | "imgUrl" | "children"> & { productIds?: number[], imgUrl?: null | File}
   ): Promise<Category> => {
     const formData = new FormData();
     formData.append("name", data.name);
     formData.append("status",String(data.status));
     formData.append("display",String(data.display));
+    if(data.parentId) formData.append("parentId", String(data.parentId));
     if(data.imgUrl) {
     formData.append("imgUrl", data.imgUrl); // "image" should match your backend field name
   }
@@ -43,6 +44,7 @@ export default class CategoryQuery {
   ): Promise<Category> => {
     const formData = new FormData();
     if(data.name)formData.append("name", data.name);
+    if(data.parentId) formData.append("parentId", String(data.parentId));
     if(data.status !== undefined)formData.append("status",String(data.status));
     if(data.display !== undefined)formData.append("display",String(data.display));
     if(data.imgUrl instanceof File)formData.append("imgUrl", data.imgUrl);

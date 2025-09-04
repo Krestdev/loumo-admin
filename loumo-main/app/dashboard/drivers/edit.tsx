@@ -64,7 +64,9 @@ const formSchema = z.object({
   name: z.string().min(3, { message: "Trop court" }),
   imageUrl: z.string().optional(),
   status: z.enum(agentStatus),
-  zoneIds: z.array(z.string()).refine((val)=> val, {message: "Ne peut pas être vide"}), //inject here
+  zoneIds: z
+    .array(z.string())
+    .refine((val) => val, { message: "Ne peut pas être vide" }), //inject here
 });
 
 function EditDriver({ agent, isOpen, openChange }: Props) {
@@ -75,7 +77,7 @@ function EditDriver({ agent, isOpen, openChange }: Props) {
       tel: agent.user?.tel ?? "",
       name: agent.user?.name ?? "",
       status: agent.status,
-      zoneIds: agent.zoneIds.map(e => String(e)),
+      zoneIds: agent.zone.map((e) => String(e.id)),
     },
   });
 
@@ -109,7 +111,10 @@ function EditDriver({ agent, isOpen, openChange }: Props) {
     onSuccess: () => {
       agentSuccess.current = true;
       if (driverSuccess.current) {
-        queryClient.invalidateQueries({queryKey:["agents"], refetchType: "active"});
+        queryClient.invalidateQueries({
+          queryKey: ["agents"],
+          refetchType: "active",
+        });
         openChange(false);
         form.reset();
       }
@@ -127,7 +132,10 @@ function EditDriver({ agent, isOpen, openChange }: Props) {
     onSuccess: () => {
       driverSuccess.current = true;
       if (agentSuccess.current) {
-        queryClient.invalidateQueries({queryKey:["agents"], refetchType: "active"});
+        queryClient.invalidateQueries({
+          queryKey: ["agents"],
+          refetchType: "active",
+        });
         openChange(false);
         form.reset();
       }
@@ -140,7 +148,7 @@ function EditDriver({ agent, isOpen, openChange }: Props) {
     editDriver.mutate(values);
     editAgent.mutate({
       status: values.status,
-      zoneIds: values.zoneIds.map(e => Number(e)),
+      zoneIds: values.zoneIds.map((e) => Number(e)),
     });
   };
 
@@ -232,14 +240,33 @@ function EditDriver({ agent, isOpen, openChange }: Props) {
                     <FormItem>
                       <FormLabel>{"Zone desservie"}</FormLabel>
                       <FormControl>
-                             {zones.map((x, id) => (
-                          <Checkbox key={id} checked={field.value.some(y=> y === String(x.id))}
-                          onCheckedChange={(checked)=> {
-                            return checked ?
-                            field.onChange([...field.value, String(x.id)])
-                            : field.onChange(field.value.filter((value)=> value !== String(x.id)))
-                          }} />
-                        ))}
+                        <div className="mt-1 grid grid-cols-2 gap-2">
+                          {zones.map((x, id) => (
+                            <div key={id} className="inline-flex gap-1">
+                              <Checkbox
+                                key={id}
+                                checked={field.value.some(
+                                  (y) => y === String(x.id)
+                                )}
+                                onCheckedChange={(checked) => {
+                                  return checked
+                                    ? field.onChange([
+                                        ...field.value,
+                                        String(x.id),
+                                      ])
+                                    : field.onChange(
+                                        field.value.filter(
+                                          (value) => value !== String(x.id)
+                                        )
+                                      );
+                                }}
+                              />
+                              <span className="text-sm font-medium">
+                                {x.name}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>

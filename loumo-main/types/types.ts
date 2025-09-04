@@ -99,6 +99,9 @@ export type Category = {
   status: boolean;
   products?: Product[];
   imgUrl?: string;
+  parentId?: number | null;
+  children: Category[];
+  childrenIds: number[];
 };
 
 export type Delivery = {

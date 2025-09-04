@@ -19,8 +19,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatName } from "@/lib/utils";
 import CategoryQuery from "@/queries/category";
+import { Category } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader } from "lucide-react";
@@ -31,6 +33,7 @@ import { z } from "zod";
 type Props = {
   isOpen: boolean;
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
+  categories: Category[];
 };
 
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -45,10 +48,12 @@ const formSchema = z.object({
       message: "Format accepté: JPG, JPEG, PNG, WEBP uniquement",
   })
   .optional(),
+  childrenIds: z.array(z.string()),
+  parentId: z.string().optional(),
 
 });
 
-function AddCategory({ isOpen, openChange }: Props) {
+function AddCategory({ isOpen, openChange, categories }: Props) {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -56,6 +61,8 @@ function AddCategory({ isOpen, openChange }: Props) {
       name: "",
       status: true,
       display: false,
+      childrenIds: [],
+      parentId: "false"
     },
   });
 
@@ -68,6 +75,8 @@ function AddCategory({ isOpen, openChange }: Props) {
         status: values.status,
         display: values.display,
         imgUrl: values.imgUrl,
+        childrenIds: values.childrenIds.map(x => Number(x)),
+        parentId: values.parentId === "false" ? null : Number(values.parentId)
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
@@ -103,6 +112,29 @@ function AddCategory({ isOpen, openChange }: Props) {
                   <FormLabel>{"Nom de la catégorie"}</FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="Nom" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="parentId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{"Catégorie Parent"}</FormLabel>
+                  <FormControl>
+                    <Select defaultValue={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Sélectionner" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="false">{"Aucune"}</SelectItem>
+                        {categories.map(category=>
+                          <SelectItem key={category.id} value={String(category.id)}>{category.name}</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

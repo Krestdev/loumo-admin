@@ -205,6 +205,7 @@ export default function CategoriesPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>{"Nom"}</TableHead>
+                <TableHead>{"Parent"}</TableHead>
                 <TableHead>{"Produits"}</TableHead>
                 <TableHead>{"Statut"}</TableHead>
                 <TableHead>{"Page d'Accueil"}</TableHead>
@@ -215,7 +216,7 @@ export default function CategoriesPage() {
               {filteredCategories.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={8}
+                    colSpan={6}
                     className="text-center text-gray-500 py-5 sm:text-lg xl:text-xl"
                   >
                     {"Aucune catégorie trouvée"}
@@ -244,6 +245,9 @@ export default function CategoriesPage() {
                           />
                         {category.name}
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      {category.parentId ? categories.find(x=>x.id === category.parentId)?.name : "--"}
                     </TableCell>
                     <TableCell>
                       <Badge variant="secondary">
@@ -293,6 +297,7 @@ export default function CategoriesPage() {
           category={selectedCategory}
           isOpen={editDialog}
           openChange={setEditDialog}
+          categories={categories}
         />
       )}
       {selectedCategory && (
@@ -302,7 +307,7 @@ export default function CategoriesPage() {
           openChange={setDeleteDialog}
         />
       )}
-      <AddCategory isOpen={isDialogOpen} openChange={setIsDialogOpen} />
+      <AddCategory isOpen={isDialogOpen} openChange={setIsDialogOpen} categories={categories} />
     </PageLayout>
   );
 }

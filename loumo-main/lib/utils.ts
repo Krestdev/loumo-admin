@@ -156,8 +156,10 @@ export const unitName = (unit :string) =>{
       return "Mililitre (ml)";
     case "cl":
       return "Centilitre (cl)";
-    case "Aucune":
-      return "Pas d'unité --"
+    case "boite":
+      return "Boîte";
+    case "bouteille":
+      return "Bouteille";
     default:
       return "unknown";
   }

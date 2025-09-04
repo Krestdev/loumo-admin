@@ -55,7 +55,7 @@ function ViewOrder({ order, isOpen, openChange, zones, delivery, products }: Pro
 
   return (
     <Dialog open={isOpen} onOpenChange={openChange}>
-      <DialogContent>
+      <DialogContent className="md:max-w-[calc(100%-3rem)] lg:max-w-[978px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {`Détails de la commande de ${order.user.name}`}

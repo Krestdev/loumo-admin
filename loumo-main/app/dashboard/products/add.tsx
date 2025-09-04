@@ -47,7 +47,12 @@ type Props = {
   shops: Shop[];
 };
 
-const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+const ACCEPTED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+];
 
 const stockSchema = z.object({
   quantity: z.string().refine((val) => !isNaN(Number(val)), {
@@ -103,13 +108,15 @@ const formSchema = z.object({
     .max(27, { message: "Trop long" }),
   category: z.string({ message: "Veuillez sélectionner une catégorie" }),
   status: z.boolean(),
-  description: z.string({
-    message: "Veuillez renseigner une description du produit",
-  }).min(40,{message: "40 caractères minimum"}),
+  description: z
+    .string({
+      message: "Veuillez renseigner une description du produit",
+    })
+    .min(40, { message: "40 caractères minimum" }),
   variants: z
     .array(variantSchema)
     .min(1, { message: "Veuillez ajouter au moins une variante" }),
-})
+});
 /* .superRefine((data, ctx) => {
     const names = data.variants.map((v) => v.name.trim().toLowerCase());
     const duplicates = names.filter(
@@ -217,7 +224,7 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
             ],
           },
         ],
-      })
+      });
       openChange(false);
     },
   });
@@ -293,7 +300,10 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{"Nom du Produit"}<RequiredStar/></FormLabel>
+                      <FormLabel>
+                        {"Nom du Produit"}
+                        <RequiredStar />
+                      </FormLabel>
                       <FormControl>
                         <Input
                           {...field}
@@ -309,7 +319,10 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
                   name="category"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{"Catégorie"}<RequiredStar/></FormLabel>
+                      <FormLabel>
+                        {"Catégorie"}
+                        <RequiredStar />
+                      </FormLabel>
                       <FormControl>
                         <Select
                           defaultValue={field.value}
@@ -336,7 +349,10 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
                   name="description"
                   render={({ field }) => (
                     <FormItem className="col-span-1 md:col-span-2">
-                      <FormLabel>{"Description"}<RequiredStar/></FormLabel>
+                      <FormLabel>
+                        {"Description"}
+                        <RequiredStar />
+                      </FormLabel>
                       <FormControl>
                         <Textarea
                           {...field}
@@ -366,7 +382,8 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
             <div className="space-y-4">
               <h3 className="text-lg font-medium flex gap-2 items-center">
                 <Blocks size={16} />
-                {"Variantes du produit"}<RequiredStar/>
+                {"Variantes du produit"}
+                <RequiredStar />
               </h3>
               {fields.map((field, index) => {
                 const stockFields: StockItem[] =
@@ -390,71 +407,78 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
                       </Button>
                     </div>
                     <div className="col-span-1 md:col-span-2 grid grid-cols-1 min-[560px]:grid-cols-3 gap-2 place-items-start">
-                    <FormField
-                      control={form.control}
-                      name={`variants.${index}.name`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{"Nom"}</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="ex. Sac, Boite" />
-                          </FormControl>
-                          <FormDescription>{"Tenez compte que nous afficherons sur le site nom + quantité + unité. ex. Sac 25 kg"}</FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name={`variants.${index}.quantity`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{"Quantité"}</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              placeholder="ex 10"
-                              type="number"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name={`variants.${index}.unit`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{"Unité"}</FormLabel>
-                          <FormControl>
-                            <Select
-                              value={field.value}
-                              onValueChange={field.onChange}
-                            >
-                              <SelectTrigger className="w-full">
-                                <SelectValue placeholder="ex. kg" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {units.map((x, id) => (
-                                  <SelectItem key={id} value={x}>
-                                    {unitName(x)}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                      <FormField
+                        control={form.control}
+                        name={`variants.${index}.name`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{"Nom"}</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="ex. Sac, Boite" />
+                            </FormControl>
+                            <FormDescription>
+                              {
+                                "Tenez compte que nous afficherons sur le site nom + quantité + unité. ex. Sac 25 kg"
+                              }
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name={`variants.${index}.quantity`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{"Quantité"}</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                placeholder="ex 10"
+                                type="number"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name={`variants.${index}.unit`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{"Unité"}</FormLabel>
+                            <FormControl>
+                              <Select
+                                value={field.value}
+                                onValueChange={field.onChange}
+                              >
+                                <SelectTrigger className="w-full">
+                                  <SelectValue placeholder="ex. kg" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {units.map((x, id) => (
+                                    <SelectItem key={id} value={x}>
+                                      {unitName(x)}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </div>
                     <FormField
                       control={form.control}
                       name={`variants.${index}.weight`}
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{"Poids de la variante (en kg)"}</FormLabel>
+                          <FormLabel>
+                            {"Poids de la variante (en kg)"}
+                          </FormLabel>
+                          <div className="relative">
                             <FormControl>
                               <Input
                                 {...field}
@@ -462,6 +486,10 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
                                 className="pr-10"
                               />
                             </FormControl>
+                            <span className="text-muted-foreground absolute right-3 top-1/2 -translate-y-1/2 text-sm">
+                              {"kg"}
+                            </span>
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}

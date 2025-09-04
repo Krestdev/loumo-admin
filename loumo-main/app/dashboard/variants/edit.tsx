@@ -279,9 +279,14 @@ function EditVariant({ variant, isOpen, openChange, products }: Props) {
                       {"Poids de la variante (en kg)"}
                       <RequiredStar />
                     </FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Poids" className="pr-10" />
-                    </FormControl>
+                    <div className="relative">
+                      <FormControl>
+                        <Input {...field} placeholder="Poids" className="pr-10" />
+                      </FormControl>
+                      <span className="text-muted-foreground absolute right-3 top-1/2 -translate-y-1/2 text-sm">
+                      {"kg"}
+                    </span>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -34,7 +34,7 @@ function EndOrder({isOpen, openChange, order}:Props) {
         <DialogContent>
             <DialogHeader>
                 <DialogTitle>
-                    {`Terminer la commande N°${order.id} de ${order.user.name}`}
+                    {`Terminer la commande N°${order.ref} de ${order.user.name}`}
                 </DialogTitle>
                 <DialogDescription>{"Validez pour terminer ou annuler la commande en cours"}</DialogDescription>
             </DialogHeader>

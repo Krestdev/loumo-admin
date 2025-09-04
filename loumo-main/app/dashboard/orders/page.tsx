@@ -39,12 +39,14 @@ import {
 import { useStore } from "@/providers/datastore";
 import DeliveryQuery from "@/queries/delivery";
 import OrderQuery from "@/queries/order";
+import ProductQuery from "@/queries/product";
 import ZoneQuery from "@/queries/zone";
 import { Delivery, Order, OrderStatus, Payment, Product, Zone } from "@/types/types";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import {
+  ArrowDown,
   ArrowRightCircle,
-  ArrowUpDown,
+  ArrowUp,
   BadgeCheck,
   CheckCircleIcon,
   DollarSign,
@@ -54,7 +56,7 @@ import {
   MoreHorizontal,
   Search,
   SquareChevronRight,
-  Store,
+  Store
 } from "lucide-react";
 import React, { useState } from "react";
 import { DateRange } from "react-day-picker";
@@ -62,7 +64,6 @@ import AssignDriver from "./assign";
 import EndOrder from "./end";
 import { OrdersPDFDocument } from "./pdf";
 import ViewOrder from "./view";
-import ProductQuery from "@/queries/product";
 
 export default function OrdersPage() {
   const ordersQuery = new OrderQuery();
@@ -302,7 +303,7 @@ export default function OrdersPage() {
                 }
               >
                 <SelectTrigger className="w-full">
-                  <ArrowUpDown size={16} />
+                  {sortDirection === "desc" ? <ArrowDown size={16} /> : <ArrowUp size={16}/>}
                   <SelectValue placeholder="Trier par date" />
                 </SelectTrigger>
                 <SelectContent>

@@ -4,12 +4,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { fetchAll } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
 import AgentQuery from "@/queries/agent";
 import DeliveryQuery from "@/queries/delivery";
+import OrderQuery from "@/queries/order";
 import UserQuery from "@/queries/user";
-import { Agent, Delivery, User } from "@/types/types";
-import { useQuery } from "@tanstack/react-query";
+import { Agent, Delivery, Order, User } from "@/types/types";
 import { isSameDay } from "date-fns";
 import {
   Edit,
@@ -28,27 +29,19 @@ import EditDriver from "./edit";
 
 function Page() {
   const agentQuery = new AgentQuery();
-  const getAgents = useQuery({
-    queryKey: ["agents"],
-    queryFn: () => agentQuery.getAll(),
-    refetchOnWindowFocus: false,
-  });
+  const getAgents = fetchAll(agentQuery.getAll, "agents");
 
   const deliveryQuery = new DeliveryQuery();
-  const getDeliveries = useQuery({
-    queryKey: ["deliveries"],
-    queryFn: () => deliveryQuery.getAll(),
-    refetchOnWindowFocus: false,
-  });
+  const getDeliveries = fetchAll(deliveryQuery.getAll, "deliveries");
 
   const userQuery = new UserQuery();
-  const getUsers = useQuery({
-    queryKey: ["users"],
-    queryFn: () => userQuery.getAll(),
-    refetchOnWindowFocus: false,
-  });
+  const getUsers = fetchAll(userQuery.getAll, "users");
+
+  const orderQuery = new OrderQuery();
+  const getOrders = fetchAll(orderQuery.getAll, "orders");
 
   const [agents, setAgents] = React.useState<Agent[]>([]);
+  const [orders, setOrders] = React.useState<Order[]>([]);
   const [deliveries, setDeliveries] = React.useState<Delivery[]>([]);
   const [users, setUsers] = React.useState<User[]>([]);
   const [addDialog, setAddDialog] = React.useState(false);
@@ -59,7 +52,7 @@ function Page() {
   const { setLoading } = useStore();
 
   React.useEffect(() => {
-    setLoading(getAgents.isLoading);
+    setLoading(getAgents.isLoading || getDeliveries.isLoading || getUsers.isLoading || getOrders.isLoading);
     if (getAgents.isSuccess) {
       setAgents(getAgents.data);
     }
@@ -68,6 +61,9 @@ function Page() {
     }
     if (getUsers.isSuccess) {
       setUsers(getUsers.data);
+    }
+    if (getOrders.isSuccess) {
+      setOrders(getOrders.data);
     }
   }, [
     setLoading,
@@ -80,8 +76,13 @@ function Page() {
     getUsers.data,
     getUsers.isSuccess,
     getUsers.isLoading,
+    getOrders.data,
+    getOrders.isSuccess,
+    getOrders.isLoading,
     setUsers,
     setDeliveries,
+    setAgents,
+    setOrders,
   ]);
 
   const handleEdit = (agent: Agent) => {
@@ -244,11 +245,11 @@ function Page() {
                     </div>
                     <div className="space-y-2">
                       {driver.zone && (
-                        <div className="flex flex-col gap-1 text-sm">
+                        <div className="flex flex-row justify-between gap-2 text-sm">
                           <span>{"Zones:"}</span>
-                          <div className="flex flex-wrap gap-1.5">
+                          <div className="flex flex-wrap justify-end gap-1.5">
                             {driver.zone.map(el => (
-                              <span key={el.id} className="text-sm px-1.5 py-1 rounded bg-gray-100">{el.name}</span>
+                              <span key={el.id} className="text-xs px-2 py-1 rounded-sm bg-ternary/10 border border-ternary font-medium">{el.name}</span>
                             ))}
                           </div>
                         </div>
@@ -325,7 +326,7 @@ function Page() {
         />
       )}
       {selected && (
-        <AssignToDriver driver={selected} isOpen={assignDialog} openChange={setAssignDialog}/>
+        <AssignToDriver driver={selected} isOpen={assignDialog} openChange={setAssignDialog} orders={orders}/>
       )}
     </PageLayout>
   );
