@@ -102,7 +102,13 @@ function EditCategory({ category, isOpen, openChange, categories }: Props) {
 
   React.useEffect(() => {
     if (isOpen && category) {
-      form.reset();
+      form.reset({
+      name: formatName(category.name),
+      status: category.status,
+      display: category.display,
+      imgUrl: category.imgUrl,
+      parentId: String(category.parentId) ?? undefined
+    });
     }
   }, [category, isOpen, form]);
 

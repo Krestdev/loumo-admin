@@ -116,7 +116,13 @@ function EditDriver({ agent, isOpen, openChange }: Props) {
           refetchType: "active",
         });
         openChange(false);
-        form.reset();
+        form.reset({
+      email: agent.user?.email ?? "",
+      tel: agent.user?.tel ?? "",
+      name: agent.user?.name ?? "",
+      status: agent.status,
+      zoneIds: agent.zone.map((e) => String(e.id)),
+    });
       }
     },
   });

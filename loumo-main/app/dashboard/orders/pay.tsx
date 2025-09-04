@@ -1,7 +1,7 @@
 'use client'
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import OrderQuery from '@/queries/order';
+import PaymentQuery from '@/queries/payment';
 import { Order } from '@/types/types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import React from 'react';
@@ -12,18 +12,22 @@ type Props = {
   order: Order;
 };
 
-function EndOrder({isOpen, openChange, order}:Props) {
+function PayOrder({isOpen, openChange, order}:Props) {
 
     const queryClient = useQueryClient();
 
-    const orderQuery = new OrderQuery();
-    const endOrder = useMutation({
-        mutationFn: (type:"terminate"|"cancel") => orderQuery.update(order.id, {
-            status: type === "terminate" ? "COMPLETED" : "REJECTED"
-        }),
+    const paymentQuery = new PaymentQuery();
+    const payOrder = useMutation({
+        mutationFn: ()=>{
+            return paymentQuery.cash({
+                name: String(new Date()),
+                total: order.total,
+                tel: order.user.tel ?? "--",
+                orderId: order.id
+            });
+        },
         onSuccess: ()=>{
-            queryClient.invalidateQueries({queryKey:["deliveries"], refetchType: "active"});
-            queryClient.invalidateQueries({queryKey:["agents"], refetchType: "active"});
+            queryClient.invalidateQueries({queryKey:["payments"], refetchType: "active"});
             queryClient.invalidateQueries({queryKey:["orders"], refetchType: "active"});
             openChange(false);
         }
@@ -34,16 +38,16 @@ function EndOrder({isOpen, openChange, order}:Props) {
         <DialogContent>
             <DialogHeader>
                 <DialogTitle>
-                    {`Terminer la commande N°${order.ref} de ${order.user.name}`}
+                    {`Encaisser le paiement`}
                 </DialogTitle>
-                <DialogDescription>{"Validez pour terminer ou annuler la commande en cours"}</DialogDescription>
+                <DialogDescription>{`Enregistrer le paiement de la commande N°${order.ref} de ${order.user.name}`}</DialogDescription>
             </DialogHeader>
             <div className='flex justify-end gap-2'>
-                <Button onClick={()=>{endOrder.mutate("terminate")}}>
-                    {"Terminer"}
+                <Button onClick={()=>{payOrder.mutate()}}>
+                    {"Encaisser"}
                 </Button>
-                <Button variant={"delete"} onClick={()=>{endOrder.mutate("cancel")}}>
-                    {"Annuler la commande"}
+                <Button variant={"outline"} onClick={()=>{openChange(false)}}>
+                    {"Annuler"}
                 </Button>
             </div>
         </DialogContent>
@@ -51,4 +55,4 @@ function EndOrder({isOpen, openChange, order}:Props) {
   )
 }
 
-export default EndOrder
+export default PayOrder

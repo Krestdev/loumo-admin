@@ -40,15 +40,15 @@ import { useStore } from "@/providers/datastore";
 import DeliveryQuery from "@/queries/delivery";
 import OrderQuery from "@/queries/order";
 import ProductQuery from "@/queries/product";
+import ProductVariantQuery from "@/queries/productVariant";
 import ZoneQuery from "@/queries/zone";
-import { Delivery, Order, OrderStatus, Payment, Product, Zone } from "@/types/types";
+import { Delivery, Order, OrderStatus, Payment, Product, ProductVariant, Zone } from "@/types/types";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import {
   ArrowDown,
   ArrowRightCircle,
   ArrowUp,
   BadgeCheck,
-  CheckCircleIcon,
   DollarSign,
   Download,
   Eye,
@@ -61,7 +61,7 @@ import {
 import React, { useState } from "react";
 import { DateRange } from "react-day-picker";
 import AssignDriver from "./assign";
-import EndOrder from "./end";
+import PayOrder from "./pay";
 import { OrdersPDFDocument } from "./pdf";
 import ViewOrder from "./view";
 
@@ -78,10 +78,14 @@ export default function OrdersPage() {
   const productQuery = new ProductQuery();
   const getProducts = fetchAll(productQuery.getAll, "products", 30000);
 
+  const variantQuery = new ProductVariantQuery();
+  const getVariants = fetchAll(variantQuery.getAll, "variants", 30000);
+
   const [orders, setOrders] = useState<Order[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [variants, setVariants] = useState<ProductVariant[]>([]);
   const { setLoading } = useStore();
 
   const [selectedOrder, setSelectedOrder] = useState<Order | undefined>();
@@ -93,7 +97,7 @@ export default function OrdersPage() {
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc"); // "desc" = latest first
   const [viewDialog, setViewDialog] = useState(false);
-  const [endDialog, setEndDialog] = useState(false);
+  const [payDialog, setPayDialog] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: undefined,
     to: undefined,
@@ -103,7 +107,7 @@ export default function OrdersPage() {
 
   React.useEffect(() => {
     setLoading(
-      orderData.isLoading || getZones.isLoading || getDeliveries.isLoading
+      orderData.isLoading || getZones.isLoading || getDeliveries.isLoading || getVariants.isLoading
     );
     if (orderData.isSuccess) {
       setOrders(orderData.data);
@@ -117,11 +121,15 @@ export default function OrdersPage() {
     if (getProducts.isSuccess) {
       setProducts(getProducts.data);
     }
+    if (getVariants.isSuccess) {
+      setVariants(getVariants.data);
+    }
   }, [
     setLoading,
     setZones,
     setOrders,
     setDeliveries,
+    setVariants,
     getZones.data,
     getZones.isLoading,
     getZones.isSuccess,
@@ -134,6 +142,9 @@ export default function OrdersPage() {
     getProducts.data,
     getProducts.isLoading,
     getProducts.isSuccess,
+    getVariants.data,
+    getVariants.isLoading,
+    getVariants.isSuccess,
   ]);
 
   const orderStatus: OrderStatus[] = [
@@ -238,9 +249,9 @@ export default function OrdersPage() {
     setAssignDriverDialog(true);
   };
 
-  const handleEnd = (order: Order) => {
+  const handlePay = (order: Order) => {
     setSelectedOrder(order);
-    setEndDialog(true);
+    setPayDialog(true);
   };
 
   //Export xlsx
@@ -269,7 +280,7 @@ export default function OrdersPage() {
   return (
     <PageLayout
       isLoading={
-        orderData.isLoading || getZones.isLoading || getDeliveries.isLoading || getProducts.isLoading
+        orderData.isLoading || getZones.isLoading || getDeliveries.isLoading || getProducts.isLoading || getVariants.isLoading
       }
       className="flex-1 overflow-auto p-4 space-y-6"
     >
@@ -458,6 +469,7 @@ export default function OrdersPage() {
                   <TableHead>{"Client"}</TableHead>
                   <TableHead>{"Zone"}</TableHead>
                   <TableHead>{"Montant"}</TableHead>
+                  <TableHead>{"Adresse"}</TableHead>
                   <TableHead>{"Poids"}</TableHead>
                   <TableHead>{"Statut"}</TableHead>
                   <TableHead>{"Paiement"}</TableHead>
@@ -509,6 +521,10 @@ export default function OrdersPage() {
                       </TableCell>
                       <TableCell className="font-semibold">
                         {XAF.format(order.total)}
+                      </TableCell>
+                      <TableCell>
+                        {order.address?.local ?? "--"}
+                        <p className="text-xs italic text-gray-400">{order.note}</p>
                       </TableCell>
                       <TableCell>{`${order.weight} kg`}</TableCell>
                       <TableCell>
@@ -593,18 +609,15 @@ export default function OrdersPage() {
                                 {"Assigner"}
                               </DropdownMenuItem>
                             )}
-                            {(order.status === "ACCEPTED" ||
-                              order.status === "PENDING" ||
-                              order.status === "PROCESSING") && (
                               <DropdownMenuItem
                                 onClick={() => {
-                                  handleEnd(order);
+                                  handlePay(order);
                                 }}
+                                disabled={!!order.payment || order.status === "REJECTED"}
                               >
-                                <CheckCircleIcon size={16} />
-                                {"Terminer"}
+                                <DollarSign size={16} />
+                                {"Encaisser (Payer)"}
                               </DropdownMenuItem>
-                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -624,6 +637,7 @@ export default function OrdersPage() {
           isOpen={viewDialog}
           zones={zones}
           delivery={deliveries.find((x) => x.orderId === selectedOrder.id)}
+          variants={variants}
         />
       )}
       {selectedOrder && getZones.isSuccess && (
@@ -635,9 +649,9 @@ export default function OrdersPage() {
         />
       )}
       {selectedOrder && (
-        <EndOrder
-          openChange={setEndDialog}
-          isOpen={endDialog}
+        <PayOrder
+          openChange={setPayDialog}
+          isOpen={payDialog}
           order={selectedOrder}
         />
       )}

@@ -25,7 +25,7 @@ function ViewVariant({ isOpen, openChange, variant, products, shops }: Props) {
     <Dialog open={isOpen} onOpenChange={openChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{`${variant.name}`}</DialogTitle>
+          <DialogTitle>{`Informations de ${variant.name.concat(" ",String(variant.quantity), " ", variant.unit)}`}</DialogTitle>
           <DialogDescription>{"Détails de la variante"}</DialogDescription>
         </DialogHeader>
         <div className="space-y-6">
@@ -37,10 +37,10 @@ function ViewVariant({ isOpen, openChange, variant, products, shops }: Props) {
             />
             <div>
               <h3 className="text-lg font-medium">
-                {products.find((x) => x.id === variant.productId)?.name ||
-                  "Non défini"}
+                {variant.name.concat(" ",String(variant.quantity), " ", variant.unit)}
               </h3>
-              <p className="text-muted-foreground">{variant.name}</p>
+              <p className="text-muted-foreground">{products.find((x) => x.id === variant.productId)?.name ||
+                  "Non défini"}</p>
               <div className="flex gap-2 mt-2">
                 {/* {selectedVariant.isDefault && (
                                         <Badge variant="default">Variante par défaut</Badge>

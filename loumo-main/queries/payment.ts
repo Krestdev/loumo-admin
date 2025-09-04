@@ -31,4 +31,13 @@ export default class PaymentQuery {
   delete = async (id: number): Promise<Payment> => {
     return api.delete(`${this.route}/${id}`).then((response) => response.data);
   };
+  //Permet d'encaisser une commande en créant un paiement en cash associé à la commandes
+  cash = async (data:{
+    name: string;
+    total: number;
+    tel: string;
+    orderId: number;
+  }): Promise<Payment> => {
+    return api.post(`${this.route}/cash/`, data).then((response)=>response.data)
+  }
 }

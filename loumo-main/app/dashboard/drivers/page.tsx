@@ -10,7 +10,7 @@ import AgentQuery from "@/queries/agent";
 import DeliveryQuery from "@/queries/delivery";
 import OrderQuery from "@/queries/order";
 import UserQuery from "@/queries/user";
-import { Agent, Delivery, Order, User } from "@/types/types";
+import { Agent, Delivery, Order, User, Zone } from "@/types/types";
 import { isSameDay } from "date-fns";
 import {
   Edit,
@@ -26,6 +26,7 @@ import AddDriver from "./add";
 import AssignToDriver from "./assign";
 import DeleteDriver from "./delete";
 import EditDriver from "./edit";
+import ZoneQuery from "@/queries/zone";
 
 function Page() {
   const agentQuery = new AgentQuery();
@@ -40,8 +41,12 @@ function Page() {
   const orderQuery = new OrderQuery();
   const getOrders = fetchAll(orderQuery.getAll, "orders");
 
+  const zoneQuery = new ZoneQuery();
+  const getZones = fetchAll(zoneQuery.getAll, "zones");
+
   const [agents, setAgents] = React.useState<Agent[]>([]);
   const [orders, setOrders] = React.useState<Order[]>([]);
+  const [zones, setZones] = React.useState<Zone[]>([]);
   const [deliveries, setDeliveries] = React.useState<Delivery[]>([]);
   const [users, setUsers] = React.useState<User[]>([]);
   const [addDialog, setAddDialog] = React.useState(false);
@@ -52,7 +57,7 @@ function Page() {
   const { setLoading } = useStore();
 
   React.useEffect(() => {
-    setLoading(getAgents.isLoading || getDeliveries.isLoading || getUsers.isLoading || getOrders.isLoading);
+    setLoading(getAgents.isLoading || getDeliveries.isLoading || getUsers.isLoading || getOrders.isLoading || getZones.isLoading);
     if (getAgents.isSuccess) {
       setAgents(getAgents.data);
     }
@@ -64,6 +69,9 @@ function Page() {
     }
     if (getOrders.isSuccess) {
       setOrders(getOrders.data);
+    }
+    if (getZones.isSuccess) {
+      setZones(getZones.data);
     }
   }, [
     setLoading,
@@ -79,10 +87,14 @@ function Page() {
     getOrders.data,
     getOrders.isSuccess,
     getOrders.isLoading,
+    getZones.data,
+    getZones.isSuccess,
+    getZones.isLoading,
     setUsers,
     setDeliveries,
     setAgents,
     setOrders,
+    setZones,
   ]);
 
   const handleEdit = (agent: Agent) => {
@@ -310,7 +322,7 @@ function Page() {
           </div>
         </CardContent>
       </Card>
-      <AddDriver openChange={setAddDialog} isOpen={addDialog} />
+      <AddDriver openChange={setAddDialog} isOpen={addDialog} zones={zones} />
       {selected && (
         <EditDriver
           isOpen={editDialog}

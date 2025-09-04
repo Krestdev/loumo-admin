@@ -1,7 +1,6 @@
 "use client";
 import { OrderInvoice } from "@/components/orderPDFTemplate";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -17,19 +16,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { fetchAll } from "@/hooks/useData";
 import { XAF } from "@/lib/utils";
-import ProductVariantQuery from "@/queries/productVariant";
 import { Delivery, Order, Product, ProductVariant, Zone } from "@/types/types";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { format } from "date-fns";
 import {
   CheckCircle,
   CreditCard,
-  Loader2,
   MapPin,
   Package,
-  User,
+  User
 } from "lucide-react";
 import React from "react";
 
@@ -40,18 +36,10 @@ type Props = {
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
   delivery?: Delivery;
   products: Product[];
+  variants: ProductVariant[];
 };
 
-function ViewOrder({ order, isOpen, openChange, zones, delivery, products }: Props) {
-  const variantQuery = new ProductVariantQuery();
-  const getVariants = fetchAll(variantQuery.getAll, "variants");
-  const [variants, setVariants] = React.useState<ProductVariant[]>([]);
-
-  React.useEffect(() => {
-    if (getVariants.isSuccess) {
-      setVariants(getVariants.data);
-    }
-  }, [setVariants, getVariants.isSuccess, getVariants.data]);
+function ViewOrder({ order, isOpen, openChange, zones, delivery, products, variants }: Props) {
 
   return (
     <Dialog open={isOpen} onOpenChange={openChange}>
@@ -64,16 +52,16 @@ function ViewOrder({ order, isOpen, openChange, zones, delivery, products }: Pro
             {`Du ${format(order.createdAt, "dd/MM - HH:mm")}`}
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-6">
+        <div className="grid grid-cols-1 gap-4 place-items-stretch">
           {/* Customer Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+          <article className="p-6 rounded-lg bg-white shadow-2xs flex flex-col gap-4">
+            <div>
+              <h4 className="flex items-center gap-2 text-base font-semibold">
                 <User className="h-4 w-4" />
                 {"Informations client"}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
+              </h4>
+            </div>
+            <div className="space-y-2">
               {order.user.name && (
                 <p>
                   <strong>{"Nom:"}</strong> {order.user.name}
@@ -89,43 +77,18 @@ function ViewOrder({ order, isOpen, openChange, zones, delivery, products }: Pro
                   <strong>{"Téléphone:"}</strong> {order.user.tel}
                 </p>
               )}
-            </CardContent>
-          </Card>
-
-          {/* Delivery Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                {"Livraison"}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <p>
-                <strong>{"Zone : "}</strong>
-                {zones.find((x) => x.id === order.address?.id)?.name}
-              </p>
-              {order.address && (
-                <p>
-                  <strong>{"Adresse : "}</strong> {order.address?.street}
-                </p>
-              )}
-              {delivery && <p>
-                <span>{"Livreur : "}</span><strong>{delivery.agent?.user?.name ?? "--"}</strong>
-                </p>}
-            </CardContent>
-          </Card>
+            </div>
+          </article>
 
           {/* Order Items */}
-          {getVariants.isSuccess ? (
-            <Card className="md:col-span-2">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+            <article className="p-6 rounded-lg bg-white shadow-2xs flex flex-col gap-4">
+              <div>
+                <h4 className="flex items-center gap-2 font-semibold">
                   <Package className="h-4 w-4" />
                   {"Produits commandés"}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+                </h4>
+              </div>
+              <div>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -188,25 +151,42 @@ function ViewOrder({ order, isOpen, openChange, zones, delivery, products }: Pro
                     <span>{XAF.format(order.total + order.deliveryFee)}</span>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          ) : (
-            getVariants.isLoading && (
-              <div className="w-full h-12 flex items-center justify-center">
-                <Loader2 size={20} className="animate-spin text-green-600" />
               </div>
-            )
-          )}
+            </article>
+
+          {/* Delivery Info */}
+          <article className="p-6 rounded-lg bg-white shadow-2xs flex flex-col gap-4">
+            <div>
+              <h4 className="flex items-center gap-2 font-semibold">
+                <MapPin className="h-4 w-4" />
+                {"Livraison"}
+              </h4>
+            </div>
+            <div className="space-y-2">
+              <p>
+                <strong>{"Zone : "}</strong>
+                {zones.find((x) => x.id === order.address?.id)?.name}
+              </p>
+              {order.address && (
+                <p>
+                  <strong>{"Adresse : "}</strong> {order.address?.street}
+                </p>
+              )}
+              {delivery && <p>
+                <span>{"Livreur : "}</span><strong>{delivery.agent?.user?.name ?? "--"}</strong>
+                </p>}
+            </div>
+          </article>
 
           {/* Payment Info */}
-          <Card className="md:col-span-2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+          <article className="p-6 rounded-lg bg-white shadow-2xs flex flex-col gap-4">
+            <div>
+              <h4 className="flex items-center gap-2 font-semibold">
                 <CreditCard className="h-4 w-4" />
                 {"Informations de paiement"}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-3">
+              </h4>
+            </div>
+            <div className="flex flex-col gap-3">
               <div>
                 <div className="flex gap-2 items-center">
                   <strong>{"Statut :"}</strong>
@@ -233,7 +213,6 @@ function ViewOrder({ order, isOpen, openChange, zones, delivery, products }: Pro
                   {format(order.createdAt, "dd/MM/yyyy - HH:mm")}
                 </p>
               </div>
-              {getVariants.isSuccess && (
                 <PDFDownloadLink
                   document={
                     <OrderInvoice
@@ -251,9 +230,8 @@ function ViewOrder({ order, isOpen, openChange, zones, delivery, products }: Pro
                     </Button>
                   )}
                 </PDFDownloadLink>
-              )}
-            </CardContent>
-          </Card>
+            </div>
+          </article>
         </div>
         <div className="flex justify-end gap-2">
           <Button variant={"outline"} onClick={() => openChange(false)}>

@@ -28,18 +28,18 @@ import {
 import { agentStatusName } from "@/lib/utils";
 import AgentQuery from "@/queries/agent";
 import UserQuery from "@/queries/user";
-import ZoneQuery from "@/queries/zone";
 import { User, Zone } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 type Props = {
   isOpen: boolean;
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
+  zones: Zone[];
 };
 
 const agentStatus = [
@@ -72,23 +72,10 @@ const formSchema = z.object({
   zoneIds: z.array(z.string()).refine((val)=> val.some(el => el), {message: "Il doit être affecté au moins à une zone"}), //inject here
 });
 
-function AddDriver({ isOpen, openChange }: Props) {
-  const zoneQuery = new ZoneQuery();
+function AddDriver({ isOpen, openChange, zones }: Props) {
   const queryClient = useQueryClient();
 
-  const getZones = useQuery({
-    queryKey: ["zones"],
-    queryFn: () => zoneQuery.getAll(),
-    refetchOnWindowFocus: false,
-  });
-
-  const [zones, setZones] = React.useState<Zone[]>([]);
-
-  React.useEffect(() => {
-    if (getZones.isSuccess) {
-      setZones(getZones.data);
-    }
-  }, [setZones, getZones.data, getZones.isSuccess]);
+  const [mode, setMode] = useState<boolean>(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -115,7 +102,7 @@ function AddDriver({ isOpen, openChange }: Props) {
       onSuccess: ()=>{
         queryClient.invalidateQueries({queryKey: ["agents"], refetchType: "active"});
         queryClient.invalidateQueries({queryKey: ["users"], refetchType: "active"});
-        openChange(false);
+        if(mode) openChange(false);
         form.reset();
       }
   });
@@ -251,13 +238,27 @@ function AddDriver({ isOpen, openChange }: Props) {
             <DialogFooter className="mt-4">
               <Button
                 type="submit"
+                variant={"ternary"}
+                onClick={()=>{setMode(false)}}
+                className="bg-black hover:bg-gray-800"
                 disabled={createDriver.isPending || createAgent.isPending}
               >
                 {createDriver.isPending ||
                   (createAgent.isPending && (
                     <Loader size={16} className="animate-spin" />
                   ))}
-                {"Créer un Livreur"}
+                {"Enregistrer et continuer"}
+              </Button>
+              <Button
+                type="submit"
+                onClick={()=>{setMode(true)}}
+                disabled={createDriver.isPending || createAgent.isPending}
+              >
+                {createDriver.isPending ||
+                  (createAgent.isPending && (
+                    <Loader size={16} className="animate-spin" />
+                  ))}
+                {"Enregistrer"}
               </Button>
               <Button
                 variant={"outline"}
