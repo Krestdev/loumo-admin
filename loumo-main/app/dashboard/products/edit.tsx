@@ -94,7 +94,12 @@ function EditProduct({ product, categories, isOpen, openChange }: Props) {
 
   React.useEffect(() => {
     if (isOpen && product) {
-      form.reset();
+      form.reset({
+      name: product.name,
+      category: String(product.categoryId),
+      status: product.status,
+      description: product.description,
+    });
     }
   }, [product, isOpen, form]);
   return (

@@ -114,7 +114,7 @@ export default function PaymentsPage() {
   const filteredPayments = useMemo(()=>{
     return payments.filter((payment)=>{
 
-      const order = orders.find((z) => z.payment?.id === payment.id);
+      const order = orders.find((z) => payment.orderId === z.id);
       const createdAt = order ? new Date(order.createdAt) : new Date();
       // Filtrage par date (range)
     const matchesDate =
@@ -294,9 +294,9 @@ export default function PaymentsPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{"Toutes les boutiques"}</SelectItem>
-              {shops.map((x) => (
-                <SelectItem key={x.id} value={String(x.id)}>
-                  {x.name}
+              {shops.map((shop) => (
+                <SelectItem key={shop.id} value={String(shop.id)}>
+                  {shop.name}
                 </SelectItem>
               ))}
               {shops.length === 0 && <SelectItem value="disabled" disabled>{"Aucune boutique"}</SelectItem>}
@@ -310,7 +310,7 @@ export default function PaymentsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              {"Volume aujourd'hui"}
+              {"Volume"}
             </CardTitle>
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -356,7 +356,7 @@ export default function PaymentsPage() {
           <CardContent>
             <div className="text-2xl font-bold">
               {
-                filteredPayments.map(x=> x.order).filter((x) => !x.payment && x.status !== "REJECTED")
+                filteredPayments.filter((x) => x.status === "PENDING")
                   .length
               }
             </div>
@@ -451,7 +451,7 @@ export default function PaymentsPage() {
                           {currentOrder?.user.name ?? "--"}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {`#PAY${payment.orderId}`} •{" "}
+                          {payment.ref} •{" "}
                           {payMethodName(payment.method)}
                         </p>
                       </div>
@@ -509,7 +509,7 @@ export default function PaymentsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{"ID Transaction"}</TableHead>
+                <TableHead>{"Transaction"}</TableHead>
                 <TableHead>{"Commande"}</TableHead>
                 <TableHead>{"Client"}</TableHead>
                 <TableHead>{"Montant"}</TableHead>
@@ -541,10 +541,10 @@ export default function PaymentsPage() {
                   );
                   return (
                     <TableRow key={payment.id}>
-                      <TableCell className="font-medium">
-                        {payment.id}
+                      <TableCell className="font-medium uppercase">
+                        {payment.ref}
                       </TableCell>
-                      <TableCell className="uppercase">{payment.ref}</TableCell>
+                      <TableCell className="uppercase">{payment.order.ref}</TableCell>
                       <TableCell>{currentOrder?.user.name ?? "--"}</TableCell>
                       <TableCell>
                         {XAF.format(currentOrder?.total ?? 0)}

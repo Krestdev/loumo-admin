@@ -30,12 +30,14 @@ import ShopQuery from "@/queries/shop";
 import { Agent, Delivery, DeliveryStatus, Shop } from "@/types/types";
 import { formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
-import { BadgeCheck, CheckCircle, Filter, Package, Search, Store, Truck, User } from "lucide-react";
+import { BadgeCheck, Ban, CheckCircle, Edit, Ellipsis, Eye, Filter, Package, Search, Store, Truck, User } from "lucide-react";
 import React, { useMemo, useState } from "react";
 import { DateRange } from "react-day-picker";
 import EditDelivery from "./edit";
 import EndDelivery from "./end";
 import ViewDelivery from "./view";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import CancelDelivery from "./cancelDelivery";
 
 
 
@@ -54,13 +56,15 @@ export default function DeliveriesPage() {
   const [selected, setSelected] = useState<Delivery>();
   const [viewMore, setViewMore] = useState(false);
   const [edit, setEdit] = useState(false);
-  const [actionDialog, setActionDialog] = useState(false);
-  const [drivers, setDrivers] = useState<Agent[]>([]);
+  const [completeDialog, setCompleteDialog] = useState(false);
+  const [cancelDialog, setCancelDialog] = useState(false);
+  const [agents, setAgents] = useState<Agent[]>([]);
   const [shops, setShops] = useState<Shop[]>([]);
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [shopFilter, setShopFilter] = useState("all");
+  const [agentFilter, setAgentFilter] = useState("all"); //Filtre livreur
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
     from: undefined,
     to: undefined,
@@ -76,7 +80,7 @@ export default function DeliveriesPage() {
       setDeliveries(deliveryData.data);
     }
     if (agentData.isSuccess) {
-      setDrivers(agentData.data);
+      setAgents(agentData.data);
     }
     if (getShops.isSuccess) {
       setShops(getShops.data);
@@ -84,7 +88,7 @@ export default function DeliveriesPage() {
   }, [
     setLoading,
     setDeliveries,
-    setDrivers,
+    setAgents,
     setShops,
     deliveryData.isSuccess,
     deliveryData.data,
@@ -118,9 +122,13 @@ export default function DeliveriesPage() {
       const matchesDate =
       (!dateRange?.from || deliveryDate >= new Date(dateRange.from.setHours(0, 0, 0, 0))) &&
       (!dateRange?.to || deliveryDate <= new Date(dateRange.to.setHours(23, 59, 59, 999)));
-    return matchesSearch && matchesStatus && matchesShop && matchesDate;
+
+      const matchesAgent =
+      agentFilter === "all" || agentFilter === String(delivery.agentId);
+
+    return matchesSearch && matchesStatus && matchesShop && matchesDate && matchesAgent;
   });
-  },[deliveries, statusFilter, shopFilter, searchTerm, dateRange]);
+  },[deliveries, statusFilter, shopFilter, searchTerm, dateRange, agentFilter]);
   
 
   const handleView = (delivery: Delivery) => {
@@ -133,10 +141,15 @@ export default function DeliveriesPage() {
     setEdit(true);
   };
 
-  const handleAction = (delivery: Delivery) => {
+  const handleComplete = (delivery: Delivery) => {
     setSelected(delivery);
-    setActionDialog(true);
+    setCompleteDialog(true);
   };
+
+  const handleCancel = (delivery: Delivery) => {
+    setSelected(delivery);
+    setCancelDialog(true);
+  }
 
   const statusName = (status :DeliveryStatus):string => {
     switch(status){
@@ -161,37 +174,60 @@ export default function DeliveriesPage() {
       className="flex-1 overflow-auto p-4 space-y-6"
     >
       {/**Filtres */}
-      <div className="p-6 w-full bg-white rounded-lg flex flex-wrap justify-between items-center gap-4 sm:gap-6 shadow-sm">
+      <div className="p-6 w-full bg-white rounded-lg grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6 shadow-sm">
         <h4 className="font-semibold text-sm sm:text-base flex gap-2 items-center"><Filter size={16}/> {"Filtres"}</h4>
-        <div className="flex gap-3 flex-wrap">
-          <DateRangePicker date={dateRange} onChange={setDateRange} />
+        <div className="col-span-1 sm:col-span-3 lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+          <div className="space-y-2">
+            <label className="font-medium text-sm">{"Recherche"}</label>
+            <DateRangePicker date={dateRange} onChange={setDateRange} />
+          </div>
+          <div className="space-y-2">
+            <label className="font-medium text-sm">{"Point de vente"}</label>
             <Select value={shopFilter} onValueChange={setShopFilter}>
-            <SelectTrigger>
-              <Store size={16} />
-              <SelectValue placeholder="Point de vente" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{"Toutes les boutiques"}</SelectItem>
-              {shops.map((x) => (
-                <SelectItem key={x.id} value={String(x.id)}>
-                  {x.name}
-                </SelectItem>
-              ))}
-              {shops.length === 0 && <SelectItem value="disabled" disabled>{"Aucune boutique"}</SelectItem>}
-            </SelectContent>
-          </Select>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="max-w-[150px]">
-                <BadgeCheck size={16}/>
-                <SelectValue placeholder="Statut" />
+              <SelectTrigger className="w-full">
+                <Store size={16} />
+                <SelectValue placeholder="Point de vente" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{"Tous"}</SelectItem>
-                {statusArray.map((x, i)=>
-                  <SelectItem key={i} value={x}>{statusName(x)}</SelectItem>
-                )}
+                <SelectItem value="all">{"Toutes les boutiques"}</SelectItem>
+                {shops.map((x) => (
+                  <SelectItem key={x.id} value={String(x.id)}>
+                    {x.name}
+                  </SelectItem>
+                ))}
+                {shops.length === 0 && <SelectItem value="disabled" disabled>{"Aucune boutique"}</SelectItem>}
               </SelectContent>
-            </Select>
+          </Select>
+          </div>
+          <div className="space-y-2">
+            <label className="font-medium text-sm">{"Statut"}</label>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full">
+                  <BadgeCheck size={16}/>
+                  <SelectValue placeholder="Statut" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{"Tous"}</SelectItem>
+                  {statusArray.map((x, i)=>
+                    <SelectItem key={i} value={x}>{statusName(x)}</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+          </div>
+          <div className="space-y-2">
+            <label className="font-medium text-sm">{"Livreur"}</label>
+            <Select value={agentFilter} onValueChange={setAgentFilter}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Sélectionner un agent" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{"Tous"}</SelectItem>
+                  {agents.map((x, i)=>
+                    <SelectItem key={i} value={String(x.id)}>{x.user?.name ?? "Non défini"}</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+          </div>
         </div>
       </div>
       {/* Delivery Stats */}
@@ -219,7 +255,10 @@ export default function DeliveriesPage() {
             <Package className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{filteredDeliveries.filter(x=>x.status === "COMPLETED").length}</div>
+            <div className="text-2xl font-bold">{filteredDeliveries.length}</div>
+            {filteredDeliveries.length > 0 && <p className="text-xs text-muted-foreground">
+              {`Dont ${filteredDeliveries.filter(x=>x.status === "COMPLETED").length} terminées`}
+            </p>}
           </CardContent>
         </Card>
 
@@ -244,13 +283,13 @@ export default function DeliveriesPage() {
           <CardContent>
             <div className="text-2xl font-bold">
               {
-                drivers.filter(
+                agents.filter(
                   (x) => x.status === "AVAILABLE" || x.status === "FULL"
                 ).length
               }
             </div>
             <p className="text-xs text-muted-foreground">
-              {`Sur ${drivers.filter(x=>x.status === "AVAILABLE").length} disponibles`}
+              {`Sur ${agents.filter(x=>x.status === "AVAILABLE").length} disponibles`}
             </p>
           </CardContent>
         </Card>
@@ -328,7 +367,7 @@ export default function DeliveriesPage() {
                     </TableCell>
                     <TableCell>
                       <strong>
-                        {drivers.find((x) => x.id === delivery.agentId)?.user
+                        {agents.find((x) => x.id === delivery.agentId)?.user
                           ?.name ?? "Introuvable"}
                       </strong>
                     </TableCell>
@@ -375,39 +414,27 @@ export default function DeliveriesPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-1">
-                        <Button
-                          variant={"outline"}
-                          onClick={() => {
-                            handleView(delivery);
-                          }}
-                        >
-                          {"Voir"}
-                        </Button>
-                        {delivery.status !== "CANCELED" &&
-                          delivery.status !== "COMPLETED" && (
-                            <Button
-                              variant={"secondary"}
-                              onClick={() => {
-                                handleEdit(delivery);
-                              }}
-                            >
-                              {"Modifier"}
-                            </Button>
-                          )}
-                        {delivery.status !== "CANCELED" &&
-                          delivery.status !== "COMPLETED" && (
-                            <Button
-                              variant={"success"}
-                              size={"icon"}
-                              onClick={() => {
-                                handleAction(delivery);
-                              }}
-                            >
-                              <CheckCircle size={16} />
-                            </Button>
-                          )}
-                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size={"icon"} variant={"ghost"}>
+                            <Ellipsis size={20}/>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem onClick={()=>{handleView(delivery)}}>
+                            <Eye size={16}/>{"Voir les détails"}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={()=>{handleEdit(delivery)}} disabled={delivery.status === "CANCELED" || delivery.status === "COMPLETED"}>
+                            <Edit size={16} />{"Modifier la livraison"}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={()=>{handleComplete(delivery)}} disabled={delivery.status === "CANCELED" || delivery.status === "COMPLETED"}>
+                            <CheckCircle size={16} />{"Marquer terminée"}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={()=>{handleCancel(delivery)}} disabled={delivery.status === "CANCELED" || delivery.status === "COMPLETED"} variant="destructive">
+                            <Ban size={16} />{"Annuler la livraison"}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))
@@ -421,7 +448,7 @@ export default function DeliveriesPage() {
           isOpen={viewMore}
           openChange={setViewMore}
           delivery={selected}
-          agents={drivers}
+          agents={agents}
         />
       )}
       {selected && (
@@ -429,13 +456,20 @@ export default function DeliveriesPage() {
           isOpen={edit}
           openChange={setEdit}
           delivery={selected}
-          agents={drivers}
+          agents={agents}
         />
       )}
       {selected && (
         <EndDelivery
-          isOpen={actionDialog}
-          openChange={setActionDialog}
+          isOpen={completeDialog}
+          openChange={setCompleteDialog}
+          delivery={selected}
+        />
+      )}
+      {selected && (
+        <CancelDelivery
+          isOpen={cancelDialog}
+          openChange={setCancelDialog}
           delivery={selected}
         />
       )}

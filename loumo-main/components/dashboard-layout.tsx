@@ -13,10 +13,10 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
         <GlobalLoader />
         {children}
         <div className="py-5 flex items-center flex-wrap text-sm sm:text-base text-gray-600 justify-center">
-          {"Version 1.1. Développé par "}
+          {"Version 1.1. Développé par"}
           <a
             href="https://www.krestdev.com"
-            className="text-primary font-semibold"
+            className="text-primary font-semibold ml-1"
           >
             {"KrestDev"}
           </a>

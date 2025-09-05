@@ -13,14 +13,14 @@ type Props = {
   delivery: Delivery;
 };
 
-function EndDelivery({isOpen, openChange, delivery}:Props) {
+function CancelDelivery({isOpen, openChange, delivery}:Props) {
 
     const queryClient = useQueryClient();
 
     const deliveryQuery = new DeliveryQuery();
-    const endDelivery = useMutation({
+    const cancelDelivery = useMutation({
         mutationFn: () => deliveryQuery.update(delivery.id, {
-            status: "COMPLETED"
+            status: "CANCELED"
         }),
         onSuccess: ()=>{
             queryClient.invalidateQueries({queryKey:["deliveries"], refetchType: "active"});
@@ -35,14 +35,14 @@ function EndDelivery({isOpen, openChange, delivery}:Props) {
         <DialogContent>
             <DialogHeader>
                 <DialogTitle>
-                    {`Terminer la livraison ${delivery.ref}`}
+                    {`Annuler la livraison ${delivery.ref}`}
                 </DialogTitle>
-                <DialogDescription>{"Vous souhaitez marquer la livraison suivante comme complétée"}</DialogDescription>
+                <DialogDescription>{"Vous souhaitez annuler une livraison"}</DialogDescription>
             </DialogHeader>
             <div className='flex justify-end gap-2'>
-                <Button onClick={()=>{endDelivery.mutate()}}>
-                    {"Terminer"}
-                    {endDelivery.isPending && <Loader size={16} className="animate-spin" />}
+                <Button variant={"destructive"} onClick={()=>{cancelDelivery.mutate()}}>
+                    {"Annuler la livraison"}
+                    {cancelDelivery.isPending && <Loader size={16} className="animate-spin" />}
                 </Button>
                 <Button variant={"outline"} onClick={(e)=>{e.preventDefault(); openChange(false)}}>
                     {"Fermer"}
@@ -53,4 +53,4 @@ function EndDelivery({isOpen, openChange, delivery}:Props) {
   )
 }
 
-export default EndDelivery
+export default CancelDelivery

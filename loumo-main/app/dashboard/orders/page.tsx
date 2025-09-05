@@ -45,7 +45,6 @@ import ZoneQuery from "@/queries/zone";
 import { Delivery, Order, OrderStatus, Payment, Product, ProductVariant, Zone } from "@/types/types";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import {
-  ArrowDown,
   ArrowRightCircle,
   ArrowUp,
   BadgeCheck,
@@ -314,12 +313,12 @@ export default function OrdersPage() {
                 }
               >
                 <SelectTrigger className="w-full">
-                  {sortDirection === "desc" ? <ArrowDown size={16} /> : <ArrowUp size={16}/>}
+                  <ArrowUp size={16}/>
                   <SelectValue placeholder="Trier par date" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="desc">{"Les plus récentes"}</SelectItem>
-                  <SelectItem value="asc">{"Les plus anciennes"}</SelectItem>
+                  <SelectItem value="desc">{"Des plus récentes aux plus anciennes"}</SelectItem>
+                  <SelectItem value="asc">{"Des plus anciennes aux plus récentes"}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -562,7 +561,7 @@ export default function OrdersPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {!!order.delivery ? (
+                        {(!!order.delivery && order.delivery.length > 0) ? (
                           <Badge
                             variant={
                               order.delivery[0].status === "COMPLETED"
@@ -597,18 +596,15 @@ export default function OrdersPage() {
                               <Eye size={16} />
                               {"Voir les détails"}
                             </DropdownMenuItem>
-                            {!deliveries.find(
-                              (z) => z.orderId === order.id
-                            ) && (
                               <DropdownMenuItem
                                 onClick={() => {
                                   handleAssign(order);
                                 }}
+                                disabled={order.delivery && order.delivery?.length > 0}
                               >
                                 <SquareChevronRight size={16} />
                                 {"Assigner"}
                               </DropdownMenuItem>
-                            )}
                               <DropdownMenuItem
                                 onClick={() => {
                                   handlePay(order);
