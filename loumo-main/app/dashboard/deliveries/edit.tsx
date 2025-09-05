@@ -24,7 +24,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getPriorityName } from "@/lib/utils";
 import DeliveryQuery from "@/queries/delivery";
 import { Agent, Delivery } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -108,7 +107,7 @@ function EditDelivery({ isOpen, openChange, delivery, agents }: Props) {
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
+            {/* <FormField
               control={form.control}
               name="priority"
               render={({ field }) => (
@@ -134,7 +133,7 @@ function EditDelivery({ isOpen, openChange, delivery, agents }: Props) {
                   <FormMessage />
                 </FormItem>
               )}
-            />
+            /> */}
             <FormField
               control={form.control}
               name="scheduledTime"
@@ -170,13 +169,13 @@ function EditDelivery({ isOpen, openChange, delivery, agents }: Props) {
                       <SelectContent>
                         {agents.filter(
                           (d) =>
-                            d.zoneIds.some(f => f === delivery.order?.address?.zoneId) &&
+                            d.zone.some(f => f.id === delivery.order?.address?.zoneId) &&
                             d.status === "AVAILABLE"
                         ).length > 0 ? (
                           agents
                             .filter(
                               (d) =>
-                                d.zoneIds.some(f => f === delivery.order?.address?.zoneId)  &&
+                                d.zone.some(f => f.id === delivery.order?.address?.zoneId)  &&
                                 d.status === "AVAILABLE"
                             )
                             .map((x) => (

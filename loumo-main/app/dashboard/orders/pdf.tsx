@@ -86,7 +86,7 @@ export const OrdersPDFDocument = ({ orders }: Props) => (
             {format(new Date(order.createdAt), "dd/MM/yyyy HH:mm")}
           </Text>
           <Text style={styles.cell}>
-            {XAF.format(order.total + order.deliveryFee)}
+            {XAF.format(order.total)}
           </Text>
           <Text style={styles.cell}>{getStatusLabel(order.status)}</Text>
         </View>

@@ -48,9 +48,9 @@ export type OrderStatus =
 export type PaymentStatus =
   | "FAILED"
   | "COMPLETED"
-  | "PROCESSING"
-  | "REJECTED"
-  | "ACCEPTED"
+  //| "PROCESSING"
+  //| "REJECTED"
+  //| "ACCEPTED"
   | "PENDING";
 
 export type PaymentMethod = "MTN_MOMO_CMR" | "ORANGE_CMR" | "CASH";

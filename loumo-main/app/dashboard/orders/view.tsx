@@ -140,7 +140,7 @@ function ViewOrder({ order, isOpen, openChange, zones, delivery, products, varia
                 <div className="mt-4 space-y-2 border-t pt-4">
                   <div className="flex justify-between">
                     <span>{"Sous-total:"}</span>
-                    <span>{XAF.format(order.total)}</span>
+                    <span>{XAF.format(order.total - order.deliveryFee)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>{"Frais de livraison:"}</span>
@@ -148,7 +148,7 @@ function ViewOrder({ order, isOpen, openChange, zones, delivery, products, varia
                   </div>
                   <div className="flex justify-between font-bold">
                     <span>{"Total:"}</span>
-                    <span>{XAF.format(order.total + order.deliveryFee)}</span>
+                    <span>{XAF.format(order.total)}</span>
                   </div>
                 </div>
               </div>
@@ -192,9 +192,9 @@ function ViewOrder({ order, isOpen, openChange, zones, delivery, products, varia
                   <strong>{"Statut :"}</strong>
                   {!order.payment ? (
                     <span className="text-destructive">{"Non Payé"}</span>
-                  ) : order.payment.status === "ACCEPTED" ? (
+                  ) /* : order.payment.status === "ACCEPTED" ? (
                     "Accepté"
-                  ) : order.payment.status === "PENDING" ? (
+                  ) */ : order.payment.status === "PENDING" ? (
                     "En cours"
                   ) : order.payment.status === "COMPLETED" ? (
                     <span className="inline-flex gap-1 items-center font-semibold">
@@ -206,7 +206,7 @@ function ViewOrder({ order, isOpen, openChange, zones, delivery, products, varia
                   )}
                 </div>
                 <p>
-                  <strong>{"Montant :"}</strong> {XAF.format(order.total + order.deliveryFee)}
+                  <strong>{"Montant :"}</strong> {XAF.format(order.total)}
                 </p>
                 <p>
                   <strong>{"Date de commande : "}</strong>

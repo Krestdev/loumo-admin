@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Agent, Delivery } from "@/types/types";
+import { Agent, Delivery, Order } from "@/types/types";
 import { Clock, MapPin, Navigation, Package, Phone, User } from "lucide-react";
 import React from "react";
 
@@ -10,9 +10,10 @@ type Props = {
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
   delivery: Delivery;
   agents: Agent[];
+  orders: Order[];
 }
 
-function ViewDelivery({isOpen, openChange, delivery, agents}:Props) {
+function ViewDelivery({isOpen, openChange, delivery, agents, orders}:Props) {
   return (
     <Dialog open={isOpen} onOpenChange={openChange}>
       <DialogContent>
@@ -35,8 +36,8 @@ function ViewDelivery({isOpen, openChange, delivery, agents}:Props) {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span>{"Commande:"}</span>
-                  <span className="font-medium">
-                    {delivery.orderId}
+                  <span className="font-medium uppercase">
+                    {orders.find(order=>order.id === delivery.orderId)?.ref ?? "Non défini"}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -52,7 +53,7 @@ function ViewDelivery({isOpen, openChange, delivery, agents}:Props) {
                 <div className="flex justify-between">
                   <span>{"Articles:"}</span>
                   <span>
-                    {`${delivery.order?.orderItems?.length} produits`}
+                    {`${orders.find(order=>order.id === delivery.orderId)?.orderItems?.map(x=> x.quantity).reduce((total, item)=> total + item,0)} articles`}
                   </span>
                 </div>
               </div>
@@ -104,7 +105,7 @@ function ViewDelivery({isOpen, openChange, delivery, agents}:Props) {
           <div className="border-t pt-4">
             <h4 className="font-medium mb-2 flex items-center gap-2">
               <Clock size={16} />
-              {"Horaires"}
+              {"Dates"}
             </h4>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">

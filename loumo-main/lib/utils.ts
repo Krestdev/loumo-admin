@@ -58,28 +58,28 @@ export const statusMap: Record<string, Order["status"][]> = {
 
    export const payStatusName = (status: Payment["status"]): string => {
     switch (status) {
-      case "ACCEPTED":
-        return "Accepté";
+      /* case "ACCEPTED":
+        return "Accepté"; */
       case "COMPLETED":
         return "Terminé";
       case "FAILED":
         return "Echoué";
       case "PENDING":
         return "En cours";
-      case "PROCESSING":
-        return "Traitement";
-      case "REJECTED":
-        return "Rejeté";
+      /* case "PROCESSING":
+        return "Traitement"; */
+      /* case "REJECTED":
+        return "Rejeté"; */
       default:
         return "Inconnu";
     }
   };
 
 export const paymentStatusMap: Record<string, PaymentStatus[]> = {
-    "Payé": ["COMPLETED", "ACCEPTED"],
-    "En attente": ["PENDING", "PROCESSING"],
+    "Payé": ["COMPLETED"/* , "ACCEPTED" */],
+    "En attente": ["PENDING"/* , "PROCESSING" */],
     "Échoué": ["FAILED"],
-    "Rejeté": ["REJECTED"],
+    //"Rejeté": ["REJECTED"],
   };
 
   export const getOrderStatusLabel = (status: OrderStatus): string => {

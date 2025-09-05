@@ -156,12 +156,12 @@ export default function OrdersPage() {
   ] as const;
 
   const paymentStatus: Payment["status"][] = [
-    "ACCEPTED",
+    //"ACCEPTED",
     "COMPLETED",
     "FAILED",
     "PENDING",
-    "PROCESSING",
-    "REJECTED",
+    //"PROCESSING",
+    //"REJECTED",
   ];
 
   const filteredOrders = React.useMemo(() => {
@@ -519,7 +519,7 @@ export default function OrdersPage() {
                         )}
                       </TableCell>
                       <TableCell className="font-semibold">
-                        {XAF.format(order.total + order.deliveryFee)}
+                        {XAF.format(order.total)}
                       </TableCell>
                       <TableCell>
                         {order.address?.local ?? "--"}
@@ -545,8 +545,8 @@ export default function OrdersPage() {
                         <Badge
                           variant={
                             !order.payment
-                              ? "destructive"
-                              : order.payment.status === "ACCEPTED"
+                              /* ? "destructive"
+                              : order.payment.status === "ACCEPTED" */
                               ? "default"
                               : order.payment.status === "PENDING"
                               ? "info"

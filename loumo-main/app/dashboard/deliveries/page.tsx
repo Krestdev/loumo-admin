@@ -457,6 +457,7 @@ export default function DeliveriesPage() {
       </Card>
       {selected && (
         <ViewDelivery
+        orders={orders}
           isOpen={viewMore}
           openChange={setViewMore}
           delivery={selected}

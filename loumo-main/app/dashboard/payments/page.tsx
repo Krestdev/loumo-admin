@@ -34,18 +34,16 @@ import {
   Ban,
   CheckCheck,
   CheckCircle,
-  CircleCheck,
   CircleX,
   Clock,
   CreditCard,
   DollarSign,
   Ellipsis,
   Filter,
-  RefreshCw,
   Search,
   Smartphone,
   Store,
-  Tag,
+  Tag
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { DateRange } from "react-day-picker";
@@ -57,13 +55,26 @@ const paymentMethods: Payment["method"][] = [
 ];
 
   const paymentStatus: Payment["status"][] = [
-  "ACCEPTED",
+  //"ACCEPTED",
   "COMPLETED",
   "FAILED",
   "PENDING",
-  "PROCESSING",
-  "REJECTED",
+  //"PROCESSING",
+  //"REJECTED",
 ];
+
+const payMethodName = (method: Payment["method"]): string => {
+    switch (method) {
+      case "CASH":
+        return "Espèces";
+      case "MTN_MOMO_CMR":
+        return "MTN MOMO";
+      case "ORANGE_CMR":
+        return "Orange Money";
+      default:
+        return "Espèces";
+    }
+  };
 
 export default function PaymentsPage() {
   const paymentQuery = new PaymentQuery();
@@ -122,7 +133,10 @@ export default function PaymentsPage() {
       (!dateRange?.to || createdAt <= new Date(dateRange.to.setHours(23, 59, 59, 999)));
       //Search filter
       const matchesSearch =
-      order?.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.ref.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payMethodName(payment.method).toLowerCase().includes(searchTerm.toLowerCase()) ||
+      String(payment.total).toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order?.ref.toLowerCase().includes(searchTerm.toLowerCase()) ||
       String(payment.orderId)
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
@@ -143,16 +157,17 @@ export default function PaymentsPage() {
     payments, orders, searchTerm, dateRange, statusFilter, shopFilter, methodFilter
   ]);
 
+
   function getStatusColor(status: Payment["status"]) {
     switch (status) {
       case "COMPLETED":
         return "default";
       case "PENDING":
-      case "PROCESSING":
-      case "ACCEPTED":
+      //case "PROCESSING":
+      //case "ACCEPTED":
         return "secondary";
       case "FAILED":
-      case "REJECTED":
+      //case "REJECTED":
         return "destructive";
       default:
         return "outline";
@@ -170,31 +185,18 @@ export default function PaymentsPage() {
 
   const getStatusIcon = (status: Payment["status"]) => {
     switch (status) {
-      case "ACCEPTED":
-        return CircleCheck;
+      /* case "ACCEPTED":
+        return CircleCheck; */
       case "FAILED":
         return CircleX;
       case "COMPLETED":
         return CheckCheck;
       case "PENDING":
         return Ellipsis;
-      case "PROCESSING":
-        return RefreshCw;
+      /* case "PROCESSING":
+        return RefreshCw; */
       default:
         return Ban;
-    }
-  };
-
-  const payMethodName = (method: Payment["method"]): string => {
-    switch (method) {
-      case "CASH":
-        return "Espèces";
-      case "MTN_MOMO_CMR":
-        return "MTN MOMO";
-      case "ORANGE_CMR":
-        return "Orange Money";
-      default:
-        return "Espèces";
     }
   };
 
@@ -245,8 +247,9 @@ export default function PaymentsPage() {
       className="p-4 space-y-6"
     >
       {/**Filtres */}
-      <div className="p-6 w-full bg-white rounded-lg grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-6 gap-4 shadow-sm">
+      <div className="p-6 w-full bg-white rounded-lg flex flex-col xl:flex-row items-center justify-between gap-4 shadow-sm">
         <h4 className="font-semibold text-sm sm:text-base flex gap-2 items-center"><Filter size={16}/> {"Filtres"}</h4>
+        <div className="flex flex-wrap gap-3">
           <div className="space-y-2">
             <label className="text-sm font-medium">{"Période"}</label>
             <DateRangePicker date={dateRange} onChange={setDateRange} className="!w-full" />
@@ -254,7 +257,7 @@ export default function PaymentsPage() {
           <div className="space-y-2">
             <label className="text-sm font-medium">{"Statut du paiement"}</label>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="min-w-[160px] w-full">
                   <Tag size={16}/>
                   <SelectValue placeholder="Statut"></SelectValue>
                 </SelectTrigger>
@@ -271,7 +274,7 @@ export default function PaymentsPage() {
           <div className="space-y-2">
             <label className="text-sm font-medium">{"Méthode de paiement"}</label>
             <Select value={methodFilter} onValueChange={setMethodFilter}>
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="min-w-[160px] w-full">
                 <DollarSign size={16}/>
                 <SelectValue placeholder="Méthode" />
               </SelectTrigger>
@@ -303,6 +306,7 @@ export default function PaymentsPage() {
             </SelectContent>
           </Select>
           </div>
+        </div>
       </div>
 
       {/* Payment Stats */}
@@ -466,7 +470,7 @@ export default function PaymentsPage() {
                           variant={getStatusColor(payment.status)}
                           className="text-xs"
                         >
-                          {payment.status}
+                          {payStatusName(payment.status)}
                         </Badge>
                       </div>
                     </div>
@@ -489,7 +493,7 @@ export default function PaymentsPage() {
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Rechercher par client, commande ou ID..."
+                  placeholder="Rechercher par transaction, méthode, commande, montant ..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-8"
@@ -558,7 +562,7 @@ export default function PaymentsPage() {
                       <TableCell>
                         <div className="flex items-center gap-1">
                           <Badge variant={getStatusColor(payment.status)}>
-                            {payment.status}
+                            {payStatusName(payment.status)}
                           </Badge>
                         </div>
                       </TableCell>
