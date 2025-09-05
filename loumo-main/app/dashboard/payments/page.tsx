@@ -149,12 +149,12 @@ export default function PaymentsPage() {
       methodFilter === "all" || payment.method === methodFilter;
       //Shop filter
       const matchesShop = 
-      shopFilter === "all" || order?.address?.zoneId === Number(shopFilter)
+      shopFilter === "all" || order?.address?.zoneId === shops.find(x=>x.id ===Number(shopFilter))?.address?.zoneId 
 
     return matchesSearch && matchesStatus && matchesMethod && matchesDate && matchesShop;
     })
   },[
-    payments, orders, searchTerm, dateRange, statusFilter, shopFilter, methodFilter
+    payments, orders, searchTerm, dateRange, statusFilter, shopFilter, methodFilter, shops
   ]);
 
 
