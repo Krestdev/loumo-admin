@@ -5,6 +5,7 @@ import PageLayout from "@/components/page-layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -22,22 +23,22 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { fetchAll } from "@/hooks/useData";
-import { getPriorityColor, getStatusColor } from "@/lib/utils";
+import { getDeliveryStatusName, getStatusColor } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import AgentQuery from "@/queries/agent";
 import DeliveryQuery from "@/queries/delivery";
+import OrderQuery from "@/queries/order";
 import ShopQuery from "@/queries/shop";
-import { Agent, Delivery, DeliveryStatus, Shop } from "@/types/types";
+import { Agent, Delivery, DeliveryStatus, Order, Shop } from "@/types/types";
 import { formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
 import { BadgeCheck, Ban, CheckCircle, Edit, Ellipsis, Eye, Filter, Package, Search, Store, Truck, User } from "lucide-react";
 import React, { useMemo, useState } from "react";
 import { DateRange } from "react-day-picker";
+import CancelDelivery from "./cancelDelivery";
 import EditDelivery from "./edit";
 import EndDelivery from "./end";
 import ViewDelivery from "./view";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import CancelDelivery from "./cancelDelivery";
 
 
 
@@ -51,6 +52,9 @@ export default function DeliveriesPage() {
   const shopQuery = new ShopQuery();
   const getShops = fetchAll(shopQuery.getAll,"shops",60000);
 
+  const orderQuery = new OrderQuery();
+  const getOrders = fetchAll(orderQuery.getAll, "orders", 60000);
+
   const { setLoading } = useStore();
 
   const [selected, setSelected] = useState<Delivery>();
@@ -60,6 +64,7 @@ export default function DeliveriesPage() {
   const [cancelDialog, setCancelDialog] = useState(false);
   const [agents, setAgents] = useState<Agent[]>([]);
   const [shops, setShops] = useState<Shop[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -74,7 +79,7 @@ export default function DeliveriesPage() {
 
   React.useEffect(() => {
     setLoading(
-      getShops.isLoading || deliveryData.isLoading || agentData.isLoading
+      getShops.isLoading || deliveryData.isLoading || agentData.isLoading || getOrders.isLoading
     );
     if (deliveryData.isSuccess) {
       setDeliveries(deliveryData.data);
@@ -85,11 +90,15 @@ export default function DeliveriesPage() {
     if (getShops.isSuccess) {
       setShops(getShops.data);
     }
+    if (getOrders.isSuccess) {
+      setOrders(getOrders.data);
+    }
   }, [
     setLoading,
     setDeliveries,
     setAgents,
     setShops,
+    setOrders,
     deliveryData.isSuccess,
     deliveryData.data,
     deliveryData.isLoading,
@@ -99,6 +108,9 @@ export default function DeliveriesPage() {
     getShops.data,
     getShops.isLoading,
     getShops.isSuccess,
+    getOrders.data,
+    getOrders.isLoading,
+    getOrders.isSuccess,
   ]);
 
   const filteredDeliveries = useMemo(()=>{
@@ -169,7 +181,7 @@ export default function DeliveriesPage() {
   return (
     <PageLayout
       isLoading={
-        getShops.isLoading || deliveryData.isLoading || agentData.isLoading
+        getShops.isLoading || deliveryData.isLoading || agentData.isLoading || getOrders.isLoading
       }
       className="flex-1 overflow-auto p-4 space-y-6"
     >
@@ -332,7 +344,7 @@ export default function DeliveriesPage() {
                 <TableHead>{"Client"}</TableHead>
                 <TableHead>{"Zone"}</TableHead>
                 <TableHead>{"Statut"}</TableHead>
-                <TableHead>{"Priorité"}</TableHead>
+                {/* <TableHead>{"Priorité"}</TableHead> */}
                 <TableHead>{"Heure prévue"}</TableHead>
                 <TableHead>{"Actions"}</TableHead>
               </TableRow>
@@ -357,12 +369,12 @@ export default function DeliveriesPage() {
                   <TableRow key={delivery.id}>
                     <TableCell>
                       <div>
-                        <p className="text-xs">{delivery.ref}</p>
+                        <p className="text-xs uppercase">{delivery.ref}</p>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div>
-                        <p className="text-xs">{delivery.orderId}</p>
+                        <p className="text-xs uppercase">{orders.find(order=>order.id === delivery.orderId)?.ref ?? "Non défini"}</p>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -386,14 +398,14 @@ export default function DeliveriesPage() {
                     </TableCell>
                     <TableCell>
                       <Badge variant={getStatusColor(delivery.status)}>
-                        {delivery.status}
+                        {getDeliveryStatusName(delivery.status)}
                       </Badge>
                     </TableCell>
-                    <TableCell>
+                    {/* <TableCell>
                       <Badge variant={getPriorityColor(delivery.priority)}>
                         {delivery.priority}
                       </Badge>
-                    </TableCell>
+                    </TableCell> */}
                     <TableCell>
                       <div>
                         <p className="text-sm">

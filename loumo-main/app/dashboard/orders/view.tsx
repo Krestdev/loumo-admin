@@ -206,7 +206,7 @@ function ViewOrder({ order, isOpen, openChange, zones, delivery, products, varia
                   )}
                 </div>
                 <p>
-                  <strong>{"Montant :"}</strong> {XAF.format(order.total)}
+                  <strong>{"Montant :"}</strong> {XAF.format(order.total + order.deliveryFee)}
                 </p>
                 <p>
                   <strong>{"Date de commande : "}</strong>

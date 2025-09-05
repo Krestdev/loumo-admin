@@ -519,7 +519,7 @@ export default function OrdersPage() {
                         )}
                       </TableCell>
                       <TableCell className="font-semibold">
-                        {XAF.format(order.total)}
+                        {XAF.format(order.total + order.deliveryFee)}
                       </TableCell>
                       <TableCell>
                         {order.address?.local ?? "--"}
