@@ -48,6 +48,7 @@ import {
   ArrowRightCircle,
   ArrowUp,
   BadgeCheck,
+  Ban,
   DollarSign,
   Download,
   Eye,
@@ -63,6 +64,7 @@ import AssignDriver from "./assign";
 import PayOrder from "./pay";
 import { OrdersPDFDocument } from "./pdf";
 import ViewOrder from "./view";
+import RejectOrder from "./reject";
 
 export default function OrdersPage() {
   const ordersQuery = new OrderQuery();
@@ -97,6 +99,7 @@ export default function OrdersPage() {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc"); // "desc" = latest first
   const [viewDialog, setViewDialog] = useState(false);
   const [payDialog, setPayDialog] = useState(false);
+  const [rejectDialog, setRejectDialog] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: undefined,
     to: undefined,
@@ -252,6 +255,11 @@ export default function OrdersPage() {
     setSelectedOrder(order);
     setPayDialog(true);
   };
+
+  const handleReject = (order: Order) => {
+    setSelectedOrder(order);
+    setRejectDialog(true);
+  }
 
   //Export xlsx
   const handleExcelExport = (orders: Order[]) => {
@@ -547,7 +555,7 @@ export default function OrdersPage() {
                             !order.payment
                               /* ? "destructive"
                               : order.payment.status === "ACCEPTED" */
-                              ? "default"
+                              ? "destructive"
                               : order.payment.status === "PENDING"
                               ? "info"
                               : order.payment.status === "COMPLETED"
@@ -600,10 +608,20 @@ export default function OrdersPage() {
                                 onClick={() => {
                                   handleAssign(order);
                                 }}
-                                disabled={order.delivery && order.delivery?.length > 0}
+                                disabled={order.delivery && order.delivery?.length > 0 || order.status === "REJECTED" || order.status === "COMPLETED"}
                               >
                                 <SquareChevronRight size={16} />
                                 {"Assigner"}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  handleReject(order);
+                                }}
+                                variant="destructive"
+                                disabled={order.status === "REJECTED" || order.status === "COMPLETED" || order.payment !== null || !!order.delivery?.find(x=> x.status === "COMPLETED")}
+                              >
+                                <Ban size={16} />
+                                {"Rejeter la commande"}
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => {
@@ -651,6 +669,12 @@ export default function OrdersPage() {
           order={selectedOrder}
         />
       )}
+      {selectedOrder && 
+      <RejectOrder
+      isOpen={rejectDialog}
+      openChange={setRejectDialog}
+      order={selectedOrder}
+      />}
     </PageLayout>
   );
 }

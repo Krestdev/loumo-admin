@@ -123,7 +123,7 @@ function AssignDriver({ order, isOpen, openChange, zones }: Props) {
         <DialogHeader>
           <DialogTitle>{"Assigner un livreur"}</DialogTitle>
           <DialogDescription>
-            {`Sélectionnez un livreur pour la commande ${order.id}`}
+            {`Sélectionnez un livreur pour la commande ${order.ref}`}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">

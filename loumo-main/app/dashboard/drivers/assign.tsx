@@ -77,7 +77,7 @@ function AssignToDriver({driver, isOpen, openChange, orders}:Props) {
                       { orders.map(order=>
                         <SelectItem key={order.id} value={String(order.id)} disabled={!driver.zone.some(el=>el.id === order.address?.id) || !order.delivery}>
                           <div className="grid">
-                            <p className="text-sm font-medium">{`Commande ${order.id} - de ${order.user.name}`}</p>
+                            <p className="text-sm font-medium">{`Commande ${order.ref} - de ${order.user.name}`}</p>
                             <span className="text-xs text-muted-foreground">{XAF.format(order.total)}</span>
                           </div>
                         </SelectItem>

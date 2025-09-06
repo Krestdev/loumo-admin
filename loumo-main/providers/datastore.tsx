@@ -20,20 +20,14 @@ type LoadingState = {
   setLoading: (value: boolean) => void;
 };
 
-interface ToastStore {
-  toasts: ToastData[];
-  addToast: (toast: Omit<ToastData, "id">) => void;
-  removeToast: (id: string) => void;
-}
 
-export const useStore = create<Store & LoadingState & ToastStore>()(
+export const useStore = create<Store & LoadingState>()(
   persist(
     (set, get) => ({
       isHydrated: false,
       token: null,
       isLoading: false,
       lastActivity: Date.now(),
-      toasts: [],
       setLoading: (value) => set(() => ({ isLoading: value })),
       user: null,
       setToken: (token) => set(() => ({ token })),
@@ -48,14 +42,6 @@ export const useStore = create<Store & LoadingState & ToastStore>()(
         })),
       updateActivity: () => set({ lastActivity: Date.now() }),
       setIsHydrated: (v) => set({ isHydrated: v }),
-      addToast: (toast) =>
-        set((state) => ({
-          toasts: [...state.toasts, { id: crypto.randomUUID(), ...toast }],
-        })),
-      removeToast: (id) =>
-        set((state) => ({
-          toasts: state.toasts.filter((toast) => toast.id !== id),
-        })),
     }),
     {
       name: "loumoshop-admin",

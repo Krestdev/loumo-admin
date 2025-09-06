@@ -38,6 +38,6 @@ export default class PaymentQuery {
     tel: string;
     orderId: number;
   }): Promise<Payment> => {
-    return api.post(`${this.route}/cash/`, data).then((response)=>response.data)
+    return api.post(`${this.route}/cash`, data).then((response)=>response.data)
   }
 }

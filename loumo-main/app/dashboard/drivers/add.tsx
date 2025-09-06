@@ -28,7 +28,7 @@ import {
 import { agentStatusName } from "@/lib/utils";
 import AgentQuery from "@/queries/agent";
 import UserQuery from "@/queries/user";
-import { User, Zone } from "@/types/types";
+import { Agent, User, Zone } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader } from "lucide-react";
@@ -40,6 +40,8 @@ type Props = {
   isOpen: boolean;
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
   zones: Zone[];
+  users: User[];
+  agents: Agent[];
 };
 
 const agentStatus = [
@@ -70,9 +72,12 @@ const formSchema = z.object({
   //userId: z.number(), We get it from the first response
   status: z.enum(agentStatus),
   zoneIds: z.array(z.string()).refine((val)=> val.some(el => el), {message: "Il doit être affecté au moins à une zone"}), //inject here
+  userId: z.string()
+  .refine((val)=> !isNaN(Number(val)), {message: "Utilisateur invalide"})
+  .optional()
 });
 
-function AddDriver({ isOpen, openChange, zones }: Props) {
+function AddDriver({ isOpen, openChange, zones, users, agents }: Props) {
   const queryClient = useQueryClient();
 
   const [mode, setMode] = useState<boolean>(false);
@@ -86,6 +91,7 @@ function AddDriver({ isOpen, openChange, zones }: Props) {
       name: "",
       status: "AVAILABLE",
       zoneIds: [],
+      userId: undefined
     },
   });
 
@@ -110,6 +116,7 @@ function AddDriver({ isOpen, openChange, zones }: Props) {
       name: "",
       status: "AVAILABLE",
       zoneIds: [],
+      userId: undefined
     });
       }
   });
@@ -146,6 +153,7 @@ function AddDriver({ isOpen, openChange, zones }: Props) {
       name: "",
       status: "AVAILABLE",
       zoneIds: [],
+      userId: undefined
     })
     }
   },[isOpen, form])
@@ -164,6 +172,28 @@ function AddDriver({ isOpen, openChange, zones }: Props) {
             onSubmit={form.handleSubmit(onSubmit)}
             className="grid grid-cols-1 ms:grid-cols-2 gap-6"
           >
+            <FormField
+              control={form.control}
+              name="userId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{"Utilisateur"}</FormLabel>
+                  <FormControl>
+                    <Select defaultValue={field.value} onOpenChange={field.onChange}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue className="Sélectionner un utilisateur"/>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {users.filter(e=> !agents.some(x=>x.userId === e.id)).map(user=>
+                          <SelectItem key={user.id} value={String(user.id)}>{user.name}</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="name"

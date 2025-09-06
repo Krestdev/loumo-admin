@@ -25,8 +25,8 @@ import { payStatusName, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import OrderQuery from "@/queries/order";
 import PaymentQuery from "@/queries/payment";
-import ShopQuery from "@/queries/shop";
-import { Order, Payment, Shop } from "@/types/types";
+import ZoneQuery from "@/queries/zone";
+import { Order, Payment, Zone } from "@/types/types";
 import { formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
@@ -82,19 +82,19 @@ export default function PaymentsPage() {
   const ordersQuery = new OrderQuery();
   const getOrders = fetchAll(ordersQuery.getAll, "orders", 60000);
 
-  const shopQuery = new ShopQuery();
-  const getShops = fetchAll(shopQuery.getAll, "shops");
+  const zoneQuery = new ZoneQuery();
+  const getZones = fetchAll(zoneQuery.getAll, "zones");
 
   const { setLoading } = useStore();
 
   const [payments, setPayments] = useState<Payment[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [shops, setShops] = useState<Shop[]>([]);
+  const [zones, setZones] = useState<Zone[]>([]);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [methodFilter, setMethodFilter] = useState("all");
-  const [shopFilter, setShopFilter] = useState<string>("all");
+  const [zoneFilter, setZoneFilter] = useState<string>("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: undefined,
     to: undefined,
@@ -104,21 +104,21 @@ export default function PaymentsPage() {
     setLoading(getPayments.isLoading);
     if (getPayments.isSuccess) setPayments(getPayments.data);
     if (getOrders.isSuccess) setOrders(getOrders.data);
-    if (getShops.isSuccess) setShops(getShops.data);
+    if (getZones.isSuccess) setZones(getZones.data);
   }, [
     setLoading,
     setPayments,
     setOrders,
-    setShops,
+    setZones,
     getPayments.isLoading,
     getPayments.isSuccess,
     getPayments.data,
     getOrders.isLoading,
     getOrders.isSuccess,
     getOrders.data,
-    getShops.isLoading,
-    getShops.isSuccess,
-    getShops.data,
+    getZones.isLoading,
+    getZones.isSuccess,
+    getZones.data,
   ]);
 
   const filteredPayments = useMemo(()=>{
@@ -146,14 +146,14 @@ export default function PaymentsPage() {
       //Method filter
     const matchesMethod =
       methodFilter === "all" || payment.method === methodFilter;
-      //Shop filter
-      const matchesShop = 
-      shopFilter === "all" || order?.address?.zoneId === shops.find(x=>x.id ===Number(shopFilter))?.address?.zoneId 
+      //Zone filter
+      const matchesZone = 
+      zoneFilter === "all" || order?.address?.zoneId === Number(zoneFilter)
 
-    return matchesSearch && matchesStatus && matchesMethod && matchesDate && matchesShop;
+    return matchesSearch && matchesStatus && matchesMethod && matchesDate && matchesZone;
     })
   },[
-    payments, orders, searchTerm, dateRange, statusFilter, shopFilter, methodFilter, shops
+    payments, orders, searchTerm, dateRange, statusFilter, zoneFilter, methodFilter
   ]);
 
 
@@ -218,7 +218,7 @@ export default function PaymentsPage() {
 
   return (
     <PageLayout
-      isLoading={getPayments.isLoading || getOrders.isLoading || getShops.isLoading}
+      isLoading={getPayments.isLoading || getOrders.isLoading || getZones.isLoading}
       className="p-4 space-y-6"
     >
       {/**Filtres */}
@@ -264,20 +264,20 @@ export default function PaymentsPage() {
             </Select>
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium">{"Point de vente"}</label>
-            <Select value={shopFilter} onValueChange={setShopFilter}>
+            <label className="text-sm font-medium">{"Zone"}</label>
+            <Select value={zoneFilter} onValueChange={setZoneFilter}>
             <SelectTrigger className="w-full">
               <Store size={16} />
-              <SelectValue placeholder="Point de vente" />
+              <SelectValue placeholder="Sélectionner une zone" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{"Toutes les boutiques"}</SelectItem>
-              {shops.map((shop) => (
-                <SelectItem key={shop.id} value={String(shop.id)}>
-                  {shop.name}
+              <SelectItem value="all">{"Toutes les zones"}</SelectItem>
+              {zones.map((zone) => (
+                <SelectItem key={zone.id} value={String(zone.id)}>
+                  {zone.name}
                 </SelectItem>
               ))}
-              {shops.length === 0 && <SelectItem value="disabled" disabled>{"Aucune boutique"}</SelectItem>}
+              {zones.length === 0 && <SelectItem value="disabled" disabled>{"Aucune zone"}</SelectItem>}
             </SelectContent>
           </Select>
           </div>

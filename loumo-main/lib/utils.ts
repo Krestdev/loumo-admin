@@ -58,16 +58,20 @@ export const statusMap: Record<string, Order["status"][]> = {
 
    export const payStatusName = (status: Payment["status"]): string => {
     switch (status) {
-      /* case "ACCEPTED":
-        return "Accepté"; */
+      case "ACCEPTED":
+        return "Accepté";
       case "COMPLETED":
         return "Terminé";
       case "FAILED":
         return "Echoué";
       case "PENDING":
         return "En cours";
-      /* case "PROCESSING":
-        return "Traitement"; */
+      case "PROCESSING":
+        return "Traitement";
+      case "FOUND":
+        return "Trouvé";
+      case "NOT_FOUND":
+        return "Introuvable";
       /* case "REJECTED":
         return "Rejeté"; */
       default:
@@ -76,9 +80,9 @@ export const statusMap: Record<string, Order["status"][]> = {
   };
 
 export const paymentStatusMap: Record<string, PaymentStatus[]> = {
-    "Payé": ["COMPLETED"/* , "ACCEPTED" */],
-    "En attente": ["PENDING"/* , "PROCESSING" */],
-    "Échoué": ["FAILED"],
+    "Payé": ["COMPLETED", "ACCEPTED"],
+    "En attente": ["PENDING", "PROCESSING", "FOUND"],
+    "Échoué": ["FAILED", "NOT_FOUND"],
     //"Rejeté": ["REJECTED"],
   };
 

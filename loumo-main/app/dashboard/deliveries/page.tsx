@@ -28,8 +28,8 @@ import { useStore } from "@/providers/datastore";
 import AgentQuery from "@/queries/agent";
 import DeliveryQuery from "@/queries/delivery";
 import OrderQuery from "@/queries/order";
-import ShopQuery from "@/queries/shop";
-import { Agent, Delivery, DeliveryStatus, Order, Shop } from "@/types/types";
+import ZoneQuery from "@/queries/zone";
+import { Agent, Delivery, DeliveryStatus, Order, Zone } from "@/types/types";
 import { formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
 import { BadgeCheck, Ban, CheckCircle, Edit, Ellipsis, Eye, Filter, Package, Search, Store, Truck, User } from "lucide-react";
@@ -49,8 +49,8 @@ export default function DeliveriesPage() {
   const agentQuery = new AgentQuery();
   const agentData = fetchAll(agentQuery.getAll,"agents",60000);
 
-  const shopQuery = new ShopQuery();
-  const getShops = fetchAll(shopQuery.getAll,"shops",60000);
+  const zoneQuery = new ZoneQuery();
+  const getZones = fetchAll(zoneQuery.getAll,"zones",60000);
 
   const orderQuery = new OrderQuery();
   const getOrders = fetchAll(orderQuery.getAll, "orders", 60000);
@@ -63,12 +63,12 @@ export default function DeliveriesPage() {
   const [completeDialog, setCompleteDialog] = useState(false);
   const [cancelDialog, setCancelDialog] = useState(false);
   const [agents, setAgents] = useState<Agent[]>([]);
-  const [shops, setShops] = useState<Shop[]>([]);
+  const [zones, setZones] = useState<Zone[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [shopFilter, setShopFilter] = useState("all");
+  const [zonesFilter, setZonesFilter] = useState("all");
   const [agentFilter, setAgentFilter] = useState("all"); //Filtre livreur
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
     from: undefined,
@@ -79,7 +79,7 @@ export default function DeliveriesPage() {
 
   React.useEffect(() => {
     setLoading(
-      getShops.isLoading || deliveryData.isLoading || agentData.isLoading || getOrders.isLoading
+      getZones.isLoading || deliveryData.isLoading || agentData.isLoading || getOrders.isLoading
     );
     if (deliveryData.isSuccess) {
       setDeliveries(deliveryData.data);
@@ -87,8 +87,8 @@ export default function DeliveriesPage() {
     if (agentData.isSuccess) {
       setAgents(agentData.data);
     }
-    if (getShops.isSuccess) {
-      setShops(getShops.data);
+    if (getZones.isSuccess) {
+      setZones(getZones.data);
     }
     if (getOrders.isSuccess) {
       setOrders(getOrders.data);
@@ -97,7 +97,7 @@ export default function DeliveriesPage() {
     setLoading,
     setDeliveries,
     setAgents,
-    setShops,
+    setZones,
     setOrders,
     deliveryData.isSuccess,
     deliveryData.data,
@@ -105,9 +105,9 @@ export default function DeliveriesPage() {
     agentData.isLoading,
     agentData.data,
     agentData.isSuccess,
-    getShops.data,
-    getShops.isLoading,
-    getShops.isSuccess,
+    getZones.data,
+    getZones.isLoading,
+    getZones.isSuccess,
     getOrders.data,
     getOrders.isLoading,
     getOrders.isSuccess,
@@ -122,14 +122,15 @@ export default function DeliveriesPage() {
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
       delivery.orderId === parseInt(searchTerm.toLowerCase()) ||
+      delivery.order?.ref.toLowerCase().includes(searchTerm.toLowerCase()) ||
       delivery.ref.toLowerCase().includes(searchTerm.toLowerCase());
       //Status
     const matchesStatus =
       statusFilter === "all" || delivery.status === statusFilter;
-      //Shop
-    const matchesShop =
-      shopFilter === "all" ||
-      delivery.order?.address?.zoneId === shops.find(x=>x.id ===Number(shopFilter))?.address?.zoneId ;
+      //Zones
+    const matchesZones =
+      zonesFilter === "all" ||
+      delivery.order?.address?.zoneId === Number(zonesFilter) ;
       //Period
       const matchesDate =
       (!dateRange?.from || deliveryDate >= new Date(dateRange.from.setHours(0, 0, 0, 0))) &&
@@ -138,9 +139,9 @@ export default function DeliveriesPage() {
       const matchesAgent =
       agentFilter === "all" || agentFilter === String(delivery.agentId);
 
-    return matchesSearch && matchesStatus && matchesShop && matchesDate && matchesAgent;
+    return matchesSearch && matchesStatus && matchesZones && matchesDate && matchesAgent;
   });
-  },[deliveries, statusFilter, shopFilter, searchTerm, dateRange, agentFilter, shops]);
+  },[deliveries, statusFilter, zonesFilter, searchTerm, dateRange, agentFilter]);
   
 
   const handleView = (delivery: Delivery) => {
@@ -181,7 +182,7 @@ export default function DeliveriesPage() {
   return (
     <PageLayout
       isLoading={
-        getShops.isLoading || deliveryData.isLoading || agentData.isLoading || getOrders.isLoading
+        getZones.isLoading || deliveryData.isLoading || agentData.isLoading || getOrders.isLoading
       }
       className="flex-1 overflow-auto p-4 space-y-6"
     >
@@ -194,20 +195,20 @@ export default function DeliveriesPage() {
             <DateRangePicker date={dateRange} onChange={setDateRange} />
           </div>
           <div className="space-y-2">
-            <label className="font-medium text-sm">{"Point de vente"}</label>
-            <Select value={shopFilter} onValueChange={setShopFilter}>
+            <label className="font-medium text-sm">{"Zone"}</label>
+            <Select value={zonesFilter} onValueChange={setZonesFilter}>
               <SelectTrigger className="w-full">
                 <Store size={16} />
-                <SelectValue placeholder="Point de vente" />
+                <SelectValue placeholder="Zone" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{"Toutes les boutiques"}</SelectItem>
-                {shops.map((x) => (
+                <SelectItem value="all">{"Toutes les zones"}</SelectItem>
+                {zones.map((x) => (
                   <SelectItem key={x.id} value={String(x.id)}>
                     {x.name}
                   </SelectItem>
                 ))}
-                {shops.length === 0 && <SelectItem value="disabled" disabled>{"Aucune boutique"}</SelectItem>}
+                {zones.length === 0 && <SelectItem value="disabled" disabled>{"Aucune zone enregistrée"}</SelectItem>}
               </SelectContent>
           </Select>
           </div>

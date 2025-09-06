@@ -322,7 +322,7 @@ function Page() {
           </div>
         </CardContent>
       </Card>
-      <AddDriver openChange={setAddDialog} isOpen={addDialog} zones={zones} />
+      <AddDriver openChange={setAddDialog} isOpen={addDialog} zones={zones} users={users} agents={agents} />
       {selected && (
         <EditDriver
           isOpen={editDialog}
@@ -338,7 +338,11 @@ function Page() {
         />
       )}
       {selected && (
-        <AssignToDriver driver={selected} isOpen={assignDialog} openChange={setAssignDialog} orders={orders}/>
+        <AssignToDriver 
+        driver={selected} 
+        isOpen={assignDialog} 
+        openChange={setAssignDialog} 
+        orders={orders}/>
       )}
     </PageLayout>
   );

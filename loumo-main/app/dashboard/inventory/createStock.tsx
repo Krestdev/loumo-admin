@@ -129,9 +129,14 @@ function CreateStockPage({isOpen, openChange, shops, variants, products}:Props) 
                   <SelectValue placeholder="Sélectionnez un produit"/>
                 </SelectTrigger>
                 <SelectContent>
-                  {products.map((q, id)=>(
+                  {products
+                  .filter(product => (product.variants ?? []).filter(v => !v.stock.some(s => s.shopId === Number(form.getValues("shopId")))).length > 0)
+                  .map((q, id)=>(
                     <SelectItem key={id} value={String(q.id)}>{q.name}</SelectItem>
                   ))}
+                  {products
+                  .filter(product => (product.variants ?? []).filter(v => !v.stock.some(s => s.shopId === Number(form.getValues("shopId")))).length > 0) &&
+                  <SelectItem value="##" disabled>{"Aucun produit nécessitant la création d'un stock"}</SelectItem>}
                 </SelectContent>
               </Select>
             </div>

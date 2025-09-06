@@ -33,4 +33,7 @@ export default class OrderQuery {
   delete = async (id: number): Promise<Order> => {
     return api.delete(`${this.route}/${id}`).then((response) => response.data);
   };
+  reject = async (id:number):Promise<Order> => {
+    return api.get(`${this.route}/terminate/${id}`).then((response) => response.data);
+  }
 }

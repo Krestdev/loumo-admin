@@ -10,8 +10,8 @@ import {
   ToastTitle,
   ToastViewport,
 } from "@/components/ui/toast"
+import { subscribeToToasts } from "@/lib/notify"
 import { cn } from "@/lib/utils"
-import { useStore } from "@/providers/datastore"
 import { ToastData } from "@/types/types"
 import { cva } from "class-variance-authority"
 import { AlertCircle, CheckCircle2, Info, TriangleAlert, XIcon } from "lucide-react"
@@ -97,7 +97,17 @@ const toastVariants = cva("flex w-full justify-between gap-3",
 );
 
 export default function Toaster() {
-  const { toasts, removeToast } = useStore();
+const [toasts, setToasts] = useState<ToastData[]>([]);
+
+useEffect(() => {
+    const unsubscribe = subscribeToToasts((toast) => {
+      setToasts((prev) => [...prev, toast]);
+    });
+    return unsubscribe;
+  }, []);
+
+  const removeToast = (id: string) =>
+    setToasts((prev) => prev.filter((t) => t.id !== id));
 
   return (
     <ToastProvider swipeDirection="left">

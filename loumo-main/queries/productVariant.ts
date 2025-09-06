@@ -78,8 +78,10 @@ create = async (
   formData.append("price", String(data.price));
   formData.append("productId", String(data.productId));
 
-  if (!!data.imgUrl) {
+  if (data.imgUrl instanceof File || typeof data.imgUrl === "string" ) {
     formData.append("imgUrl", data.imgUrl); // "image" should match your backend field name
+  } else {
+    await this.imageDelete(id);
   }
     return api
       .put(`${this.route}/${id}`, formData, {
@@ -92,5 +94,8 @@ create = async (
 
   delete = async (id: number): Promise<ProductVariant> => {
     return api.delete(`${this.route}/${id}`).then((response) => response.data);
+  };
+  imageDelete = async (id: number): Promise<ProductVariant> => {
+    return api.delete(`${this.route}/image/${id}`).then((response) => response.data);
   };
 }
