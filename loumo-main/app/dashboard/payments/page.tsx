@@ -36,7 +36,6 @@ import {
   CheckCircle,
   CircleX,
   Clock,
-  CreditCard,
   DollarSign,
   Ellipsis,
   Filter,
@@ -213,33 +212,9 @@ export default function PaymentsPage() {
     (x) => x.status === "COMPLETED"
   );
 
-  //orders
-  const isSameDayOffset = (date: string | Date, offset: number) => {
-    const d = new Date(date);
-    const ref = new Date();
-    ref.setDate(ref.getDate() + offset); // offset = 0 => aujourd'hui, -1 => hier
-    return (
-      d.getFullYear() === ref.getFullYear() &&
-      d.getMonth() === ref.getMonth() &&
-      d.getDate() === ref.getDate()
-    );
-  };
 
-  const getSalesByOffset = (orders: Order[], offset: number) =>
-    orders
-      .filter((o) => !!o.payment && isSameDayOffset(o.createdAt, offset))
-      .reduce((total, o) => total + o.total, 0);
 
-  // Ventes du jour (offset = 0)
-  const todaySales = getSalesByOffset(filteredPayments.map(x=> x.order), 0);
 
-  // Ventes d’hier (offset = -1)
-  const yesterdaySales = getSalesByOffset(filteredPayments.map(x=> x.order), -1);
-
-  // Différence et variation
-  const salesDiff = todaySales - yesterdaySales;
-  const salesVariation =
-    yesterdaySales > 0 ? (salesDiff * 100) / yesterdaySales : 0;
 
   return (
     <PageLayout
@@ -311,28 +286,6 @@ export default function PaymentsPage() {
 
       {/* Payment Stats */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {"Volume"}
-            </CardTitle>
-            <CreditCard className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{XAF.format(todaySales)}</div>
-            {!!salesVariation && (
-              <p className="text-xs text-muted-foreground">
-                <span
-                  className={
-                    salesDiff > 0 ? "text-green-600" : "text-destructive"
-                  }
-                >{`${salesDiff > 0 ? "+" : "-"}${salesVariation}`}</span>
-                {" vs hier"}
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">

@@ -129,7 +129,7 @@ export default function DeliveriesPage() {
       //Shop
     const matchesShop =
       shopFilter === "all" ||
-      delivery.order?.address?.zoneId === Number(shopFilter);
+      delivery.order?.address?.zoneId === shops.find(x=>x.id ===Number(shopFilter))?.address?.zoneId ;
       //Period
       const matchesDate =
       (!dateRange?.from || deliveryDate >= new Date(dateRange.from.setHours(0, 0, 0, 0))) &&
@@ -140,7 +140,7 @@ export default function DeliveriesPage() {
 
     return matchesSearch && matchesStatus && matchesShop && matchesDate && matchesAgent;
   });
-  },[deliveries, statusFilter, shopFilter, searchTerm, dateRange, agentFilter]);
+  },[deliveries, statusFilter, shopFilter, searchTerm, dateRange, agentFilter, shops]);
   
 
   const handleView = (delivery: Delivery) => {

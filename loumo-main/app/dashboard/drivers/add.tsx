@@ -32,7 +32,7 @@ import { User, Zone } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -103,7 +103,14 @@ function AddDriver({ isOpen, openChange, zones }: Props) {
         queryClient.invalidateQueries({queryKey: ["agents"], refetchType: "active"});
         queryClient.invalidateQueries({queryKey: ["users"], refetchType: "active"});
         if(mode) openChange(false);
-        form.reset();
+        form.reset({
+      email: "",
+      //password: "",
+      tel: "",
+      name: "",
+      status: "AVAILABLE",
+      zoneIds: [],
+    });
       }
   });
 
@@ -129,6 +136,19 @@ function AddDriver({ isOpen, openChange, zones }: Props) {
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     createDriver.mutate(values);
   };
+
+  useEffect(()=>{
+    if(isOpen){
+      form.reset({
+      email: "",
+      //password: "",
+      tel: "",
+      name: "",
+      status: "AVAILABLE",
+      zoneIds: [],
+    })
+    }
+  },[isOpen, form])
 
   return (
     <Dialog open={isOpen} onOpenChange={openChange}>

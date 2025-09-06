@@ -304,7 +304,7 @@ export default function Dashboard() {
             <div className="text-2xl font-bold">
               {XAF.format(salesCompleted(filteredOrders))}
             </div>
-            <p className="text-xs text-muted-foreground mt-2">{`Dont `}<span className={cn("px-1 py-0.5 rounded border", salesCompleted(filteredOrders.filter(x=>!!x.delivery))>0 ? "bg-green-100 font-semibold text-green-600 border border-green-300": "bg-gray-100")}>{XAF.format(salesCompleted(filteredOrders.filter(x=>!!x.delivery)))}</span>{" sur les livraisons."}</p>
+            <p className="text-xs text-muted-foreground mt-2">{`Dont `}<span className={cn("px-1 py-0.5 rounded border", salesCompleted(filteredOrders.filter(x=>!!x.delivery))>0 ? "bg-green-100 font-semibold text-green-600 border border-green-300": "bg-gray-100")}>{XAF.format(filteredOrders.filter(x=>!!x.delivery).reduce((total, acc)=>total + acc.deliveryFee,0))}</span>{" sur les frais de livraison."}</p>
           </CardContent>
         </Card>
         {/**Users */}

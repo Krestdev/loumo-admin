@@ -115,6 +115,10 @@ function EditDriver({ agent, isOpen, openChange }: Props) {
           queryKey: ["agents"],
           refetchType: "active",
         });
+        queryClient.invalidateQueries({
+          queryKey: ["users"],
+          refetchType: "active",
+        });
         openChange(false);
         form.reset({
       email: agent.user?.email ?? "",
@@ -143,7 +147,13 @@ function EditDriver({ agent, isOpen, openChange }: Props) {
           refetchType: "active",
         });
         openChange(false);
-        form.reset();
+        form.reset({
+      email: agent.user?.email ?? "",
+      tel: agent.user?.tel ?? "",
+      name: agent.user?.name ?? "",
+      status: agent.status,
+      zoneIds: agent.zone.map((e) => String(e.id)),
+    });
       }
     },
   });
@@ -157,6 +167,18 @@ function EditDriver({ agent, isOpen, openChange }: Props) {
       zoneIds: values.zoneIds.map((e) => Number(e)),
     });
   };
+
+  React.useEffect(()=>{
+    if(isOpen){
+      form.reset({
+      email: agent.user?.email ?? "",
+      tel: agent.user?.tel ?? "",
+      name: agent.user?.name ?? "",
+      status: agent.status,
+      zoneIds: agent.zone.map((e) => String(e.id)),
+    })
+    }
+  },[isOpen, form, agent])
 
   return (
     <Dialog open={isOpen} onOpenChange={openChange}>
