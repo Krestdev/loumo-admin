@@ -501,7 +501,7 @@ export default function PaymentsPage() {
                       <TableCell className="font-medium uppercase">
                         {payment.ref}
                       </TableCell>
-                      <TableCell className="uppercase">{payment.order.ref}</TableCell>
+                      <TableCell className="uppercase">{payment.order ? payment.order.ref : "--"}</TableCell>
                       <TableCell>{currentOrder?.user.name ?? "--"}</TableCell>
                       <TableCell>
                         {XAF.format(currentOrder?.total ?? 0)}

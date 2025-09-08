@@ -61,6 +61,7 @@ const getStatusLabel = (status: Order["status"]) => {
     REJECTED: "Rejetée",
     ACCEPTED: "Acceptée",
     PENDING: "En attente",
+    CANCELED: "Annulée"
   };
   return labels[status] ?? status;
 };

@@ -100,6 +100,8 @@ export const paymentStatusMap: Record<string, PaymentStatus[]> = {
       return "Terminée";
     case "FAILED":
       return "Échouée";
+    case "CANCELED":
+      return "Annulée"
     default:
       return "Statut inconnu";
   }

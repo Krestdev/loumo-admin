@@ -156,6 +156,7 @@ export default function OrdersPage() {
     "PENDING",
     "PROCESSING",
     "REJECTED",
+    "CANCELED"
   ] as const;
 
   const paymentStatus: Payment["status"][] = [
@@ -608,7 +609,7 @@ export default function OrdersPage() {
                                 onClick={() => {
                                   handleAssign(order);
                                 }}
-                                disabled={order.delivery && order.delivery?.length > 0 || order.status === "REJECTED" || order.status === "COMPLETED"}
+                                disabled={order.delivery && order.delivery?.length > 0 || order.status === "REJECTED" || order.status === "COMPLETED" || order.status === "CANCELED"}
                               >
                                 <SquareChevronRight size={16} />
                                 {"Assigner"}
@@ -618,7 +619,7 @@ export default function OrdersPage() {
                                   handleReject(order);
                                 }}
                                 variant="destructive"
-                                disabled={order.status === "REJECTED" || order.status === "COMPLETED" || order.payment !== null || !!order.delivery?.find(x=> x.status === "COMPLETED")}
+                                disabled={order.status === "REJECTED" || order.status === "COMPLETED" || order.payment !== null || !!order.delivery?.find(x=> x.status === "COMPLETED") || order.status === "CANCELED"}
                               >
                                 <Ban size={16} />
                                 {"Rejeter la commande"}
@@ -627,7 +628,7 @@ export default function OrdersPage() {
                                 onClick={() => {
                                   handlePay(order);
                                 }}
-                                disabled={!!order.payment || order.status === "REJECTED"}
+                                disabled={!!order.payment || order.status === "REJECTED" || order.status === "CANCELED"}
                               >
                                 <DollarSign size={16} />
                                 {"Encaisser (Payer)"}

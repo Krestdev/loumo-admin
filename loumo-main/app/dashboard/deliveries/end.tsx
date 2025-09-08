@@ -20,7 +20,8 @@ function EndDelivery({isOpen, openChange, delivery}:Props) {
     const deliveryQuery = new DeliveryQuery();
     const endDelivery = useMutation({
         mutationFn: () => deliveryQuery.update(delivery.id, {
-            status: "COMPLETED"
+            status: "COMPLETED",
+            deliveredTime: new Date()
         }),
         onSuccess: ()=>{
             queryClient.invalidateQueries({queryKey:["deliveries"], refetchType: "active"});

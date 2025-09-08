@@ -43,6 +43,7 @@ export type OrderStatus =
   | "PROCESSING"
   | "REJECTED"
   | "ACCEPTED"
+  | "CANCELED"
   | "PENDING";
 
 export type PaymentStatus =

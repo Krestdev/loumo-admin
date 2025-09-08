@@ -1,23 +1,20 @@
 'use client'
-import PageLayout from '@/components/page-layout'
+import PageLayout from '@/components/page-layout';
+import { fetchAll } from '@/hooks/useData';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/providers/datastore';
 import NotificationQuery from '@/queries/notification';
-import { NotificationT } from '@/types/types'
-import { useQuery } from '@tanstack/react-query';
+import { NotificationT } from '@/types/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Bell, User } from 'lucide-react';
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react';
 
 function Page() {
 
   const notificationsQuery = new NotificationQuery();
 
-  const getNotifications = useQuery({
-    queryKey: ["notifications"],
-    queryFn: () => notificationsQuery.getAll(),
-  });
+  const getNotifications = fetchAll(notificationsQuery.getAll, "notifications");
 
   const [notifications, setNotifications] = useState<NotificationT[]>([]);
   const { setLoading } = useStore();

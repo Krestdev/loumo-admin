@@ -1,5 +1,6 @@
 // lib/axios.ts
-import axios, { AxiosError, AxiosResponse } from "axios";
+import { notifyError } from "@/lib/notify";
+import axios from "axios";
 import { toast } from "react-toastify";
 
 const baseURL =
@@ -31,68 +32,15 @@ api.interceptors.request.use(
 
 // Response Interceptor: Global error handling
 api.interceptors.response.use(
-  (response: AxiosResponse) => {
-    const { method, url } = response.config;
-    const successMessageFromBackend = (response.data as any)?.message;
-
-    const isMutation = ["POST", "PUT", "PATCH", "DELETE"].includes(
-      method?.toUpperCase() || ""
-    );
-
-    if (isMutation && url) {
-      // ✅ Extract the entity = first word after '/api/'
-      const match = url.match(/\/api\/([^\/\?]+)/);
-      let entity = match?.[1] || "Entity";
-
-      // Capitalize and singularize
-      entity =
-        entity.charAt(0).toUpperCase() + entity.slice(1).replace(/s$/, "");
-
-      const actionMap: Record<string, string> = {
-        POST: "created",
-        PUT: "updated",
-        PATCH: "updated",
-        DELETE: "deleted",
-      };
-      const action = actionMap[method?.toUpperCase() || ""] || "processed";
-
-      const finalMessage =
-        successMessageFromBackend || `${entity} ${action} successfully.`;
-
-      toast.success(finalMessage);
-    }
-
-    return response;
-  },
-  (error: AxiosError) => {
-    const res = error.response;
-    const message =
-      (res?.data as any)?.message || error.message || error.response?.data || "An unexpected error occurred.";
-
-    if (res) {
-      switch (res.status) {
-        case 400:
-          toast.warning(message); // e.g., "Missing required fields"
-          break;
-        case 401:
-          toast.error(message || "Unauthorized. Please log in again.");
-          break;
-        case 403:
-          toast.error(message || "Access denied.");
-          break;
-        case 404:
-          toast.info(message || "Resource not found.");
-          break;
-        case 500:
-          toast.error(message || "Internal server error.");
-          break;
-        default:
-          toast.error(message);
-      }
-    } else if (error.request) {
-      toast.error("No response from server. Check your internet connection.");
-    } else {
-      toast.error(`Error: ${error.message}`);
+  (response) => response,
+  (error) => {
+    // Si le serveur a renvoyé un message
+    if (error.response?.data?.message) {
+      notifyError("Erreur", error.response.data.message);
+    } 
+    // Sinon afficher un message générique
+    else {
+      notifyError("Erreur réseau", "Une erreur inattendue est survenue.");
     }
 
     return Promise.reject(error);
