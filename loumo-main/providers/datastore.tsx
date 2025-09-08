@@ -1,5 +1,5 @@
-import { ToastData, User } from "@/types/types";
-import { toast } from "react-toastify";
+import { notifyInfo, notifySuccess } from "@/lib/notify";
+import { User } from "@/types/types";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
@@ -31,10 +31,13 @@ export const useStore = create<Store & LoadingState>()(
       setLoading: (value) => set(() => ({ isLoading: value })),
       user: null,
       setToken: (token) => set(() => ({ token })),
-      login: (user) => set(() => ({ user })),
+      login: (user) =>{
+        set(() => ({ user }));
+        notifySuccess("Connexion réuissie !", `Bon retour ${user.name}`)
+      },
       logout: () => {
         set({ user: null });
-        toast.info("Vous avez été déconnecté avec succès !");
+        notifyInfo("Vous avez été déconnecté avec succès !");
       },
       reLogin: () =>
         set(() => ({

@@ -1,7 +1,6 @@
 // lib/axios.ts
 import { notifyError } from "@/lib/notify";
 import axios from "axios";
-import { toast } from "react-toastify";
 
 const baseURL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
@@ -25,7 +24,7 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
-    toast.error("Request setup error.");
+    notifyError("Request setup error.");
     return Promise.reject(error);
   }
 );
@@ -34,13 +33,24 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Si le serveur a renvoyé un message
-    if (error.response?.data?.message) {
-      notifyError("Erreur", error.response.data.message);
-    } 
-    // Sinon afficher un message générique
-    else {
-      notifyError("Erreur réseau", "Une erreur inattendue est survenue.");
+    if (error.response) {
+      // L'API a répondu mais avec une erreur (400, 401, 403, 404, 500...)
+      const message =
+        error.response.data?.message || "Une erreur est survenue.";
+      notifyError("Erreur serveur", message);
+    } else if (error.request) {
+      // La requête a été envoyée mais pas de réponse (souvent problème réseau)
+      if (!navigator.onLine) {
+        notifyError("Connexion perdue", "Vous n'êtes plus connecté à Internet.");
+      } else {
+        notifyError(
+          "Serveur injoignable",
+          "Impossible de contacter le serveur. Réessayez plus tard."
+        );
+      }
+    } else {
+      // Autre type d'erreur (setup, config axios, etc.)
+      notifyError("Erreur interne", error.message || "Erreur inconnue.");
     }
 
     return Promise.reject(error);
