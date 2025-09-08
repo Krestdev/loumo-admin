@@ -654,7 +654,7 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
                         )}
                       </div>
                       <Button
-                        variant={"ternary"}
+                        variant={"black"}
                         onClick={(e) => {
                           e.preventDefault();
                           handleAddStock(index);

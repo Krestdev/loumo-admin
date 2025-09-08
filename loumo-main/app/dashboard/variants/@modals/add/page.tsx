@@ -442,7 +442,7 @@ function PageAdd() {
                 ))}
               </div>
               <Button
-                variant={"ternary"}
+                variant={"black"}
                 onClick={(e) => {
                   e.preventDefault();
                   append({

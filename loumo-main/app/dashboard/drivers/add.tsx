@@ -7,7 +7,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -58,25 +58,38 @@ type AgentProps = {
   zoneIds: number[];
   userId: number;
 };
-
-const formSchema = z.object({
+const userSchema = z.object({
   email: z.string().email({ message: "Doit être une adresse mail" }),
   //password: z.string(),
-  tel: z
-    .string()
-    .regex(/^\d{9}$/, {
-      message: "Le numéro doit contenir exactement 9 chiffres",
-    }),
+  tel: z.string().regex(/^\d{9}$/, {
+    message: "Le numéro doit contenir exactement 9 chiffres",
+  }),
   name: z.string().min(3, { message: "Trop court" }),
   imageUrl: z.string().optional(),
+});
+const formSchema = z.object({
+  user: userSchema.optional(),
   // roleId: z.number(), Make sure its fixed
   //userId: z.number(), We get it from the first response
   status: z.enum(agentStatus),
-  zoneIds: z.array(z.string()).refine((val)=> val.some(el => el), {message: "Il doit être affecté au moins à une zone"}), //inject here
-  userId: z.string()
-  .refine((val)=> !isNaN(Number(val)), {message: "Utilisateur invalide"})
-  .optional()
+  zoneIds: z.array(z.string()).refine((val) => val.some((el) => el), {
+    message: "Il doit être affecté au moins à une zone",
+  }), //inject here
+  userId: z
+    .string()
+    .refine((val) => !isNaN(Number(val)), {
+      message: "Utilisateur invalide",
+    })
+    .optional(),
 });
+/* .refine(
+    (data) => (data.user && !data.userId) || (!data.user && data.userId),
+    {
+      message:
+        "Vous devez soit créer un nouvel utilisateur, soit en sélectionner un existant.",
+      path: ["user"], // 👈 tu peux cibler "user" ou "userId" pour l’erreur
+    }
+  ); */
 
 function AddDriver({ isOpen, openChange, zones, users, agents }: Props) {
   const queryClient = useQueryClient();
@@ -87,13 +100,10 @@ function AddDriver({ isOpen, openChange, zones, users, agents }: Props) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
-      //password: "",
-      tel: "",
-      name: "",
+      user: undefined,
       status: "AVAILABLE",
       zoneIds: [],
-      userId: undefined
+      userId: undefined,
     },
   });
 
@@ -107,59 +117,75 @@ function AddDriver({ isOpen, openChange, zones, users, agents }: Props) {
         zoneIds,
         userId,
       }),
-      onSuccess: (agent)=>{
-        queryClient.invalidateQueries({queryKey: ["agents"], refetchType: "active"});
-        queryClient.invalidateQueries({queryKey: ["users"], refetchType: "active"});
-        if(mode) openChange(false);
-        form.reset({
-      email: "",
-      //password: "",
-      tel: "",
-      name: "",
-      status: "AVAILABLE",
-      zoneIds: [],
-      userId: undefined
-    });
-    notifySuccess("Nouveau livreur ajouté !", agent.user && `Vous avez ajouté ${agent.user?.name} avec succès.`)
-      }
+    onSuccess: (agent) => {
+      queryClient.invalidateQueries({
+        queryKey: ["agents"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["users"],
+        refetchType: "active",
+      });
+      if (mode) openChange(false);
+      form.reset({
+        user: {
+          email: "",
+          //password: "",
+          tel: "",
+          name: "",
+        },
+        status: "AVAILABLE",
+        zoneIds: [],
+        userId: undefined,
+      });
+      notifySuccess(
+        "Nouveau livreur ajouté !",
+        agent.user && `Vous avez ajouté ${agent.user?.name} avec succès.`
+      );
+    },
   });
 
   const createDriver = useMutation({
     mutationFn: (values: z.infer<typeof formSchema>) => {
-        return userQuery.register({
-          email: values.email,
-          name: values.name,
-          password: "Loumo123", //default password
-          tel: values.tel,
-        });
+      return userQuery.register({
+        email: values.user?.email,
+        name: values.user?.name,
+        password: "Loumo123", //default password
+        tel: values.user?.tel,
+      });
     },
     onSuccess: (data: User) => {
       const { status, zoneIds } = form.getValues();
       createAgent.mutate({
         userId: data.id,
         status,
-        zoneIds: zoneIds.map(x=>Number(x)),
+        zoneIds: zoneIds.map((x) => Number(x)),
       });
     },
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    createDriver.mutate(values);
+    if (!!values.userId) {
+      return createAgent.mutate({
+        userId: Number(values.userId),
+        status: values.status,
+        zoneIds: values.zoneIds.map((x) => Number(x)),
+      });
+    }
+    return createDriver.mutate(values);
   };
 
-  useEffect(()=>{
-    if(isOpen){
+  useEffect(() => {
+    if (isOpen) {
+      setOption(undefined);
       form.reset({
-      email: "",
-      //password: "",
-      tel: "",
-      name: "",
-      status: "AVAILABLE",
-      zoneIds: [],
-      userId: undefined
-    })
+        user: undefined,
+        status: "AVAILABLE",
+        zoneIds: [],
+        userId: undefined,
+      });
     }
-  },[isOpen, form])
+  }, [isOpen, form]);
 
   return (
     <Dialog open={isOpen} onOpenChange={openChange}>
@@ -170,21 +196,46 @@ function AddDriver({ isOpen, openChange, zones, users, agents }: Props) {
             {"Complétez le formulaire pour ajouter un livreur"}
           </DialogDescription>
         </DialogHeader>
-        {
-              !option ?
-              <div className="grid grid-cols-1 gap-3 py-10">
-                <span className="px-4 py-2 flex items-center gap-2 rounded-sm border border-gray-200 font-medium bg-white transition-colors cursor-pointer hover:bg-primary/10" onClick={()=>setOption("select")}><MousePointer2 size={16}/>{"Depuis un utilisateur existant"}</span>
-                <span className="px-4 py-2 flex items-center gap-2 rounded-sm border border-gray-200 font-medium bg-white transition-colors cursor-pointer hover:bg-primary/10" onClick={()=>setOption("create")}><UserPlus size={16}/>{"Créer un utilisateur"}</span>
-              </div> 
-              :
+        {!option ? (
+          <div className="grid grid-cols-1 gap-3 py-10">
+            <span
+              className="px-4 py-2 flex items-center gap-2 rounded-sm border border-gray-200 font-medium bg-white transition-colors cursor-pointer hover:bg-primary/10"
+              onClick={() => setOption("select")}
+            >
+              <MousePointer2 size={16} />
+              {"Depuis un utilisateur existant"}
+            </span>
+            <span
+              className="px-4 py-2 flex items-center gap-2 rounded-sm border border-gray-200 font-medium bg-white transition-colors cursor-pointer hover:bg-primary/10"
+              onClick={() => setOption("create")}
+            >
+              <UserPlus size={16} />
+              {"Créer un utilisateur"}
+            </span>
+          </div>
+        ) : (
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(onSubmit)}
               className="grid grid-cols-1 ms:grid-cols-2 gap-6"
             >
-              <Button variant={"default"} onClick={(e)=>{e.preventDefault();setOption(undefined)}} className="bg-gray-900 hover:bg-gray-700"><ArrowLeft size={16}/>{"Précédent"}</Button>
-              {
-                option === "select" &&
+              <Button
+                variant={"black"}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setOption(undefined);
+                  form.reset({
+                    user: undefined,
+                    status: "AVAILABLE",
+                    zoneIds: [],
+                    userId: undefined,
+                  });
+                }}
+              >
+                <ArrowLeft size={16} />
+                {"Précédent"}
+              </Button>
+              {option === "select" && (
                 <FormField
                   control={form.control}
                   name="userId"
@@ -192,14 +243,26 @@ function AddDriver({ isOpen, openChange, zones, users, agents }: Props) {
                     <FormItem>
                       <FormLabel>{"Utilisateur"}</FormLabel>
                       <FormControl>
-                        <Select defaultValue={field.value} onOpenChange={field.onChange}>
+                        <Select
+                          defaultValue={field.value}
+                          onValueChange={field.onChange}
+                        >
                           <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Sélectionner un utilisateur"/>
+                            <SelectValue placeholder="Sélectionner un utilisateur" />
                           </SelectTrigger>
                           <SelectContent>
-                            {users.filter(e=> !agents.some(x=>x.userId === e.id)).map(user=>
-                              <SelectItem key={user.id} value={String(user.id)}>{user.name}</SelectItem>
-                            )}
+                            {users
+                              .filter(
+                                (e) => !agents.some((x) => x.userId === e.id)
+                              )
+                              .map((user) => (
+                                <SelectItem
+                                  key={user.id}
+                                  value={String(user.id)}
+                                >
+                                  {user.name}
+                                </SelectItem>
+                              ))}
                           </SelectContent>
                         </Select>
                       </FormControl>
@@ -207,13 +270,12 @@ function AddDriver({ isOpen, openChange, zones, users, agents }: Props) {
                     </FormItem>
                   )}
                 />
-              }
-              {
-                option === "create" &&
+              )}
+              {option === "create" && (
                 <div className="grid grid-cols-1 gap-3">
                   <FormField
                     control={form.control}
-                    name="name"
+                    name="user.name"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>{"Nom du Livreur"}</FormLabel>
@@ -226,12 +288,15 @@ function AddDriver({ isOpen, openChange, zones, users, agents }: Props) {
                   />
                   <FormField
                     control={form.control}
-                    name="email"
+                    name="user.email"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>{"Adresse mail"}</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="ex. livreur@gmail.com" />
+                          <Input
+                            {...field}
+                            placeholder="ex. livreur@gmail.com"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -239,7 +304,7 @@ function AddDriver({ isOpen, openChange, zones, users, agents }: Props) {
                   />
                   <FormField
                     control={form.control}
-                    name="tel"
+                    name="user.tel"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>{"Numéro de téléphone"}</FormLabel>
@@ -250,66 +315,107 @@ function AddDriver({ isOpen, openChange, zones, users, agents }: Props) {
                     )}
                   />
                 </div>
-              }
+              )}
               <FormField
-                    control={form.control}
-                    name="status"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{"Statut"}</FormLabel>
-                        <FormControl>
-                          <Select
-                            defaultValue={field.value}
-                            onValueChange={field.onChange}
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Sélectionner" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {agentStatus.map((x, id) => (
-                                <SelectItem key={id} value={x}>
-                                  <svg height="16" width="16" xmlns="http://www.w3.org/2000/svg"><circle r={5} cx={8} cy={8} fill={x==="AVAILABLE" ? "green" : x==="UNVERIFIED" ? "orange" : "red"}/></svg>
-                                  {agentStatusName(x)}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="zoneIds"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{"Zone desservie"}</FormLabel>
-                        <FormControl>
-                          <div className="mt-1 grid grid-cols-2 gap-2">
-                              {zones.map((x, id) => (
-                                <div key={id} className="inline-flex gap-1">
-                                  <Checkbox key={id} checked={field.value.some(y=> y === String(x.id))}
-                                  onCheckedChange={(checked)=> {
-                                    return checked ?
-                                    field.onChange([...field.value, String(x.id)])
-                                    : field.onChange(field.value.filter((value)=> value !== String(x.id)))
-                                  }} />
-                                  <span className="text-sm font-medium">{x.name}</span>
-                                </div>
-                              ))}
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{"Statut"}</FormLabel>
+                    <FormControl>
+                      <Select
+                        defaultValue={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Sélectionner" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {agentStatus.map((x, id) => (
+                            <SelectItem key={id} value={x}>
+                              <svg
+                                height="16"
+                                width="16"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <circle
+                                  r={5}
+                                  cx={8}
+                                  cy={8}
+                                  fill={
+                                    x === "AVAILABLE"
+                                      ? "green"
+                                      : x === "UNVERIFIED"
+                                      ? "orange"
+                                      : "red"
+                                  }
+                                />
+                              </svg>
+                              {agentStatusName(x)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="zoneIds"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{"Zone desservie"}</FormLabel>
+                    <FormControl>
+                      <div className="mt-1 grid grid-cols-2 gap-2">
+                        {zones.map((x, id) => (
+                          <div key={id} className="inline-flex gap-1">
+                            <Checkbox
+                              key={id}
+                              checked={field.value.some(
+                                (y) => y === String(x.id)
+                              )}
+                              onCheckedChange={(checked) => {
+                                return checked
+                                  ? field.onChange([
+                                      ...field.value,
+                                      String(x.id),
+                                    ])
+                                  : field.onChange(
+                                      field.value.filter(
+                                        (value) => value !== String(x.id)
+                                      )
+                                    );
+                              }}
+                            />
+                            <span className="text-sm font-medium">
+                              {x.name}
+                            </span>
                           </div>
-                        </FormControl>
-                        <FormMessage/>
-                      </FormItem>
-                    )}
-                  />
+                        ))}
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="user"
+                render={() => (
+                  <FormItem>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <DialogFooter className="mt-4">
                 <Button
                   type="submit"
-                  variant={"ternary"}
-                  onClick={()=>{setMode(false)}}
-                  className="bg-black hover:bg-gray-800"
+                  variant={"black"}
+                  onClick={() => {
+                    setMode(false);
+                  }}
                   disabled={createDriver.isPending || createAgent.isPending}
                 >
                   {createDriver.isPending ||
@@ -320,7 +426,10 @@ function AddDriver({ isOpen, openChange, zones, users, agents }: Props) {
                 </Button>
                 <Button
                   type="submit"
-                  onClick={()=>{setMode(true)}}
+                  onClick={() => {
+                    setMode(true);
+                    //console.log(form.getFieldState('user'))
+                  }}
                   disabled={createDriver.isPending || createAgent.isPending}
                 >
                   {createDriver.isPending ||
@@ -342,8 +451,7 @@ function AddDriver({ isOpen, openChange, zones, users, agents }: Props) {
               </DialogFooter>
             </form>
           </Form>
-              
-            }
+        )}
       </DialogContent>
     </Dialog>
   );

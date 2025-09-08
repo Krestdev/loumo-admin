@@ -158,7 +158,7 @@ function CreateStockPage({isOpen, openChange, shops, variants, products}:Props) 
                     <SelectContent>
                       {variants.filter(x=>!x.stock.some(y=>y.shopId === Number(form.getValues("shopId")))).filter(x=> selectedProduct ? x.productId === Number(selectedProduct) : true).map((variant) => (
                         <SelectItem key={variant.id} value={String(variant.id)} disabled={variant.stock.some(y=>y.shopId === Number(form.getValues("shopId")))}>
-                          {variant.name}{variant.product && ` - ${variant.product.name}`}
+                          {`${variant.name} ${variant.quantity} ${variant.unit}`}{variant.product && ` - ${variant.product.name}`}
                         </SelectItem>
                       ))}
                       {variants.filter(x=>!x.stock.some(y=>y.shopId === Number(form.getValues("shopId")))).filter(x=> selectedProduct ? x.productId === Number(selectedProduct) : true).length === 0 

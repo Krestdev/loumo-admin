@@ -45,12 +45,12 @@ export default function ModalLayout({ children, isLoading, title, description }:
         >
           <PageLayout isLoading={isLoading} className="flex flex-col gap-6">
             {/* Header */}
-            <div className="flex justify-between items-start">
-              <div className="flex flex-col gap-2">
+            <div className="relative flex justify-between items-start">
+              <div className="w-full flex flex-col gap-2 p-4 rounded-md bg-gradient-to-l from-[#00464B] to-[#13767C] text-white">
                 <h2 className="text-lg leading-none font-semibold">
                   {title}
                 </h2>
-                { description && <p className="text-muted-foreground text-sm">
+                { description && <p className="text-gray-100 text-sm">
                   {description}
                 </p>}
               </div>
@@ -58,6 +58,7 @@ export default function ModalLayout({ children, isLoading, title, description }:
                 onClick={() => router.back()}
                 variant={"ghost"}
                 size={"icon"}
+                className="absolute top-4 right-4 bg-white rounded-full"
               >
                 <X size={20} />
               </Button>

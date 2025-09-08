@@ -23,7 +23,8 @@ const buttonVariants = cva(
         delete: "bg-red-100 text-destructive hover:bg-destructive hover:text-white",
         info: "bg-sky-100 text-gray-900 hover:text-white hover:bg-sky-600",
         success: "bg-green-100 text-green-600 hover:bg-green-600 hover:text-white",
-        ternary: "bg-ternary text-secondary-foreground shadow-xs hover:bg-ternary/80"
+        ternary: "bg-ternary text-secondary-foreground shadow-xs hover:bg-ternary/80",
+        black: "bg-gray-900 hover:bg-gray-700 text-white shadow-xs"
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
