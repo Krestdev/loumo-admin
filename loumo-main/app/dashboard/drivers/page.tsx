@@ -10,9 +10,10 @@ import AgentQuery from "@/queries/agent";
 import DeliveryQuery from "@/queries/delivery";
 import OrderQuery from "@/queries/order";
 import UserQuery from "@/queries/user";
-import { Agent, Delivery, Order, User, Zone } from "@/types/types";
+import { Agent, AgentStatus, Delivery, Order, User, Zone } from "@/types/types";
 import { isSameDay } from "date-fns";
 import {
+  Calendar1,
   Edit,
   Package,
   Phone,
@@ -111,6 +112,23 @@ function Page() {
     setAssignDialog(true);
   }
 
+  const agentStatusName = (status:AgentStatus) => {
+    switch (status){
+      case "AVAILABLE":
+        return "Disponible";
+      case "FULL":
+        return "Occupé";
+      case "SUSPENDED":
+        return "Suspendu";
+      case "UNAVAILABLE":
+        return "Indisponible";
+      case "UNVERIFIED":
+        return "Non vérifié";
+      default:
+        return status;
+    }
+  }
+
   return (
     <PageLayout
       className="flex-1 overflow-auto p-4 space-y-6"
@@ -198,128 +216,129 @@ function Page() {
           </Button>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {agents.length === 0 ? (
-              <div className="p-4 min-h-[10vh] flex flex-col text-muted-foreground italic">
-                {"Aucun livreur trouvé"}
-              </div>
-            ) : (
-              agents.map((driver) => (
-                <Card key={driver.id}>
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3 mb-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage
-                          src={
-                            users.find((x) => x.id === driver.userId)
-                              ?.imageUrl || "/placeholder.svg"
-                          }
-                        />
-                        <AvatarFallback>
-                          {users.find((x) => x.id === driver.userId)
-                            ? users
-                                .find((x) => x.id === driver.userId)
-                                ?.name.split(" ")
-                                .map((n) => n[0])
-                                .join("")
-                            : "DR"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        {users.find((x) => x.id === driver.userId) && (
-                          <p className="font-medium">
-                            {users.find((x) => x.id === driver.userId)?.name}
-                          </p>
-                        )}
-                        {users.find((x) => x.id === driver.userId) &&
-                          users.find((x) => x.id === driver.userId)?.tel && (
-                            <p className="text-sm text-muted-foreground">
-                              {users.find((x) => x.id === driver.userId)?.tel}
+            <div className="grid gap-4 grid-cols-1 @min-[700px]/Main:grid-cols-2 @min-[1200px]/Main:grid-cols-3 @min-[1600px]/Main:grid-cols-4">
+              {agents.length === 0 ? (
+                <div className="p-4 min-h-[10vh] flex flex-col gap-3 md:gap-5">
+                  <p className="text-muted-foreground italic">{"Aucun livreur trouvé"}</p>
+                  <Button size={"lg"} onClick={() => setAddDialog(true)}>
+                    {"Ajouter un Livreur"}
+                  </Button>
+                </div>
+              ) : (
+                agents.map((driver) => (
+                  <Card key={driver.id}>
+                    <CardContent className="p-4 @container flex flex-col gap-4">
+                      <div className="flex items-start gap-3">
+                        <Avatar className="h-16 w-16">
+                          <AvatarImage
+                            src={
+                              users.find((x) => x.id === driver.userId)
+                                ?.imageUrl || "/placeholder.svg"
+                            }
+                          />
+                          <AvatarFallback>
+                            {users.find((x) => x.id === driver.userId)
+                              ? users
+                                  .find((x) => x.id === driver.userId)
+                                  ?.name.split(" ")
+                                  .map((n) => n[0])
+                                  .join("")
+                              : "DR"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          {users.find((x) => x.id === driver.userId) && (
+                            <p className="font-medium">
+                              {users.find((x) => x.id === driver.userId)?.name}
                             </p>
                           )}
-                      </div>
-                      <div className="flex gap-1">
-                        <Button
-                          variant="outline"
-                          size={"icon"}
-                          onClick={() => handleEdit(driver)}
-                        >
-                          <Edit size={16} />
-                        </Button>
-                        <Button
-                          variant="delete"
-                          size={"icon"}
-                          onClick={() => handleDelete(driver)}
-                        >
-                          <Trash2 size={16} />
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      {driver.zone && (
-                        <div className="flex flex-row justify-between gap-2 text-sm">
-                          <span>{"Zones:"}</span>
-                          <div className="flex flex-wrap justify-end gap-1.5">
-                            {driver.zone.map(el => (
-                              <span key={el.id} className="text-xs px-2 py-1 rounded-sm bg-ternary/10 border border-ternary font-medium">{el.name}</span>
-                            ))}
-                          </div>
+                          {users.find((x) => x.id === driver.userId) &&
+                              <p className="text-sm text-muted-foreground">
+                                {users.find((x) => x.id === driver.userId)?.tel ?? "Aucun numéro"}
+                              </p>
+                            }
+                            <Badge
+                            variant={driver.status === "AVAILABLE" ? "default" : driver.status === "FULL" ? "warning" : "destructive"}
+                          >
+                            {agentStatusName(driver.status)}
+                          </Badge>
                         </div>
-                      )}
-                      <div className="flex justify-between text-sm">
-                        <span>{"Statut:"}</span>
-                        <Badge
-                          variant={driver.status ? "outline" : "destructive"}
-                        >
-                          {driver.status ? "Actif" : "Inactif"}
-                        </Badge>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="outline"
+                            size={"icon"}
+                            onClick={() => handleEdit(driver)}
+                          >
+                            <Edit size={16} />
+                          </Button>
+                          <Button
+                            variant="delete"
+                            size={"icon"}
+                            onClick={() => handleDelete(driver)}
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span>{"En cours:"}</span>
-                        <span>{`${
-                          driver.delivery?.filter((z) => !!z.deliveredTime)
-                            .length ?? 0
-                        } livraisons`}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>{"Aujourd'hui:"}</span>
-                        <span>{`${driver.delivery?.filter(x=>x.deliveredTime && isSameDay(new Date(x.deliveredTime), new Date())).length} livrée(s)`}</span>
-                      </div>
-                      {/* <div className="flex justify-between text-sm">
-                      <span>Note:</span>
-                      <span>{driver.rating}/5 ⭐</span>
-                    </div> */}
-                    </div>
-                    <div className="flex gap-2 mt-3">
-                      <a
-                        href={
-                          users.find((x) => x.id === driver.userId)?.tel
-                            ? `tel:${
-                                users.find((x) => x.id === driver.userId)?.tel
-                              }`
-                            : "#"
-                        }
-                      >
-                        <Button
-                          variant="outline"
-                          className="flex-1"
-                          disabled={
-                            !users.find((x) => x.id === driver.userId)?.tel
+                      <div className="space-y-2">
+                        {driver.zone && (
+                          <div className="flex flex-col justify-between gap-2 text-sm">
+                            <span className="text-gray-500 text-xs uppercase">{"Zones"}</span>
+                            <div className="flex flex-wrap justify-start gap-1.5">
+                              {driver.zone.map(el => (
+                                <span key={el.id} className="text-xs px-2.5 py-1.5 rounded-full border bg-gray-100 font-medium">{el.name}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <span className="text-gray-500 text-xs uppercase">{"Livraisons"}</span>
+                          <div className="grid grid-cols-2 gap-0 divide-x">
+                            <div className="grid p-3 bg-gray-100">
+                              <span className="text-xs font-medium flex items-center gap-1"><span className="size-2 rounded-full bg-green-600" />{"En cours:"}</span>
+                              <span className="flex items-center gap-1 text-sm"><Calendar1 size={16}/><strong>{
+                                driver.delivery?.filter((z) => !!z.deliveredTime)
+                                  .length ?? 0
+                              }</strong>{"livraison(s)"}</span>
+                            </div>
+                            <div className="grid p-3 bg-gray-100">
+                              <span className="text-xs font-medium flex items-center gap-1"><span className="size-2 rounded-full bg-purple-600" />{"Aujourd'hui:"}</span>
+                              <span className="flex items-center gap-1 text-sm"><Truck size={16} /><strong>{driver.delivery?.filter(x=>x.deliveredTime && isSameDay(new Date(x.deliveredTime), new Date())).length}</strong>{"livrée(s)"}</span>
+                            </div>
+                          </div>
+                          </div>
+                      <div className="grid grid-cols-1 @min-[400px]:grid-cols-2 gap-2">
+                        <Button variant="default" onClick={()=>handleAssign(driver)}>
+                          {"Assigner"}
+                        </Button>
+                        <a
+                        className="w-full"
+                          href={
+                            users.find((x) => x.id === driver.userId)?.tel
+                              ? `tel:${
+                                  users.find((x) => x.id === driver.userId)?.tel
+                                }`
+                              : "#"
                           }
                         >
-                          <Phone size={16} />
-                          {"Appeler"}
-                        </Button>
-                      </a>
-                      <Button variant="default" className="flex-1" onClick={()=>handleAssign(driver)}>
-                        {"Assigner"}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </div>
+                          <Button
+                            variant="black"
+                            disabled={
+                              !users.find((x) => x.id === driver.userId)?.tel
+                            }
+                            className="w-full"
+                          >
+                            <Phone size={16} />
+                            {"Appeler"}
+                          </Button>
+                        </a>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
         </CardContent>
       </Card>
       <AddDriver openChange={setAddDialog} isOpen={addDialog} zones={zones} users={users} agents={agents} />
