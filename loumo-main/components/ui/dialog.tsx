@@ -84,7 +84,7 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="dialog-header"
-      className={cn("flex flex-col gap-2 text-center sm:text-left p-4 rounded-md bg-gradient-to-l from-[#00464B] to-[#13767C] text-white", className)}
+      className={cn("flex flex-col gap-2 text-center sm:text-left card-header-style", className)}
       {...props}
     />
   )

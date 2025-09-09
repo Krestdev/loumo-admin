@@ -133,11 +133,15 @@ export type Log = {
 
 export type NotificationT = {
   id: number;
-  createdAt: Date;
-  description: string;
-  userId: number;
-  user?: User;
   action: string;
+  description: string;
+  variant: "WARNING"| "INFO" | "SUCCESS" | "DANGER";
+  type: "ORDER"| "PAYMENT"  | "STOCK";
+  stockId?: number;
+  orderId?: number;
+  paymentId?: number;
+  createdAt: Date;
+  userId?: number;
 };
 
 export type Order = {
@@ -342,7 +346,7 @@ export interface newProduct {
 
 export type newVariant = {
   name: string;
-  quantity:number;
+  quantity: number;
   imgUrl?: File;
   weight: number;
   status: boolean;

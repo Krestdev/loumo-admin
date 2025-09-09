@@ -26,27 +26,58 @@ const notificationVariants = cva(
 
 type Props = NotificationT & {
   onDismiss?: (id: number) => void;
-  variant?: VariantProps<typeof notificationVariants>["variant"]
 }
 
 function Notification({
   id,
   createdAt,
-  description,
-  action,
-  variant = "default", // ✅ fallback si jamais pas fourni
+  //type,
+  variant,
+  //orderId,
+  //stockId,
+  //paymentId,
   onDismiss,
 }: Props) {
+
+    const getVariantStyle = (variant: NotificationT["variant"]):VariantProps<typeof notificationVariants>["variant"] => {
+        switch(variant){
+            case "DANGER":
+                return "error";
+            case "SUCCESS":
+                return "success";
+            case "WARNING":
+                return "warning";
+            default :
+            return "default";
+        }
+    }
+
+    const getBadgeVariantStyle = (variant: NotificationT["variant"]) => {
+        switch(variant){
+            case "DANGER":
+                return "bg-red-700 text-white";
+            case "INFO":
+                return  "bg-blue-200 text-blue-700";
+            case "SUCCESS":
+                return "bg-primary text-white";
+            case "WARNING":
+                return "bg-orange-200 text-orange-700";
+            default :
+                return "bg-gray-100 text-gray-900";
+        }
+    }
+    
+
   return (
-    <div className={cn(notificationVariants({ variant }))}>
+    <div className={cn(notificationVariants({ variant: getVariantStyle(variant) }))}>
       <div className="w-full flex flex-col gap-3">
         <div className="w-full flex flex-col md:flex-row gap-2 justify-start md:justify-between">
-          <span className="font-medium">{action}</span>
+          <span className={cn("font-medium", getBadgeVariantStyle(variant))}>{"action"}</span>
           <span className="text-xs md:text-sm text-gray-400">
             {formatRelative(new Date(createdAt), new Date(), { locale: fr })}
           </span>
         </div>
-        <p className="text-gray-600">{description}</p>
+        <p className="text-gray-600">{"description"}</p>
       </div>
 
       <Button

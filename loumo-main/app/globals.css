@@ -174,5 +174,8 @@
   line-height: 1.75;
   color: #374151; /* text-gray-700 */
 }
+.card-header-style {
+  @apply p-4 rounded-md bg-gradient-to-l from-[#00464B] to-[#13767C] text-white;
+}
 
 }

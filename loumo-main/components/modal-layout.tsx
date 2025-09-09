@@ -46,7 +46,7 @@ export default function ModalLayout({ children, isLoading, title, description }:
           <PageLayout isLoading={isLoading} className="flex flex-col gap-6">
             {/* Header */}
             <div className="relative flex justify-between items-start">
-              <div className="w-full flex flex-col gap-2 p-4 rounded-md bg-gradient-to-l from-[#00464B] to-[#13767C] text-white">
+              <div className="w-full flex flex-col gap-2 card-header-style">
                 <h2 className="text-lg leading-none font-semibold">
                   {title}
                 </h2>
