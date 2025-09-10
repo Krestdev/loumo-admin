@@ -1,18 +1,18 @@
+import { notifyInfo } from "@/lib/notify";
 import { cn, XAF } from "@/lib/utils";
-import { NotificationT, Order, Payment, Stock } from "@/types/types";
+import NotificationQuery from "@/queries/notification";
+import { NotificationT, Order, Payment, Product, Shop, Stock } from "@/types/types";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { cva, VariantProps } from "class-variance-authority";
 import { formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
-import React, { ReactNode } from "react";
-import { Button } from "./ui/button";
 import { DollarSign, Package, PackageX, ShoppingCart, X } from "lucide-react";
-import NotificationQuery from "@/queries/notification";
-import { useMutation } from "@tanstack/react-query";
-import { notifyInfo } from "@/lib/notify";
 import Link from "next/link";
+import { ReactNode } from "react";
+import { Button } from "./ui/button";
 
 const notificationVariants = cva(
-  "w-full flex flex-row gap-3 md:gap-4 xl:gap-5 rounded-lg p-3 bg-gradient-to-r to-white shadow-sm",
+  "w-full max-w-3xl flex flex-row gap-3 md:gap-4 xl:gap-5 rounded-lg p-3 bg-gradient-to-r to-white shadow-sm",
   {
     variants: {
       variant: {
@@ -32,6 +32,8 @@ type Props = NotificationT & {
   orders: Order[];
   payments: Payment[];
   stocks: Stock[];
+  shops: Shop[];
+  products: Product[];
 };
 
 function Notification({
@@ -47,13 +49,16 @@ function Notification({
   orders,
   stocks,
   payments,
+  shops,
+  products
 }: Props) {
 
   const notificationQuery = new NotificationQuery();
+  const queryClient = useQueryClient();
   const removeNotification = useMutation({
     mutationFn: (id:number)=> notificationQuery.delete(id),
-    mutationKey: ["notifications"],
     onSuccess: ()=>{
+      queryClient.invalidateQueries({queryKey: ["notifications"], refetchType:"active"})
       notifyInfo("Notification supprimée !");
     }
   })
@@ -208,9 +213,8 @@ function Notification({
                   stocks.find((el) => el.id === notification.stockId)
                     ?.productVariant?.unit
                 } de ${
-                  stocks.find((el) => el.id === notification.stockId)?.shop
-                    ?.name
-                } est épuisé `
+                  products.find(p=>p.variants?.some(el =>el.id === stocks.find((el) => el.id === notification.stockId)?.productVariantId))?.name
+                } est épuisé à ${shops.find(e=>e.id === stocks.find((el) => el.id === notification.stockId)?.shopId)?.name}.`
               : "Réapprovisionnez votre stock !",
             date: new Date(notification.createdAt),
             icon: <PackageX size={size} />,
@@ -263,13 +267,13 @@ function Notification({
   });
 
   return (
-    <Link href={`/dashboard${value.url}`}
+    <div
       className={cn(
         notificationVariants({ variant: getVariantStyle(variant) })
       )}
     >
       <span className={cn("w-16 h-16 rounded-md border flex items-center justify-center shrink-0 bg-white", getBadgeVariantStyle(variant))}>{value.icon}</span>
-      <div className="w-full flex flex-col gap-0.5">
+      <Link href={`/dashboard${value.url}`} className="w-full flex flex-col gap-0.5">
         <div className="w-full flex flex-col md:flex-row gap-2 justify-start md:justify-between">
           <span className={cn("text-base xl:text-lg font-semibold text-black")}>
             {value.title}
@@ -279,7 +283,7 @@ function Notification({
           </span>
         </div>
         <p className="text-gray-600">{value.description}</p>
-      </div>
+      </Link>
 
       <Button
         size="icon"
@@ -289,7 +293,7 @@ function Notification({
       >
         <X size={16} />
       </Button>
-    </Link>
+    </div>
   );
 }
 
