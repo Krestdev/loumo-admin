@@ -1,47 +1,62 @@
 'use client'
+import Notification from '@/components/notification';
 import PageLayout from '@/components/page-layout';
 import { fetchAll } from '@/hooks/useData';
-import { cn } from '@/lib/utils';
 import { useStore } from '@/providers/datastore';
 import NotificationQuery from '@/queries/notification';
-import UserQuery from '@/queries/user';
-import { NotificationT, User } from '@/types/types';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { Bell, User2} from 'lucide-react';
+import OrderQuery from '@/queries/order';
+import PaymentQuery from '@/queries/payment';
+import StockQuery from '@/queries/stock';
+import { NotificationT, Order, Payment, Stock } from '@/types/types';
 import { useEffect, useState } from 'react';
 
 function Page() {
 
   const notificationsQuery = new NotificationQuery();
-  const userQuery = new UserQuery();
+  const orderQuery = new OrderQuery();
+  const paymentQuery = new PaymentQuery();
+  const stockQuery = new StockQuery();
 
   const getNotifications = fetchAll(notificationsQuery.getAll, "notifications");
-  const getUsers = fetchAll(userQuery.getAll, "users");
+  const getOrders = fetchAll(orderQuery.getAll, "orders");
+  const getPayments = fetchAll(paymentQuery.getAll, "payments");
+  const getStocks = fetchAll(stockQuery.getAll, "stocks");
 
   const [notifications, setNotifications] = useState<NotificationT[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [stocks, setStocks] = useState<Stock[]>([]);
   const { setLoading } = useStore();
 
   useEffect(()=>{
-    setLoading(getNotifications.isLoading || getUsers.isLoading);
+    setLoading(getNotifications.isLoading || getOrders.isLoading || getPayments.isLoading || getStocks.isLoading);
     if(getNotifications.isSuccess)setNotifications(getNotifications.data);
-    if(getUsers.isSuccess)setUsers(getUsers.data);
+    if(getOrders.isSuccess)setOrders(getOrders.data);
+    if(getPayments.isSuccess)setPayments(getPayments.data);
+    if(getStocks.isSuccess)setStocks(getStocks.data);
   },[
     setLoading,
     setNotifications,
     getNotifications.isLoading,
     getNotifications.isSuccess,
     getNotifications.data,
-    setUsers,
-    getUsers.isLoading,
-    getUsers.isSuccess,
-    getUsers.data
+    setOrders,
+    getOrders.isLoading,
+    getOrders.isSuccess,
+    getOrders.data,
+    setPayments,
+    getPayments.isLoading,
+    getPayments.isSuccess,
+    getPayments.data,
+    setStocks,
+    getStocks.isLoading,
+    getStocks.isSuccess,
+    getStocks.data
   ]);
 
   return (
-    <PageLayout isLoading={getNotifications.isLoading || getUsers.isLoading} className='flex-1 overflow-auto p-4 space-y-6'>
-       <div className="space-y-4">
+    <PageLayout isLoading={getNotifications.isLoading || getOrders.isLoading || getPayments.isLoading || getStocks.isLoading} className='flex-1 overflow-auto p-4 space-y-6'>
+       <div className="w-full max-w-3xl space-y-4">
         {notifications.length === 0 && (
           <div className="py-5 text-sm sm:text-base lg:text-lg text-muted-foreground">
             {"Aucune notification disponible."}
@@ -49,30 +64,7 @@ function Page() {
         )}
 
         {notifications.map((item) => (
-          <div
-            key={item.id}
-            className={cn(
-              "p-4 rounded-md border shadow-sm",
-              "hover:shadow-md transition-all bg-white"
-            )}
-          >
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center gap-2 font-medium text-sm">
-                <Bell size={16} />
-                {item.action}
-              </div>
-              <div className="text-xs text-muted-foreground">
-                {format(new Date(item.createdAt), "PPPpp", { locale: fr })}
-              </div>
-            </div>
-            <p className="text-sm text-gray-700 mb-2">{item.description}</p>
-            {item.userId && users.find(x=> x.id === item.userId) && (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <User2 size={14} />
-                {users.find(x=> x.id === item.userId)?.name || users.find(x=> x.id === item.userId)?.email}
-              </div>
-            )}
-          </div>
+          <Notification key={item.id} {...item} payments={payments} orders={orders} stocks={stocks}/>
         ))}
       </div>
     </PageLayout>

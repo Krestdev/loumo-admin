@@ -26,14 +26,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { notifySuccess } from "@/lib/notify";
-import { agentStatusName } from "@/lib/utils";
+import { agentStatusName, cn } from "@/lib/utils";
 import AgentQuery from "@/queries/agent";
 import UserQuery from "@/queries/user";
 import { Agent, User, Zone } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Loader, MousePointer2, UserPlus } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import {
+  ArrowLeft,
+  Check,
+  Loader,
+  MousePointer2,
+  Search,
+  UserPlus
+} from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -96,6 +103,8 @@ function AddDriver({ isOpen, openChange, zones, users, agents }: Props) {
 
   const [mode, setMode] = useState<boolean>(false);
   const [option, setOption] = useState<"create" | "select">();
+  const [searchValue, setSearchValue] = useState<string>();
+  const [open, setOpen] = useState<boolean>(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -187,6 +196,31 @@ function AddDriver({ isOpen, openChange, zones, users, agents }: Props) {
     }
   }, [isOpen, form]);
 
+  const availableDrivers = users.filter(
+    (e) => !agents.some((x) => x.userId === e.id)
+  );
+  const filteredDrivers = useMemo(() => {
+    if (searchValue) {
+      return availableDrivers.filter(
+        (driver) =>
+          driver.id === Number(searchValue) ||
+          driver.name
+            .toLocaleLowerCase()
+            .includes(searchValue.toLocaleLowerCase()) ||
+          driver.email
+            .toLocaleLowerCase()
+            .includes(searchValue.toLocaleLowerCase())
+      );
+    }
+    return availableDrivers;
+  }, [availableDrivers, searchValue]);
+
+  useEffect(()=>{
+    if(open){
+      setSearchValue("");
+    }
+  },[setSearchValue, open])
+
   return (
     <Dialog open={isOpen} onOpenChange={openChange}>
       <DialogContent>
@@ -246,23 +280,60 @@ function AddDriver({ isOpen, openChange, zones, users, agents }: Props) {
                         <Select
                           defaultValue={field.value}
                           onValueChange={field.onChange}
+                          open={open}
+                          onOpenChange={setOpen}
                         >
                           <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Sélectionner un utilisateur" />
+                              {availableDrivers.find(driver=> driver.id === Number(field.value)) ? 
+                              <div className="font-medium">{availableDrivers.find(x=>x.id === Number(field.value))?.name}</div> : 
+                              <div className="text-muted-foreground">{"Sélectionner un utilisateur"}</div>}
                           </SelectTrigger>
                           <SelectContent>
-                            {users
-                              .filter(
-                                (e) => !agents.some((x) => x.userId === e.id)
-                              )
-                              .map((user) => (
+                            <div className="w-full py-2 px-2 flex items-center gap-2 min-h-8 border-b mb-2">
+                              <Search
+                                size={16}
+                                className="text-muted-foreground"
+                              />
+                              <Input
+                                type="search"
+                                placeholder="Rechercher un utilisateur"
+                                className="text-sm border-none focus:ring-0 focus-visible:ring-0"
+                                value={searchValue}
+                                onChange={(e) => setSearchValue(e.target.value)}
+                                onKeyDown={(e) => e.stopPropagation()}
+                              />
+                            </div>
+                            {filteredDrivers.length === 0 &&
+                              availableDrivers.length === 0 && (
                                 <SelectItem
-                                  key={user.id}
-                                  value={String(user.id)}
+                                  value="#"
+                                  disabled
+                                  className="italic"
                                 >
-                                  {user.name}
+                                  {"Aucun utilisateur disponible."}
                                 </SelectItem>
-                              ))}
+                              )}
+                            {filteredDrivers.length === 0 &&
+                              availableDrivers.length > 0 && (
+                                <SelectItem
+                                  value="#"
+                                  disabled
+                                  className="italic"
+                                >
+                                  {"Aucun utilisateur correspondant."}
+                                </SelectItem>
+                              )}
+                            {filteredDrivers.map((user) => (
+                              <div key={user.id} className={cn("px-3 py-1.5 text-sm rounded-sm cursor-pointer hover:bg-gray-100 transition-colors flex justify-between items-center gap-3", field.value === String(user.id) && "bg-primary/20 hover:bg-primary/30")} onClick={()=>{field.onChange(()=>String(user.id));setOpen(false)}}>
+                                <div className="flex flex-col">
+                                  <p className="font-medium">
+                                    {user.name}
+                                  </p>
+                                  <p className="text-muted-foreground text-xs">{user.email}</p>
+                                </div>
+                                {field.value === String(user.id) && <Check size={16} className="text-green-600"/>}
+                              </div>
+                            ))}
                           </SelectContent>
                         </Select>
                       </FormControl>

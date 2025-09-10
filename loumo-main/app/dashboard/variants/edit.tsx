@@ -107,7 +107,7 @@ function EditVariant({ variant, isOpen, openChange, products }: Props) {
 
   const editVariant = useMutation({
     mutationFn: (values: z.infer<typeof formSchema>) =>{
-      if(values.imgUrl instanceof File){
+      if(values.imgUrl instanceof File || typeof values.imgUrl === "string"){
         return actions.update(variant.id, {
           name: formatName(values.name),
           weight: Number(values.weight),
@@ -127,7 +127,6 @@ function EditVariant({ variant, isOpen, openChange, products }: Props) {
         productId: Number(values.productId),
         unit: values.unit,
         quantity: Number(values.quantity),
-        imgUrl: variant.imgUrl
       })
     },
     onSuccess: () => {
