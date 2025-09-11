@@ -242,12 +242,12 @@ export default function Dashboard() {
       className="flex-1 overflow-auto p-4 space-y-6"
     >
       {/**Filters */}
-      <div className="p-6 w-full bg-white rounded-lg flex flex-wrap justify-between items-center gap-4 sm:gap-6 shadow-sm">
+      <div className="@container p-6 w-full bg-white rounded-lg flex flex-wrap justify-between items-center gap-4 sm:gap-6 shadow-sm">
         <h4 className="font-semibold text-sm sm:text-base flex gap-2 items-center"><Filter size={16}/> {"Filtres"}</h4>
-        <div className="flex gap-3 flex-wrap">
-          <DateRangePicker date={dateRange} onChange={setDateRange} />
+        <div className="grid grid-cols-1 gap-2 @min-[640px]:grid-cols-2 @min-[940px]:grid-cols-3">
+          <DateRangePicker date={dateRange} onChange={setDateRange} className="w-full" />
           <Select value={shopFilter} onValueChange={setShopFilter}>
-            <SelectTrigger>
+            <SelectTrigger className="w-full" >
               <Store size={16} />
               <SelectValue placeholder="Point de vente" />
             </SelectTrigger>
@@ -262,7 +262,7 @@ export default function Dashboard() {
             </SelectContent>
           </Select>
           <Select value={productFilter} onValueChange={setProductFilter}>
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <Candy size={16} />
               <SelectValue placeholder="Produit" />
             </SelectTrigger>
@@ -444,10 +444,10 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-medium text-sm">
-                          {stock.productVariant?.name ?? "Nom de la variante"}
+                          {`${stock.productVariant?.name ?? "Nom de la variante"} ${stock.productVariant?.quantity} ${stock.productVariant?.unit} ${products.find(product=>product.variants?.some(x=>x.id === stock.productVariantId)) && `- ${products.find(product=>product.variants?.some(x=>x.id === stock.productVariantId))?.name}`}`}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {stock.shop?.name ?? "Nom du point de vente"}
+                          {shops.find(shop=>shop.id === stock.shopId)?.name ?? "Nom du point de vente"}
                         </p>
                       </div>
                       <Badge variant="destructive" className="text-xs">
