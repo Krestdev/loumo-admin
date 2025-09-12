@@ -1,6 +1,7 @@
 "use client";
 
 import PageLayout from "@/components/page-layout";
+import StatCard from "@/components/statistic-Card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,8 +28,8 @@ import DeliveryQuery from "@/queries/delivery";
 import OrderQuery from "@/queries/order";
 import ShopQuery from "@/queries/shop";
 import ZoneQuery from "@/queries/zone";
-import { Address, Delivery, Order, Shop, Zone } from "@/types/types";
-import { CirclePlus, Edit, Eye, MapPin, MoreHorizontal, Store, Trash2, Truck } from "lucide-react";
+import { Address, Delivery, Order, Shop, statisticCard, Zone } from "@/types/types";
+import { CirclePlus, Edit, Eye, MapPin, MapPinned, MoreHorizontal, Store, Trash2, Truck } from "lucide-react";
 import React from "react";
 import AddZone from "./add";
 import DeleteZone from "./delete";
@@ -131,6 +132,32 @@ export default function ZonesPage() {
     setViewDialog(true);
   }
 
+  const zoneStats:statisticCard[] = [
+    {
+      title: "Zones actives",
+      icon: <MapPin size={16} className="text-primary"/>,
+      value: zones.filter(zone=>!!zone.status).length,
+      sub: {
+        title: "Total zones",
+        value: zones.length
+      }
+    },
+    {
+      title: "Quartiers associés",
+      icon: <MapPinned size={16} className="text-ternary"/>,
+      value: zones.reduce((total, item)=>total + item.addresses.length, 0),
+      sub: {
+        title: "Dans les zones actives",
+        value: zones.filter(x=>!!x.status).reduce((total, item)=>total + item.addresses.length, 0)
+      }
+    },
+    {
+      title: "Livraisons du mois",
+      value: getMonthlyDeliveries({ deliveries }).length,
+      icon: <Truck size={16} className="text-secondary"/>
+    }
+  ];
+
   return (
     <PageLayout
       isLoading={
@@ -143,65 +170,8 @@ export default function ZonesPage() {
       className="flex-1 p-4 space-y-6"
     >
       {/* Zone Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {"Zones actives"}
-            </CardTitle>
-            <MapPin className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{zones.length}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {"Quartiers couverts"}
-            </CardTitle>
-            <Store className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {zones.reduce((total, item) => total + item.addresses.length, 0)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {"Quartiers desservis"}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {"Livraisons ce mois"}
-            </CardTitle>
-            <Truck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {getMonthlyDeliveries({ deliveries }).length}
-            </div>
-            {/* <p className="text-xs text-muted-foreground">
-              <span className="text-green-600">+18%</span> vs mois dernier
-            </p> */}
-          </CardContent>
-        </Card>
-
-        {/*         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{"Frais moyens"}</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{"€3.25"}</div>
-            <p className="text-xs text-muted-foreground">
-              {"Frais de livraison moyen"}
-            </p>
-          </CardContent>
-        </Card> */}
+      <div className="grid gap-4 grid-cols-1 @min-[540px]:grid-cols-2 @min-[860px]:grid-cols-3 @min-[1156px]:grid-cols-4">
+        {zoneStats.map((item, id)=><StatCard key={id} {...item} />)}
       </div>
 
       {/* Zones Table */}

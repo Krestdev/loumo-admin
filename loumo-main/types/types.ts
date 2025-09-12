@@ -358,3 +358,17 @@ export type newVariant = {
     shopId: number;
   }[];
 };
+
+export type statisticCard = {
+  title: string;
+  icon: React.ReactNode;
+  value:number | string;
+  valueName?:string;
+  isMoney?:boolean;
+  variation?: number;
+  sub?: {
+    title: string;
+    value: number | string;
+    isMoney?:boolean;
+  }
+}

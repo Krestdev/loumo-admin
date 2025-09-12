@@ -1,6 +1,7 @@
 "use client";
 
 import PageLayout from "@/components/page-layout";
+import StatCard from "@/components/statistic-Card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,14 +34,14 @@ import { useStore } from "@/providers/datastore";
 import OrderQuery from "@/queries/order";
 import ShopQuery from "@/queries/shop";
 import ZoneQuery from "@/queries/zone";
-import { Order, Shop, Zone } from "@/types/types";
+import { Order, Shop, statisticCard, Zone } from "@/types/types";
 import {
   CirclePlus,
+  DollarSign,
   Edit,
   Eye,
   MapPin,
   MoreHorizontal,
-  Package,
   Store,
   Trash2
 } from "lucide-react";
@@ -110,6 +111,7 @@ export default function StoresPage() {
   const target = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
 
   return orders
+    .filter(order=>!!order.payment && order.payment.status === "COMPLETED")
     .filter((order) => {
       const date = new Date(order.createdAt);
       if(!!addressId){
@@ -126,6 +128,28 @@ export default function StoresPage() {
     })
     .reduce((total, order) => total + order.total, 0);
 }
+
+const monthlyDiff = getMonthlyRevenue({orders:orders, monthOffset:-1})!==0 ? ((getMonthlyRevenue({orders:orders})-getMonthlyRevenue({orders:orders, monthOffset:-1}))/getMonthlyRevenue({orders:orders, monthOffset:-1}))*100 : 0;
+
+  const stats:statisticCard[] = [
+    {
+      title: "Points de vente",
+      value: shops.length,
+      icon: <Store size={16} className="text-primary"/>,
+    },
+    {
+      title: "Chiffre d'Affaires",
+      icon: <DollarSign size={16} className="text-ternary"/>,
+      value : orders.filter(x=> !!x.payment && x.payment.status === "COMPLETED").reduce((total, item)=>total + item.total,0),
+      isMoney: true,
+      variation: monthlyDiff, //Comparer vs the previous month
+      sub: {
+        title : "CA du mois en cours",
+        value: getMonthlyRevenue({orders:orders}),
+        isMoney: true
+      }
+    }
+  ];
 
   return (
     <PageLayout
@@ -147,45 +171,8 @@ export default function StoresPage() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {"Total Boutiques"}
-                </CardTitle>
-                <Store className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{shops.length}</div>
-              </CardContent>
-            </Card>
-            {/*             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Employés</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">35</div>
-                <p className="text-xs text-muted-foreground">Moyenne: 11.7 par boutique</p>
-              </CardContent>
-            </Card> */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {"Chiffre d'Affaires"}
-                </CardTitle>
-                <Package className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{XAF.format(orders.filter(x=> !!x.payment).reduce((total, item)=>total + item.total,0))}</div>
-                {
-                  getMonthlyRevenue({orders:orders, monthOffset:-1}) !== 0 && 
-                  <p className={`text-xs ${(getMonthlyRevenue({orders:orders})-getMonthlyRevenue({orders:orders, monthOffset:-1}))> 0 ? "text-green-700" : "text-destructive"}`}>
-                  {`${((getMonthlyRevenue({orders:orders})-getMonthlyRevenue({orders:orders, monthOffset:-1}))/getMonthlyRevenue({orders:orders, monthOffset:-1}))*100}
-                   vs mois dernier`}
-                </p>}
-              </CardContent>
-            </Card>
+          <div className="grid gap-4 grid-cols-1 @min-[540px]:grid-cols-2 @min-[860px]:grid-cols-3 @min-[1156px]:grid-cols-4">
+            {stats.map((item, id)=><StatCard key={id} {...item} />)}
           </div>
 
           <Card>

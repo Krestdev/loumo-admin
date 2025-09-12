@@ -2,6 +2,7 @@
 
 import { DateRangePicker } from "@/components/dateRangePicker";
 import PageLayout from "@/components/page-layout";
+import StatCard from "@/components/statistic-Card";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -26,11 +27,10 @@ import { useStore } from "@/providers/datastore";
 import OrderQuery from "@/queries/order";
 import PaymentQuery from "@/queries/payment";
 import ZoneQuery from "@/queries/zone";
-import { Order, Payment, Zone } from "@/types/types";
+import { Order, Payment, statisticCard, Zone } from "@/types/types";
 import { formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
-  AlertCircle,
   Ban,
   CheckCheck,
   CheckCircle,
@@ -42,7 +42,8 @@ import {
   Search,
   Smartphone,
   Store,
-  Tag
+  Tag,
+  Truck
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { DateRange } from "react-day-picker";
@@ -212,14 +213,35 @@ export default function PaymentsPage() {
     (x) => x.status === "COMPLETED"
   );
 
-
+  const statistics:statisticCard[] = [
+    {
+      title: "Transactions réussies",
+      icon: <CheckCircle className="h-4 w-4 text-green-500" />,
+      value: successPayments.length,
+      sub: {
+        title: "Taux de réuissite",
+        value: successPayments.length > 0 ? `${((successPayments.length * 100) / payments.length).toPrecision(4)}%` : "0%"
+      }
+    },
+    {
+      title: "Transaction en Attente",
+      icon: <Clock className="h-4 w-4 text-orange-500" />,
+      value: filteredPayments.filter((x) => x.status === "PENDING").length
+    },
+    {
+      title :"Frais de livraison",
+      icon: <Truck className="h-4 w-4 text-muted-foreground" />,
+      value: filteredPayments.reduce((total, el) => total + (el.order?.deliveryFee ?? 0),0),
+      isMoney: true
+    }
+  ];
 
 
 
   return (
     <PageLayout
       isLoading={getPayments.isLoading || getOrders.isLoading || getZones.isLoading}
-      className="p-4 space-y-6"
+      className="p-4 space-y-6 @container"
     >
       {/**Filtres */}
       <div className="p-6 w-full bg-white rounded-lg flex flex-col xl:flex-row items-center justify-between gap-4 shadow-sm">
@@ -285,63 +307,10 @@ export default function PaymentsPage() {
       </div>
 
       {/* Payment Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {"Transactions réussies"}
-            </CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{successPayments.length > 0 ? `${
-              (successPayments.length * 100) / payments.length
-            }%` : "0%"}</div>
-            <p className="text-xs text-muted-foreground">
-              {"Taux de réussite"}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {"En attente"}
-            </CardTitle>
-            <Clock className="h-4 w-4 text-orange-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {
-                filteredPayments.filter((x) => x.status === "PENDING")
-                  .length
-              }
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {"Paiements à traiter"}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {"Frais de livraison"}
-            </CardTitle>
-            <AlertCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {XAF.format(
-                filteredPayments.reduce(
-                  (total, el) => total + (el.order?.deliveryFee ?? 0),
-                  0
-                )
-              )}
-            </div>
-            {/* <p className="text-xs text-muted-foreground">Ce mois</p> */}
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 grid-cols-1 @min-[540px]:grid-cols-2 @min-[860px]:grid-cols-3">
+        {
+          statistics.map((stat, id)=><StatCard key={id} {...stat} />)
+        }
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">

@@ -1,6 +1,7 @@
 "use client";
 
 import PageLayout from "@/components/page-layout";
+import StatCard from "@/components/statistic-Card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,17 +32,17 @@ import { fetchAll } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
 import CategoryQuery from "@/queries/category";
 import ProductQuery from "@/queries/product";
-import { Category, Product, Shop } from "@/types/types";
+import ShopQuery from "@/queries/shop";
+import { Category, Product, Shop, statisticCard } from "@/types/types";
 import { formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
-import { ArrowDownAZ, ArrowUpAz, Edit, MoreHorizontal, PlusCircle, Search, Trash2 } from "lucide-react";
+import { ArrowDownAZ, ArrowUpAz, Edit, MoreHorizontal, Package, Package2, PlusCircle, Search, Trash2 } from "lucide-react";
 import React, { useMemo, useState } from "react";
 import AddProduct from "./add";
 import DeleteProduct from "./delete";
 import EditProduct from "./edit";
 import GroupDelete from "./groupDelete";
 import GroupEdit from "./groupEdit";
-import ShopQuery from "@/queries/shop";
 
 export default function ProductsPage() {
 
@@ -140,11 +141,27 @@ export default function ProductsPage() {
     setIsDeleteDialogOpen(true);
   }
 
+  const productStatistics:statisticCard[] = [
+    {
+      title: "Produits",
+      value: products.length,
+      icon: <Package size={16} className="text-muted-foreground"/>
+    },
+    {
+      title: "Produit sans variante",
+      value: products.filter(product=>!product.variants || product.variants?.length === 0).length,
+      icon: <Package2 size={16} className="text-destructive"/>
+    }
+  ];
+
   return (
     <PageLayout
       isLoading={productData.isLoading}
       className="flex-1 overflow-auto p-4 space-y-6"
     >
+      <div className="grid gap-4 grid-cols-1 @min-[540px]:grid-cols-2 @min-[860px]:grid-cols-3">
+        {productStatistics.map((item, id)=><StatCard key={id} {...item} />)}
+      </div>
       {/* Filters */}
       <Card>
         <CardHeader>

@@ -26,7 +26,7 @@ import { useStore } from "@/providers/datastore";
 import OrderQuery from "@/queries/order";
 import UserQuery from "@/queries/user";
 import ZoneQuery from "@/queries/zone";
-import { Order, User, Zone } from "@/types/types";
+import { Order, statisticCard, User, Zone } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -34,6 +34,7 @@ import { ArrowDownAZ, ArrowUpAz, Search, Star, Users } from "lucide-react";
 import React, { useState } from "react";
 import BanClient from "./ban";
 import ViewClient from "./view";
+import StatCard from "@/components/statistic-Card";
 
 export default function ClientsPage() {
   const clientQuery = new UserQuery();
@@ -65,7 +66,7 @@ export default function ClientsPage() {
   React.useEffect(() => {
     setLoading(getUsers.isLoading || getZones.isLoading || getOrders.isLoading);
     if (getUsers.isSuccess) {
-      setUsers(getUsers.data);
+      setUsers(getUsers.data.filter(user=>user.role ? user.role?.name!=="admin" : true));
     }
     if (getZones.isSuccess) {
       setZones(getZones.data);
@@ -147,17 +148,26 @@ export default function ClientsPage() {
     setSelectedClient(element);
     setBanDialog(true);
   };
-  const growth = () => {
-    const current = filterByDate(users, 30).length;
-    const diff = filterByDate(users, 60).length - current;
-    if (diff > 0) {
-      return `${(current * 100) / diff}% vs période précédente`;
+
+  const monthDiff = filterByDate(users, 60).length - filterByDate(users, 30).length
+
+  const stats:statisticCard[] = [
+    {
+      title : "Nombre de clients",
+      value: users.length,
+      icon: <Users size={16} className="text-muted-foreground" />,
+      variation: monthDiff === 0 ? 0 : (monthDiff*100)/filterByDate(users, 60).length,
+      sub:{
+        title: "Inscrits ce mois",
+        value: filterByDate(users, 30).length
+      }
+    },
+    {
+      title: "Points de fidélité",
+      value: users.reduce((total, user)=>total + user.fidelity,0),
+      icon: <Star size={16} className="text-yellow-600" />
     }
-    if (current === 0) {
-      return null;
-    }
-    return `+${current} vs période précédente`;
-  };
+  ];
 
   return (
     <PageLayout
@@ -165,71 +175,8 @@ export default function ClientsPage() {
       className="flex-1 overflow-auto p-4 space-y-6"
     >
       {/* Client Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {"Total clients"}
-            </CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{users.length}</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-green-600">
-                {filterByDate(users, 30).length}
-              </span>{" "}
-              {"ce mois"}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {"Nouveaux clients (30j)"}
-            </CardTitle>
-            <Users className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {filterByDate(users, 30).length}
-            </div>
-            <p className="text-xs text-muted-foreground">{growth()}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {"Nouveaux clients"}
-            </CardTitle>
-            <Users className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {filterByDate(users, 7).length}
-            </div>
-            <p className="text-xs text-muted-foreground">{"Cette semaine"}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {"Points fidélité"}
-            </CardTitle>
-            <Star className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {users.reduce((sum, el) => sum + el.fidelity, 0)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {"Points distribués"}
-            </p>
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 grid-cols-1 @min-[540px]:grid-cols-2 @min-[860px]:grid-cols-3 @min-[1156px]:grid-cols-4">
+        {stats.map((item,id)=><StatCard key={id} {...item} />)}
       </div>
 
       {/* Filters */}

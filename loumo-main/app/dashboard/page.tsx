@@ -2,6 +2,7 @@
 
 import { DateRangePicker } from "@/components/dateRangePicker";
 import PageLayout from "@/components/page-layout";
+import StatCard from "@/components/statistic-Card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,7 +22,6 @@ import {
 } from "@/components/ui/select";
 import { fetchAll } from "@/hooks/useData";
 import {
-  cn,
   getClientsByDay,
   getOrderStatusLabel,
   sortOrdersByNewest,
@@ -33,7 +33,7 @@ import ProductQuery from "@/queries/product";
 import ShopQuery from "@/queries/shop";
 import StockQuery from "@/queries/stock";
 import UserQuery from "@/queries/user";
-import { Order, Product, Shop, Stock, User } from "@/types/types";
+import { Order, Product, Shop, statisticCard, Stock, User } from "@/types/types";
 import {
   AlertTriangle,
   Candy,
@@ -230,6 +230,47 @@ export default function Dashboard() {
 
   const ordersActive = filteredOrders.filter(x=> x.status === "PROCESSING" || x.status ==="PENDING" || x.status === "ACCEPTED");
 
+  const cardsData:statisticCard[] = [
+    {
+      title: "Commandes",
+      value: filteredOrders.length,
+      icon: <ShoppingCart size={16} className="text-primary" />,
+      sub: {
+        title: "Commandes en cours",
+        value: ordersActive.length
+      }
+    },
+    {
+      title: "Chiffre d'Affaires",
+      icon: <DollarSign size={16} className="text-green-600" />,
+      value: salesCompleted(filteredOrders),
+      isMoney: true,
+      sub: {
+        title: "CA des Livraisons",
+        value: filteredOrders.filter(x=>!!x.delivery).reduce((total, acc)=>total + acc.deliveryFee,0),
+        isMoney: true
+      }
+    },
+    {
+      title: "Utilisateurs",
+      icon: <UsersIcon size={16} className="text-gray-600" />,
+      value: activeClients.length,
+      sub: {
+        title: "Actifs aujourd'hui",
+        value: todayClients.length
+      }
+    },
+    {
+      title: "Livraisons",
+      icon: <Truck size={16} className="text-indigo-600" />,
+      value: deliveries.length,
+      sub: {
+        title: "Livraisons en cours",
+        value: startedDeliveries
+      }
+    }
+  ]
+
   return (
     <PageLayout
       isLoading={
@@ -280,58 +321,11 @@ export default function Dashboard() {
       </div>
       {/* Commandes */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 2xl:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {"Commandes"}
-            </CardTitle>
-            <ShoppingCart size={16} className="text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{filteredOrders.length}</div>
-            <p className="text-xs text-muted-foreground mt-2">{"Dont "}<span className={cn("px-1 py-0.5 rounded font-semibold border", ordersActive.length>0 ? "bg-orange-100 text-orange-600 border-orange-300" : "bg-gray-100")}>{ordersActive.length}</span>{" en cours."}</p>
-          </CardContent>
-        </Card>
-        {/**Chiffre d'Affaires */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {"Chiffre d'Affaires"}
-            </CardTitle>
-            <DollarSign size={16} className="text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {XAF.format(salesCompleted(filteredOrders))}
-            </div>
-            <p className="text-xs text-muted-foreground mt-2">{`Dont `}<span className={cn("px-1 py-0.5 rounded border", salesCompleted(filteredOrders.filter(x=>!!x.delivery))>0 ? "bg-green-100 font-semibold text-green-600 border border-green-300": "bg-gray-100")}>{XAF.format(filteredOrders.filter(x=>!!x.delivery).reduce((total, acc)=>total + acc.deliveryFee,0))}</span>{" sur les frais de livraison."}</p>
-          </CardContent>
-        </Card>
-        {/**Users */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {"Utilsateurs actifs"}
-            </CardTitle>
-            <UsersIcon size={16} className="text-gray-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{todayClients.length}</div>
-          </CardContent>
-        </Card>
-        {/**Inventory Stocks */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {"Livraisons"}
-            </CardTitle>
-            <Truck size={16} className="text-indigo-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{deliveries.length}</div>
-            <p className="text-xs text-muted-foreground mt-2">{"Dont "}<span className={cn("px-1 py-0.5 rounded font-semibold border", startedDeliveries>0 ? "bg-green-100 text-green-600 border-green-300" : "bg-gray-100")}>{startedDeliveries}</span>{" livraisons en cours."}</p>
-          </CardContent>
-        </Card>
+        {
+          cardsData.map((item, id)=>
+            <StatCard key={id} {...item}/>
+          )
+        }
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">

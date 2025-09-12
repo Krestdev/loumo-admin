@@ -1,6 +1,8 @@
 "use client";
 
 import PageLayout from "@/components/page-layout";
+import StatCard from "@/components/statistic-Card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,6 +17,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -26,7 +36,7 @@ import {
 import { useStore } from "@/providers/datastore";
 import AddressQuery from "@/queries/address";
 import ZoneQuery from "@/queries/zone";
-import { Address, Zone } from "@/types/types";
+import { Address, statisticCard, Zone } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowDownAZ,
@@ -35,24 +45,15 @@ import {
   Edit,
   Eye,
   MapPin,
+  MapPinX,
   MoreHorizontal,
   Search,
-  Store,
-  Trash2,
+  Trash2
 } from "lucide-react";
 import React from "react";
-import DeleteAddress from "./delete";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import EditAddress from "./edit";
 import AddAddress from "./add";
-import { Badge } from "@/components/ui/badge";
+import DeleteAddress from "./delete";
+import EditAddress from "./edit";
 import ViewAddressDetails from "./view";
 
 export default function ZonesPage() {
@@ -131,41 +132,31 @@ export default function ZonesPage() {
     });
   }, [addresses, searchTerm, zoneFilter, publishedFilter, sortDirection]);
 
+  const stats:statisticCard[] = [
+    {
+      title: "Quartiers",
+      value: addresses.length,
+      icon: <MapPin size={16} className="text-secondary"/>,
+      sub: {
+        title: "Affectés à une zone",
+        value : addresses.filter(add=>!!add.zoneId).length
+      }
+    },
+    {
+      title: "Quartiers sans zone",
+      value: addresses.filter((x) => !x.zoneId).length,
+      icon: <MapPinX size={16} className="text-destructive"/>
+    }
+  ];
+
   return (
     <PageLayout
       isLoading={getZones.isLoading || getAddresses.isLoading}
       className="flex-1 p-4 space-y-6"
     >
       {/* Zone Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{"Quartiers"}</CardTitle>
-            <MapPin className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{addresses.length}</div>
-            <p className="text-xs text-muted-foreground">
-              {`Dans ${
-                zones.filter((x) => x.addresses.length > 0).length
-              } zone(s)`}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {"Quartiers non associés"}
-            </CardTitle>
-            <Store className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {addresses.filter((x) => !x.zoneId).length}
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 grid-cols-1 @min-[540px]:grid-cols-2 @min-[860px]:grid-cols-3 @min-[1156px]:grid-cols-4">
+        {stats.map((item, id)=><StatCard key={id} {...item} />)}
       </div>
 
       <Card>

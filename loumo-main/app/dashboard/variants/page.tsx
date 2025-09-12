@@ -1,6 +1,7 @@
 "use client";
 
 import PageLayout from "@/components/page-layout";
+import StatCard from "@/components/statistic-Card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,12 +27,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { fetchAll } from "@/hooks/useData";
 import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import ProductQuery from "@/queries/product";
 import ProductVariantQuery from "@/queries/productVariant";
 import ShopQuery from "@/queries/shop";
-import { Product, ProductVariant, Shop } from "@/types/types";
+import { Product, ProductVariant, Shop, statisticCard } from "@/types/types";
 import {
   ArrowDownAZ,
   ArrowUpAz,
@@ -44,14 +46,14 @@ import {
   PlusCircle,
   Search,
   Store,
-  Trash2
+  Trash2,
+  Warehouse
 } from "lucide-react";
 import Link from "next/link";
 import React, { useState } from "react";
 import DeleteVariant from "./delete";
 import EditVariant from "./edit";
 import ViewVariant from "./view";
-import { fetchAll } from "@/hooks/useData";
 
 export default function VariantsPage() {
   const actions = new ProductVariantQuery();
@@ -148,74 +150,37 @@ export default function VariantsPage() {
     setIsDialogOpen(true);
   };
 
+  const variantStats:statisticCard[] = [
+    {
+      title: "Variantes",
+      value: variants.length,
+      icon: <Layers size={16} className="text-muted-foreground" />,
+      sub: {
+        title: "Variantes actives",
+        value: variants.filter(variant=>!!variant.status).length
+      }
+    },
+    {
+      title: "Variantes sans Stock",
+      value: variants.filter(variant=>variant.stock.length === 0).length,
+      icon: <Package size={16} className="text-destructive" />,
+    },
+    {
+      title: "Stock total",
+      value: variants.reduce((sum, variant)=>sum +(Array.isArray(variant.stock)? variant.stock.reduce((s, stock) => s + stock.quantity, 0): 0),0),
+      icon: <Warehouse size={16} className="text-ternary"/>,
+      valueName: "Produits"
+    }
+  ];
+
   return (
     <PageLayout
       className="flex-1 overflow-auto p-4 space-y-6"
       isLoading={variantsData.isLoading || productsData.isLoading}
     >
       {/* Variant Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {"Total variantes"}
-            </CardTitle>
-            <Layers className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{variants.length}</div>
-            <p className="text-xs text-muted-foreground">{`${
-              variants.filter((v) => v.status).length
-            } actives`}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {"Variantes sans stock"}
-            </CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {variants.filter(variant=>variant.stock.length === 0).length}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/*           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{"Types de variantes"}</CardTitle>
-              <Weight className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{variantTypes.length}</div>
-              <p className="text-xs text-muted-foreground">Types disponibles</p>
-            </CardContent>
-          </Card> */}
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {"Stock total"}
-            </CardTitle>
-            <Package className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {variants.reduce(
-                (sum, variant) =>
-                  sum +
-                  (Array.isArray(variant.stock)
-                    ? variant.stock.reduce((s, stock) => s + stock.quantity, 0)
-                    : 0),
-                0
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground">{"Unités en stock"}</p>
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 grid-cols-1 @min-[540px]:grid-cols-2 @min-[860px]:grid-cols-3">
+        {variantStats.map((item, id)=><StatCard key={id} {...item} />)}
       </div>
 
       {/* Variant Types Overview */}

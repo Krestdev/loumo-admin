@@ -2,6 +2,7 @@
 
 import { DateRangePicker } from "@/components/dateRangePicker";
 import PageLayout from "@/components/page-layout";
+import StatCard from "@/components/statistic-Card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,7 +30,7 @@ import AgentQuery from "@/queries/agent";
 import DeliveryQuery from "@/queries/delivery";
 import OrderQuery from "@/queries/order";
 import ZoneQuery from "@/queries/zone";
-import { Agent, Delivery, DeliveryStatus, Order, Zone } from "@/types/types";
+import { Agent, Delivery, DeliveryStatus, Order, statisticCard, Zone } from "@/types/types";
 import { formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
 import { BadgeCheck, Ban, CheckCircle, Edit, Ellipsis, Eye, Filter, Package, Search, Store, Truck, User } from "lucide-react";
@@ -179,6 +180,32 @@ export default function DeliveriesPage() {
     }
   }
 
+  const statistics:statisticCard[] = [
+    {
+      title: "Livraison en cours",
+      icon: <Truck className="h-4 w-4 text-green-500" />,
+      value: deliveries.filter((x) => x.status === "STARTED").length
+    },
+    {
+      title: "Total livraisons",
+      icon: <Package className="h-4 w-4 text-muted-foreground" />,
+      value: filteredDeliveries.length,
+      sub: {
+        title: "Livraisons terminées",
+        value: filteredDeliveries.filter(x=>x.status === "COMPLETED").length
+      }
+    },
+    {
+      title: "Livreurs actifs",
+      icon: <User className="h-4 w-4 text-ternary" />,
+      value: agents.filter((x) => x.status === "AVAILABLE" || x.status === "FULL").length,
+      sub: {
+        title: "Livreurs disponibles",
+        value: agents.filter(x=>x.status === "AVAILABLE").length
+      }
+    }
+  ];
+
   return (
     <PageLayout
       isLoading={
@@ -244,68 +271,8 @@ export default function DeliveriesPage() {
         </div>
       </div>
       {/* Delivery Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{"En cours"}</CardTitle>
-            <Truck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {deliveries.filter((x) => x.status === "STARTED").length}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {"Livraisons actives"}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {"Total livraisons"}
-            </CardTitle>
-            <Package className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{filteredDeliveries.length}</div>
-            {filteredDeliveries.length > 0 && <p className="text-xs text-muted-foreground">
-              {`Dont ${filteredDeliveries.filter(x=>x.status === "COMPLETED").length} terminées`}
-            </p>}
-          </CardContent>
-        </Card>
-
-{/*         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{"Temps moyen"}</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{"--"}</div>
-            <p className="text-xs text-muted-foreground">{"Temps de livraison"}</p>
-          </CardContent>
-        </Card> */}
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {"Livreurs actifs"}
-            </CardTitle>
-            <User className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {
-                agents.filter(
-                  (x) => x.status === "AVAILABLE" || x.status === "FULL"
-                ).length
-              }
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {`Sur ${agents.filter(x=>x.status === "AVAILABLE").length} disponibles`}
-            </p>
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 grid-cols-1 @min-[540px]:grid-cols-2 @min-[860px]:grid-cols-3">
+        {statistics.map((item, id)=><StatCard key={id} {...item}/>)}
       </div>
 
       {/* Filters */}

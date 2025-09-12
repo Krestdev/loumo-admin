@@ -1,6 +1,7 @@
 "use client";
 
 import PageLayout from "@/components/page-layout";
+import StatCard from "@/components/statistic-Card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -23,13 +25,12 @@ import {
 import { fetchAll } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
 import CategoryQuery from "@/queries/category";
-import { Category } from "@/types/types";
-import { ArrowDownAZ, ArrowUpAz, Edit, Eye, MoreHorizontal, PlusCircle, Search, Tag, Trash } from "lucide-react";
+import { Category, statisticCard } from "@/types/types";
+import { ArrowDownAZ, ArrowUpAz, Edit, Eye, MoreHorizontal, Package, PlusCircle, Search, Tag, Trash } from "lucide-react";
 import React, { useMemo, useState } from "react";
 import AddCategory from "./add";
 import DeleteCategory from "./delete";
 import EditCategory from "./edit";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
 export default function CategoriesPage() {
@@ -81,76 +82,37 @@ export default function CategoriesPage() {
     setDeleteDialog(true);
   };
 
+  const statistics:statisticCard[] = [
+    {
+      title: "Catégories",
+      value: categories.length,
+      icon: <Tag size={16} className="text-muted-foreground" />,
+    },
+    {
+      title: "Catégories Actives",
+      value: categories.filter(category=>!!category.status).length,
+      icon: <Eye size={16} className="text-primary" />
+    },
+    {
+      title: "Produits",
+      value: categories.reduce((sum, cat) => sum + (cat.products?.length ?? 0),0),
+      icon: <Package size={16} className="text-ternary" />
+    },
+    {
+      title: "Catégorie sur la page d'accueil",
+      value: categories.filter(cat=>!!cat.display).length,
+      icon: <Tag size={16} className="text-blue-500" />
+    }
+  ];
+
   return (
     <PageLayout
       isLoading={getCategories.isLoading}
       className="flex-1 overflow-auto p-4 space-y-6"
     >
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {"Total Catégories"}
-            </CardTitle>
-            <Tag className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{categories.length}</div>
-            {/* <p className="text-xs text-muted-foreground">+2 ce mois</p> */}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {"Catégories Actives"}
-            </CardTitle>
-            <Eye className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {categories.filter((c) => c.status).length}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {"Visibles sur le site"}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {"Total Produits"}
-            </CardTitle>
-            <Tag className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {categories.reduce(
-                (sum, cat) => sum + (cat.products?.length ?? 0),
-                0
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {"Dans toutes les catégories"}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {"Affichées sur l'accueil"}
-            </CardTitle>
-            <Tag className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              {categories.filter((c) => !!c.display).length}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {"Visibles sur la page d'accueil"}
-            </p>
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 grid-cols-1 @min-[540px]:grid-cols-2 @min-[860px]:grid-cols-3 @min-[1156px]:grid-cols-4">
+        {statistics.map((item, id)=><StatCard key={id} {...item}/>)}
       </div>
 
       {/* Search */}

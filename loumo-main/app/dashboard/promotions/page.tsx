@@ -1,5 +1,6 @@
 'use client'
 import PageLayout from '@/components/page-layout';
+import StatCard from '@/components/statistic-Card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,14 +9,14 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { fetchAll } from '@/hooks/useData';
-import { cn, isExpired, XAF } from '@/lib/utils';
+import { isExpired, XAF } from '@/lib/utils';
 import { useStore } from '@/providers/datastore';
 import PromotionQuery from '@/queries/promotion';
 import StockQuery from '@/queries/stock';
-import { Promotion, Stock } from '@/types/types';
+import { Promotion, statisticCard, Stock } from '@/types/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { CirclePlus, Edit, Eye, Gift, MoreHorizontal, Percent, Search, Target, Trash2 } from 'lucide-react';
+import { CirclePlus, DollarSign, Edit, Eye, Gift, MoreHorizontal, Percent, Search, TicketPercent, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 
@@ -67,7 +68,7 @@ function Page() {
       return matchesSearch && matchesStatus;
     });
   }, [promotions, searchTerm, statusFilter]);
-  
+
   if(false)console.log(selected, viewDialog, addDialog, editDialog, deleteDialog);
 
   const handleEdit = (promotion: Promotion): void => {
@@ -87,54 +88,39 @@ function Page() {
 
   const conversionRate = promotions.filter(x=>!!x.maxUses).reduce((sum, p) => sum + (p.maxUses ?? 0), 0) - promotions.filter(x=>!!x.maxUses).reduce((sum, p) => sum + p.usedCount, 0);
 
+  const stats:statisticCard[] = [
+    {
+      title: "Promotions",
+      value: promotions.length,
+      icon: <Gift size={16} className='text-ternary' />,
+      sub: {
+        title: "Promotions actives",
+        value: promotionsActive
+      }
+    },
+    {
+      title: "Utilisation",
+      value: promotions.reduce((total, promo)=>total+promo.usedCount,0),
+      icon: <TicketPercent size={16} className='text-secondary'/>
+    },
+    {
+      title: "Total Réduit",
+      value: promotions.reduce((total, p)=>total + (p.percentage > 0 ? p.amount*p.usedCount : p.percentage*p.usedCount/100) ,0),
+      isMoney: true,
+      icon: <DollarSign size={16} className='text-destructive' />
+    },
+    {
+      title: "Taux de conversion",
+      value: conversionRate>0 ? conversionRate/promotions.filter(x=>!!x.maxUses).reduce((total, p)=>total + (p.maxUses ?? 0),0) : 0,
+      valueName: "%",
+      icon: <Percent size={16} className='text-muted-foreground' />
+    }
+  ];
+
   return (
     <PageLayout isLoading={getPromotions.isLoading || getStocks.isLoading} className='flex-1 overflow-auto p-4 space-y-6'>
-       <div className="grid gap-4 md:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{"Promotions"}</CardTitle>
-              <Gift className="text-muted-foreground" size={16} />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{promotions.length}</div>
-              <p className="text-xs text-muted-foreground">{"Dont "}<span className={cn("px-1 py-0.5 rounded border", promotionsActive>0 ? "bg-green-100 font-semibold text-green-600 border border-green-300": "bg-gray-100")}>{promotionsActive}</span>{" en cours"}</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{"Utilisations ce mois"}</CardTitle>
-              <Target className="text-green-500" size={16} />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{promotions.reduce((sum, p) => sum + p.usedCount, 0)}</div>
-{/*               <p className="text-xs text-muted-foreground">
-                <span className="text-green-600">{"+23%"}</span>{" vs mois dernier"}
-              </p> */}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{"Économies clients"}</CardTitle>
-              <Percent className="text-muted-foreground" size={16} />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{XAF.format(promotions.reduce((total, p)=>total + (p.percentage > 0 ? p.amount*p.usedCount : p.percentage*p.usedCount/100) ,0))}</div>
-              <p className="text-xs text-muted-foreground">{"Total économisé"}</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{"Taux de conversion"}</CardTitle>
-              <Target className="text-muted-foreground" size={16} />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{conversionRate>0 ? conversionRate/promotions.filter(x=>!!x.maxUses).reduce((total, p)=>total + (p.maxUses ?? 0),0) : 0 }{"%"}</div>
-              <p className="text-xs text-muted-foreground"><strong>{promotions.reduce((total, p)=> total + p.usedCount,0)}</strong>{" codes utilisés"}</p>
-            </CardContent>
-          </Card>
+       <div className="grid gap-4 grid-cols-1 @min-[540px]:grid-cols-2 @min-[860px]:grid-cols-3 @min-[1156px]:grid-cols-4">
+        {stats.map((item, id)=><StatCard key={id} {...item} />)}
         </div>
 
         {/* Filters */}

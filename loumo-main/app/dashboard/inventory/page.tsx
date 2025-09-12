@@ -2,6 +2,7 @@
 
 import { DateRangePicker } from "@/components/dateRangePicker";
 import PageLayout from "@/components/page-layout";
+import StatCard from "@/components/statistic-Card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,16 +29,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { fetchAll } from "@/hooks/useData";
-import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import ProductQuery from "@/queries/product";
 import ProductVariantQuery from "@/queries/productVariant";
 import ShopQuery from "@/queries/shop";
 import StockQuery from "@/queries/stock";
-import { Product, ProductVariant, Shop, Stock } from "@/types/types";
-import { format, formatRelative, isToday } from "date-fns";
+import { Product, ProductVariant, Shop, statisticCard, Stock } from "@/types/types";
+import { formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
-import { AlertTriangle, Calendar, CirclePlus, Package } from "lucide-react";
+import { AlertTriangle, Calendar, CirclePlus, DollarSign, Package } from "lucide-react";
 import React, { useMemo, useState } from "react";
 import { DateRange } from "react-day-picker";
 import Restock from "./add";
@@ -178,6 +178,33 @@ export default function InventoryPage() {
     setAddDialog(true);
   };
 
+  const stockStatistics:statisticCard[] = [
+    {
+      title: "Type de Produits",
+      value: products.filter(p=>p.variants && p.variants.length>0).length,
+      icon: <Package size={16} className="text-muted-foreground" />
+    },
+    {
+      title: "Stock épuisé",
+      value: stocks.filter(s=>s.quantity===0).length,
+      icon: <AlertTriangle className="h-4 w-4 text-destructive" />,
+      sub: {
+        title: "Stock critique",
+        value: stocks.filter(s=>s.quantity<=s.threshold).length
+      }
+    },
+    {
+      title: "Valeur du Stock",
+      value: stocks.reduce((total, x) =>total + x.quantity * (x.productVariant?.price ?? 0),0),
+      icon: <DollarSign size={16} className="text-ternary"/>,
+    },
+    {
+      title: "Dernière Mise à jour",
+      icon: <Calendar size={16} className="text-muted-foreground" />,
+      value: lastUpdate ? formatRelative(lastUpdate, new Date(), {locale: fr}) : "Non disponible"
+    }
+  ];
+
   return (
     <PageLayout
       isLoading={
@@ -186,93 +213,11 @@ export default function InventoryPage() {
       className="flex-1 overflow-auto p-4 space-y-6"
     >
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {"Total Produits"}
-            </CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {
-                products.filter((x) => x.variants && x.variants.length > 0)
-                  .length
-              }
-            </div>
-            <p className="text-xs text-muted-foreground">{"+12% ce mois"}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {"Stock Critique"}
-            </CardTitle>
-            <AlertTriangle className="h-4 w-4 text-red-500" />
-          </CardHeader>
-          <CardContent>
-            <div
-              className={`text-2xl font-bold ${
-                stocks.filter((x) => x.quantity <= x.threshold).length > 0 &&
-                "text-red-600"
-              }`}
-            >
-              {stocks.filter((x) => x.quantity <= x.threshold).length}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {"Nécessite réapprovisionnement"}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {"Valeur Stock"}
-            </CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {XAF.format(
-                stocks.reduce(
-                  (total, x) =>
-                    total + x.quantity * (x.productVariant?.price ?? 0),
-                  0
-                )
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {"Toutes boutiques"}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {"Dernière MAJ"}
-            </CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {lastUpdate ? (
-              <>
-                <div className="text-2xl font-bold">
-                  {isToday(lastUpdate)
-                    ? "Aujourd'hui"
-                    : format(lastUpdate, "dd/MM/yyyy", { locale: fr })}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {format(lastUpdate, "HH:mm")}
-                </p>
-              </>
-            ) : (
-              <div className="text-2xl font-bold">--</div>
-            )}
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 grid-cols-1 @min-[540px]:grid-cols-2 @min-[860px]:grid-cols-3 @min-[1156px]:grid-cols-4">
+        {
+          stockStatistics.map((item, id)=><StatCard key={id} {...item}/>)
+        }
       </div>
-
       {/* Filters */}
       <Card>
         <CardHeader>
