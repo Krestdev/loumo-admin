@@ -83,7 +83,7 @@ function Restock({ stock, isOpen, openChange, products, shops }: Props) {
             {`Approvisionner ${
               products.find((x) => x.id === stock.productVariant?.productId)
                 ?.name ?? "Produit Introuvable"
-            } - ${stock.productVariant?.name ?? "Vairante introuvable"}`}
+            }${stock.productVariant && ` - ${stock.productVariant.name} ${stock.productVariant.quantity} ${stock.productVariant.unit}`}`}
           </DialogTitle>
           <DialogDescription>
             {"Modifiez le stock d'un produit"}
