@@ -51,8 +51,8 @@ const formSchema = z.object({
   category: z.string({ message: "Veuillez sélectionner une catégorie" }),
   status: z.boolean(),
   description: z
-    .string({ message: "Veuillez renseigner une description du produit" })
-    .min(40, { message: "Description trop courte" }),
+    .string({ message: "Veuillez renseigner une description du produit" }),
+    //.min(40, { message: "Description trop courte" }),
 });
 
 function EditProduct({ product, categories, isOpen, openChange }: Props) {

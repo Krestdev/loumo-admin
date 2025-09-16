@@ -111,8 +111,8 @@ const formSchema = z.object({
   description: z
     .string({
       message: "Veuillez renseigner une description du produit",
-    })
-    .min(40, { message: "40 caractères minimum" }),
+    }),
+    //.min(40, { message: "40 caractères minimum" }),
   variants: z
     .array(variantSchema)
     .min(1, { message: "Veuillez ajouter au moins une variante" }),
@@ -143,7 +143,7 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
       name: "",
       category: undefined,
       status: true,
-      description: "",
+      description: ".",
       variants: [
         {
           name: undefined,
@@ -206,7 +206,7 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
         name: "",
         category: undefined,
         status: true,
-        description: "",
+        description: ".",
         variants: [
           {
             name: undefined,
