@@ -154,7 +154,7 @@ export const unitName = (unit :string) =>{
       return "Gramme (g)";
     case "kg":
       return "Kilogramme (kg)";
-    case "pièce":
+    case " ":
       return "Pièce/Unité";
     case "L":
       return "Litre (L)";
@@ -167,7 +167,7 @@ export const unitName = (unit :string) =>{
     case "bouteille":
       return "Bouteille";
     default:
-      return "unknown";
+      return unit;
   }
 }
 

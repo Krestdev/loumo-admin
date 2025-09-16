@@ -614,22 +614,9 @@ function AddProduct({ categories, isOpen, openChange, shops }: Props) {
                                               <SelectItem
                                                 key={shop.id}
                                                 value={String(shop.id)}
-                                                disabled={form
+                                                disabled={!!form
                                                   .getValues("variants")
-                                                  .filter(
-                                                    (d) =>
-                                                      d.name ===
-                                                      form.getValues(
-                                                        `variants.${index}.name`
-                                                      )
-                                                  )
-                                                  .some((y) =>
-                                                    y.stock.some(
-                                                      (z) =>
-                                                        Number(z.shopId) ===
-                                                        shop.id
-                                                    )
-                                                  )}
+                                                  .find((el, id)=>id === index && el.stock.some(ox=> Number(ox.shopId) === shop.id))}
                                               >
                                                 {shop.name}
                                               </SelectItem>
