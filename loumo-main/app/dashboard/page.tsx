@@ -28,12 +28,13 @@ import {
   XAF
 } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
+import DeliveryQuery from "@/queries/delivery";
 import OrderQuery from "@/queries/order";
 import ProductQuery from "@/queries/product";
 import ShopQuery from "@/queries/shop";
 import StockQuery from "@/queries/stock";
 import UserQuery from "@/queries/user";
-import { Order, Product, Shop, statisticCard, Stock, User } from "@/types/types";
+import { Delivery, Order, Product, Shop, statisticCard, Stock, User } from "@/types/types";
 import {
   AlertTriangle,
   Candy,
@@ -76,6 +77,8 @@ export default function Dashboard() {
   const shopQuery = new ShopQuery();
   const getShops = fetchAll(shopQuery.getAll, "shops",60000);
 
+  const deliveryQuery = new DeliveryQuery();
+  const getDeliveries = fetchAll(deliveryQuery.getAll, "deliveries", 60000);
 
   const productQuery = new ProductQuery();
   const getProducts = fetchAll(productQuery.getAll, "products",60000);
@@ -85,6 +88,7 @@ export default function Dashboard() {
   const [stocks, setStocks] = React.useState<Stock[]>([]);
   const [shops, setShops] = React.useState<Shop[]>([]);
   const [products, setProducts] = React.useState<Product[]>([]);
+  const [deliveries, setDeliveries] = React.useState<Delivery[]>([]);
 
   const [shopFilter, setShopFilter] = React.useState<string>("all");
   const [productFilter, setProductFilter] = React.useState<string>("all");
@@ -100,13 +104,15 @@ export default function Dashboard() {
         getClients.isLoading ||
         getStocks.isLoading ||
         getShops.isLoading ||
-        getProducts.isLoading
+        getProducts.isLoading ||
+        getDeliveries.isLoading
     );
     if (getOrders.isSuccess) setOrders(getOrders.data);
     if (getClients.isSuccess) setClients(getClients.data);
     if (getStocks.isSuccess) setStocks(getStocks.data);
     if (getShops.isSuccess) setShops(getShops.data);
     if (getProducts.isSuccess) setProducts(getProducts.data);
+    if (getDeliveries.isSuccess) setDeliveries(getDeliveries.data);
   }, [
     setLoading,
     setStocks,
@@ -114,21 +120,25 @@ export default function Dashboard() {
     setClients,
     setShops,
     setProducts,
+    setDeliveries,
     getOrders.isLoading,
     getClients.isLoading,
     getStocks.isLoading,
     getShops.isLoading,
     getProducts.isLoading,
+    getDeliveries.isLoading,
     getOrders.isSuccess,
     getClients.isSuccess,
     getStocks.isSuccess,
     getShops.isSuccess,
     getProducts.isSuccess,
+    getDeliveries.isSuccess,
     getOrders.data,
     getClients.data,
     getStocks.data,
     getShops.data,
     getProducts.data,
+    getDeliveries.data,
   ]);
 
   const filteredOrders = React.useMemo(() => {
@@ -225,8 +235,7 @@ export default function Dashboard() {
       .reverse();
   };
 
-  const deliveries = filteredOrders.filter(x=> !!x.delivery);
-  const startedDeliveries:number = filteredOrders.filter(x=> !!x.delivery && x.delivery.some(y=>y.status === "STARTED")).length;
+  const startedDeliveries:number = deliveries.filter(x=> x.status === "STARTED").length;
 
   const ordersActive = filteredOrders.filter(x=> x.status === "PROCESSING" || x.status ==="PENDING" || x.status === "ACCEPTED");
 
@@ -278,7 +287,8 @@ export default function Dashboard() {
         getClients.isLoading ||
         getStocks.isLoading ||
         getShops.isLoading ||
-        getProducts.isLoading
+        getProducts.isLoading ||
+        getDeliveries.isLoading
       }
       className="flex-1 overflow-auto p-4 space-y-6"
     >
