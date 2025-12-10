@@ -1,6 +1,5 @@
 import api from "@/providers/axios";
 import { Address } from "@/types/types";
-import { toast } from "react-toastify";
 
 export default class AddressQuery {
   route = "/address";
@@ -18,7 +17,7 @@ export default class AddressQuery {
   create = async (
     data: Omit<Address, "id" | "createdAt" | "updatedAt">
   ): Promise<Address> => {
-    const {description, ...restData} = data;
+    const { description, ...restData } = data;
     const payload = description?.length === 0 ? restData : data;
     return api.post(`${this.route}`, payload).then((response) => response.data);
   };
@@ -27,7 +26,7 @@ export default class AddressQuery {
     id: number,
     data: Partial<Omit<Address, "id">> & { zoneId?: number }
   ): Promise<Address> => {
-    const {description, ...restData} = data;
+    const { description, ...restData } = data;
     const payload = description?.length === 0 ? restData : data;
     return api
       .put(`${this.route}/${id}`, payload)

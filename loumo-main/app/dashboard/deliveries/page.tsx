@@ -6,7 +6,12 @@ import StatCard from "@/components/statistic-Card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -23,17 +28,37 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { fetchAll } from "@/hooks/useData";
+import { FetchAll } from "@/hooks/useData";
 import { getDeliveryStatusName, getStatusColor } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import AgentQuery from "@/queries/agent";
 import DeliveryQuery from "@/queries/delivery";
 import OrderQuery from "@/queries/order";
 import ZoneQuery from "@/queries/zone";
-import { Agent, Delivery, DeliveryStatus, Order, statisticCard, Zone } from "@/types/types";
+import {
+  Agent,
+  Delivery,
+  DeliveryStatus,
+  Order,
+  statisticCard,
+  Zone,
+} from "@/types/types";
 import { formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
-import { BadgeCheck, Ban, CheckCircle, Edit, Ellipsis, Eye, Filter, Package, Search, Store, Truck, User } from "lucide-react";
+import {
+  BadgeCheck,
+  Ban,
+  CheckCircle,
+  Edit,
+  Ellipsis,
+  Eye,
+  Filter,
+  Package,
+  Search,
+  Store,
+  Truck,
+  User,
+} from "lucide-react";
 import React, { useMemo, useState } from "react";
 import { DateRange } from "react-day-picker";
 import CancelDelivery from "./cancelDelivery";
@@ -41,20 +66,18 @@ import EditDelivery from "./edit";
 import EndDelivery from "./end";
 import ViewDelivery from "./view";
 
-
-
 export default function DeliveriesPage() {
   const deliveriesQuery = new DeliveryQuery();
-  const deliveryData = fetchAll(deliveriesQuery.getAll,"deliveries",60000);
+  const deliveryData = FetchAll(deliveriesQuery.getAll, "deliveries", 60000);
 
   const agentQuery = new AgentQuery();
-  const agentData = fetchAll(agentQuery.getAll,"agents",60000);
+  const agentData = FetchAll(agentQuery.getAll, "agents", 60000);
 
   const zoneQuery = new ZoneQuery();
-  const getZones = fetchAll(zoneQuery.getAll,"zones",60000);
+  const getZones = FetchAll(zoneQuery.getAll, "zones", 60000);
 
   const orderQuery = new OrderQuery();
-  const getOrders = fetchAll(orderQuery.getAll, "orders", 60000);
+  const getOrders = FetchAll(orderQuery.getAll, "orders", 60000);
 
   const { setLoading } = useStore();
 
@@ -76,11 +99,19 @@ export default function DeliveriesPage() {
     to: undefined,
   });
 
-  const statusArray:Delivery["status"][] = ["CANCELED", "COMPLETED", "NOTSTARTED", "STARTED"];
+  const statusArray: Delivery["status"][] = [
+    "CANCELED",
+    "COMPLETED",
+    "NOTSTARTED",
+    "STARTED",
+  ];
 
   React.useEffect(() => {
     setLoading(
-      getZones.isLoading || deliveryData.isLoading || agentData.isLoading || getOrders.isLoading
+      getZones.isLoading ||
+        deliveryData.isLoading ||
+        agentData.isLoading ||
+        getOrders.isLoading
     );
     if (deliveryData.isSuccess) {
       setDeliveries(deliveryData.data);
@@ -114,36 +145,52 @@ export default function DeliveriesPage() {
     getOrders.isSuccess,
   ]);
 
-  const filteredDeliveries = useMemo(()=>{
+  const filteredDeliveries = useMemo(() => {
     return deliveries.filter((delivery) => {
-      const deliveryDate = !!delivery.deliveredTime ? new Date(delivery.deliveredTime) : new Date(delivery.scheduledTime);
+      const deliveryDate = !!delivery.deliveredTime
+        ? new Date(delivery.deliveredTime)
+        : new Date(delivery.scheduledTime);
       //Search
-    const matchesSearch =
-      delivery.order?.user.name
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      delivery.orderId === parseInt(searchTerm.toLowerCase()) ||
-      delivery.order?.ref.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      delivery.ref.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch =
+        delivery.order?.user.name
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        delivery.orderId === parseInt(searchTerm.toLowerCase()) ||
+        delivery.order?.ref.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        delivery.ref.toLowerCase().includes(searchTerm.toLowerCase());
       //Status
-    const matchesStatus =
-      statusFilter === "all" || delivery.status === statusFilter;
+      const matchesStatus =
+        statusFilter === "all" || delivery.status === statusFilter;
       //Zones
-    const matchesZones =
-      zonesFilter === "all" ||
-      delivery.order?.address?.zoneId === Number(zonesFilter) ;
+      const matchesZones =
+        zonesFilter === "all" ||
+        delivery.order?.address?.zoneId === Number(zonesFilter);
       //Period
       const matchesDate =
-      (!dateRange?.from || deliveryDate >= new Date(dateRange.from.setHours(0, 0, 0, 0))) &&
-      (!dateRange?.to || deliveryDate <= new Date(dateRange.to.setHours(23, 59, 59, 999)));
+        (!dateRange?.from ||
+          deliveryDate >= new Date(dateRange.from.setHours(0, 0, 0, 0))) &&
+        (!dateRange?.to ||
+          deliveryDate <= new Date(dateRange.to.setHours(23, 59, 59, 999)));
 
       const matchesAgent =
-      agentFilter === "all" || agentFilter === String(delivery.agentId);
+        agentFilter === "all" || agentFilter === String(delivery.agentId);
 
-    return matchesSearch && matchesStatus && matchesZones && matchesDate && matchesAgent;
-  });
-  },[deliveries, statusFilter, zonesFilter, searchTerm, dateRange, agentFilter]);
-  
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesZones &&
+        matchesDate &&
+        matchesAgent
+      );
+    });
+  }, [
+    deliveries,
+    statusFilter,
+    zonesFilter,
+    searchTerm,
+    dateRange,
+    agentFilter,
+  ]);
 
   const handleView = (delivery: Delivery) => {
     setSelected(delivery);
@@ -163,10 +210,10 @@ export default function DeliveriesPage() {
   const handleCancel = (delivery: Delivery) => {
     setSelected(delivery);
     setCancelDialog(true);
-  }
+  };
 
-  const statusName = (status :DeliveryStatus):string => {
-    switch(status){
+  const statusName = (status: DeliveryStatus): string => {
+    switch (status) {
       case "CANCELED":
         return "Annulé";
       case "COMPLETED":
@@ -175,16 +222,16 @@ export default function DeliveriesPage() {
         return "En attente";
       case "STARTED":
         return "En cours";
-      default :
-      return "Inconnu";
+      default:
+        return "Inconnu";
     }
-  }
+  };
 
-  const statistics:statisticCard[] = [
+  const statistics: statisticCard[] = [
     {
       title: "Livraison en cours",
       icon: <Truck className="h-4 w-4 text-green-500" />,
-      value: deliveries.filter((x) => x.status === "STARTED").length
+      value: deliveries.filter((x) => x.status === "STARTED").length,
     },
     {
       title: "Total livraisons",
@@ -192,30 +239,38 @@ export default function DeliveriesPage() {
       value: filteredDeliveries.length,
       sub: {
         title: "Livraisons terminées",
-        value: filteredDeliveries.filter(x=>x.status === "COMPLETED").length
-      }
+        value: filteredDeliveries.filter((x) => x.status === "COMPLETED")
+          .length,
+      },
     },
     {
       title: "Livreurs actifs",
       icon: <User className="h-4 w-4 text-ternary" />,
-      value: agents.filter((x) => x.status === "AVAILABLE" || x.status === "FULL").length,
+      value: agents.filter(
+        (x) => x.status === "AVAILABLE" || x.status === "FULL"
+      ).length,
       sub: {
         title: "Livreurs disponibles",
-        value: agents.filter(x=>x.status === "AVAILABLE").length
-      }
-    }
+        value: agents.filter((x) => x.status === "AVAILABLE").length,
+      },
+    },
   ];
 
   return (
     <PageLayout
       isLoading={
-        getZones.isLoading || deliveryData.isLoading || agentData.isLoading || getOrders.isLoading
+        getZones.isLoading ||
+        deliveryData.isLoading ||
+        agentData.isLoading ||
+        getOrders.isLoading
       }
       className="flex-1 overflow-auto p-4 space-y-6"
     >
       {/**Filtres */}
       <div className="p-6 w-full bg-white rounded-lg grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6 shadow-sm">
-        <h4 className="font-semibold text-sm sm:text-base flex gap-2 items-center"><Filter size={16}/> {"Filtres"}</h4>
+        <h4 className="font-semibold text-sm sm:text-base flex gap-2 items-center">
+          <Filter size={16} /> {"Filtres"}
+        </h4>
         <div className="col-span-1 sm:col-span-3 lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
           <div className="space-y-2">
             <label className="font-medium text-sm">{"Recherche"}</label>
@@ -235,44 +290,54 @@ export default function DeliveriesPage() {
                     {x.name}
                   </SelectItem>
                 ))}
-                {zones.length === 0 && <SelectItem value="disabled" disabled>{"Aucune zone enregistrée"}</SelectItem>}
+                {zones.length === 0 && (
+                  <SelectItem value="disabled" disabled>
+                    {"Aucune zone enregistrée"}
+                  </SelectItem>
+                )}
               </SelectContent>
-          </Select>
+            </Select>
           </div>
           <div className="space-y-2">
             <label className="font-medium text-sm">{"Statut"}</label>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full">
-                  <BadgeCheck size={16}/>
-                  <SelectValue placeholder="Statut" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{"Tous"}</SelectItem>
-                  {statusArray.map((x, i)=>
-                    <SelectItem key={i} value={x}>{statusName(x)}</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
+              <SelectTrigger className="w-full">
+                <BadgeCheck size={16} />
+                <SelectValue placeholder="Statut" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{"Tous"}</SelectItem>
+                {statusArray.map((x, i) => (
+                  <SelectItem key={i} value={x}>
+                    {statusName(x)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <label className="font-medium text-sm">{"Livreur"}</label>
             <Select value={agentFilter} onValueChange={setAgentFilter}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Sélectionner un agent" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{"Tous"}</SelectItem>
-                  {agents.map((x, i)=>
-                    <SelectItem key={i} value={String(x.id)}>{x.user?.name ?? "Non défini"}</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Sélectionner un agent" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{"Tous"}</SelectItem>
+                {agents.map((x, i) => (
+                  <SelectItem key={i} value={String(x.id)}>
+                    {x.user?.name ?? "Non défini"}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
       {/* Delivery Stats */}
       <div className="grid gap-4 grid-cols-1 @min-[540px]:grid-cols-2 @min-[860px]:grid-cols-3">
-        {statistics.map((item, id)=><StatCard key={id} {...item}/>)}
+        {statistics.map((item, id) => (
+          <StatCard key={id} {...item} />
+        ))}
       </div>
 
       {/* Filters */}
@@ -342,7 +407,10 @@ export default function DeliveriesPage() {
                     </TableCell>
                     <TableCell>
                       <div>
-                        <p className="text-xs uppercase">{orders.find(order=>order.id === delivery.orderId)?.ref ?? "Non défini"}</p>
+                        <p className="text-xs uppercase">
+                          {orders.find((order) => order.id === delivery.orderId)
+                            ?.ref ?? "Non défini"}
+                        </p>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -397,21 +465,54 @@ export default function DeliveriesPage() {
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button size={"icon"} variant={"ghost"}>
-                            <Ellipsis size={20}/>
+                            <Ellipsis size={20} />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownMenuItem onClick={()=>{handleView(delivery)}}>
-                            <Eye size={16}/>{"Voir les détails"}
+                          <DropdownMenuItem
+                            onClick={() => {
+                              handleView(delivery);
+                            }}
+                          >
+                            <Eye size={16} />
+                            {"Voir les détails"}
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={()=>{handleEdit(delivery)}} disabled={delivery.status === "CANCELED" || delivery.status === "COMPLETED"}>
-                            <Edit size={16} />{"Modifier la livraison"}
+                          <DropdownMenuItem
+                            onClick={() => {
+                              handleEdit(delivery);
+                            }}
+                            disabled={
+                              delivery.status === "CANCELED" ||
+                              delivery.status === "COMPLETED"
+                            }
+                          >
+                            <Edit size={16} />
+                            {"Modifier la livraison"}
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={()=>{handleComplete(delivery)}} disabled={delivery.status === "CANCELED" || delivery.status === "COMPLETED"}>
-                            <CheckCircle size={16} />{"Marquer terminée"}
+                          <DropdownMenuItem
+                            onClick={() => {
+                              handleComplete(delivery);
+                            }}
+                            disabled={
+                              delivery.status === "CANCELED" ||
+                              delivery.status === "COMPLETED"
+                            }
+                          >
+                            <CheckCircle size={16} />
+                            {"Marquer terminée"}
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={()=>{handleCancel(delivery)}} disabled={delivery.status === "CANCELED" || delivery.status === "COMPLETED"} variant="destructive">
-                            <Ban size={16} />{"Annuler la livraison"}
+                          <DropdownMenuItem
+                            onClick={() => {
+                              handleCancel(delivery);
+                            }}
+                            disabled={
+                              delivery.status === "CANCELED" ||
+                              delivery.status === "COMPLETED"
+                            }
+                            variant="destructive"
+                          >
+                            <Ban size={16} />
+                            {"Annuler la livraison"}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -425,7 +526,7 @@ export default function DeliveriesPage() {
       </Card>
       {selected && (
         <ViewDelivery
-        orders={orders}
+          orders={orders}
           isOpen={viewMore}
           openChange={setViewMore}
           delivery={selected}

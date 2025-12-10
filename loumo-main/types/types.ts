@@ -135,8 +135,8 @@ export type NotificationT = {
   id: number;
   action: string;
   description: string;
-  variant: "WARNING"| "INFO" | "SUCCESS" | "DANGER";
-  type: "ORDER"| "PAYMENT"  | "STOCK";
+  variant: "WARNING" | "INFO" | "SUCCESS" | "DANGER";
+  type: "ORDER" | "PAYMENT" | "STOCK";
   stockId?: number;
   orderId?: number;
   paymentId?: number;
@@ -312,7 +312,7 @@ export type Setting = {
   content?: string;
   value?: number;
   note?: string;
-  section: String;
+  section: string;
   date?: Date;
 };
 
@@ -362,13 +362,13 @@ export type newVariant = {
 export type statisticCard = {
   title: string;
   icon: React.ReactNode;
-  value:number | string;
-  valueName?:string;
-  isMoney?:boolean;
+  value: number | string;
+  valueName?: string;
+  isMoney?: boolean;
   variation?: number;
   sub?: {
     title: string;
     value: number | string;
-    isMoney?:boolean;
-  }
-}
+    isMoney?: boolean;
+  };
+};

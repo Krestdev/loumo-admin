@@ -3,7 +3,12 @@ import PageLayout from "@/components/page-layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
   TableBody,
@@ -12,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { fetchAll } from "@/hooks/useData";
+import { FetchAll } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
 import PermissionQuery from "@/queries/permission";
 import RoleQuery from "@/queries/role";
@@ -27,7 +32,7 @@ import {
   Shield,
   Table,
   Trash,
-  Users
+  Users,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { AddRoleDialog } from "./addRole";
@@ -36,13 +41,13 @@ import { EditRoleDialog } from "./editRole";
 
 function Page() {
   const rolesQuery = new RoleQuery();
-  const getRoles = fetchAll(rolesQuery.getAll,"roles");
+  const getRoles = FetchAll(rolesQuery.getAll, "roles");
 
   const usersQuery = new UserQuery();
-  const getUsers = fetchAll(usersQuery.getAll,"users");
+  const getUsers = FetchAll(usersQuery.getAll, "users");
 
   const permissionsQuery = new PermissionQuery();
-  const getPermissions = fetchAll(permissionsQuery.getAll,"permissions");
+  const getPermissions = FetchAll(permissionsQuery.getAll, "permissions");
 
   const [roles, setRoles] = useState<Role[]>([]);
   const [users, setUsers] = useState<User[]>([]);
@@ -82,15 +87,15 @@ function Page() {
     );
   }, [roles, search]);
 
-  const handleEdit = (role: Role) =>{
+  const handleEdit = (role: Role) => {
     setSelected(role);
     setEditDialog(true);
-  }
+  };
 
-  const handleDelete = (role: Role) =>{
+  const handleDelete = (role: Role) => {
     setSelected(role);
     setDeleteDialog(true);
-  }
+  };
 
   return (
     <PageLayout
@@ -119,7 +124,7 @@ function Page() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {users.filter(x=>!!x.role).length}
+              {users.filter((x) => !!x.role).length}
               {/* {roles.reduce((sum, role) => sum + (role.user?.length || 0), 0)} */}
             </div>
           </CardContent>
@@ -155,9 +160,7 @@ function Page() {
       {/* Recherche */}
       <Card>
         <CardHeader>
-          <CardTitle>
-            {"Filtres & actions"}
-          </CardTitle>
+          <CardTitle>{"Filtres & actions"}</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-6 grid-cols-1 sm:grid-cols-3">
           <div className="sm:col-span-2">
@@ -171,7 +174,7 @@ function Page() {
               />
             </div>
           </div>
-          <Button onClick={()=>setAddModal(true)}>{"Ajouter un rôle"}</Button>
+          <Button onClick={() => setAddModal(true)}>{"Ajouter un rôle"}</Button>
         </CardContent>
       </Card>
 
@@ -234,15 +237,18 @@ function Page() {
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant={"ghost"}>
-                            <MoreHorizontal size={16}/>
+                            <MoreHorizontal size={16} />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownMenuItem onClick={()=>handleEdit(role)}>
+                          <DropdownMenuItem onClick={() => handleEdit(role)}>
                             <Edit size={16} />
                             {"Modifier"}
                           </DropdownMenuItem>
-                          <DropdownMenuItem variant="destructive" onClick={()=>handleDelete(role)}>
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={() => handleDelete(role)}
+                          >
                             <Trash size={16} />
                             {"Supprimer"}
                           </DropdownMenuItem>
@@ -256,9 +262,26 @@ function Page() {
           </Table>
         </CardContent>
       </Card>
-      <AddRoleDialog permissions={permissions} open={addModal} setOpen={setAddModal}/>
-      {selected && <EditRoleDialog role={selected} permissions={permissions} open={editDialog} setOpen={setEditDialog} />}
-      {selected && <DeleteRole role={selected} isOpen={deleteDialog} openChange={setDeleteDialog} />}
+      <AddRoleDialog
+        permissions={permissions}
+        open={addModal}
+        setOpen={setAddModal}
+      />
+      {selected && (
+        <EditRoleDialog
+          role={selected}
+          permissions={permissions}
+          open={editDialog}
+          setOpen={setEditDialog}
+        />
+      )}
+      {selected && (
+        <DeleteRole
+          role={selected}
+          isOpen={deleteDialog}
+          openChange={setDeleteDialog}
+        />
+      )}
     </PageLayout>
   );
 }

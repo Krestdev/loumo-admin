@@ -5,14 +5,22 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { fetchAll } from "@/hooks/useData";
+import { FetchAll } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
 import AgentQuery from "@/queries/agent";
 import DeliveryQuery from "@/queries/delivery";
 import OrderQuery from "@/queries/order";
 import UserQuery from "@/queries/user";
 import ZoneQuery from "@/queries/zone";
-import { Agent, AgentStatus, Delivery, Order, statisticCard, User, Zone } from "@/types/types";
+import {
+  Agent,
+  AgentStatus,
+  Delivery,
+  Order,
+  statisticCard,
+  User,
+  Zone,
+} from "@/types/types";
 import { isSameDay } from "date-fns";
 import {
   Calendar1,
@@ -22,7 +30,7 @@ import {
   Plus,
   Trash2,
   Truck,
-  UserIcon
+  UserIcon,
 } from "lucide-react";
 import React from "react";
 import AddDriver from "./add";
@@ -32,19 +40,19 @@ import EditDriver from "./edit";
 
 function Page() {
   const agentQuery = new AgentQuery();
-  const getAgents = fetchAll(agentQuery.getAll, "agents");
+  const getAgents = FetchAll(agentQuery.getAll, "agents");
 
   const deliveryQuery = new DeliveryQuery();
-  const getDeliveries = fetchAll(deliveryQuery.getAll, "deliveries");
+  const getDeliveries = FetchAll(deliveryQuery.getAll, "deliveries");
 
   const userQuery = new UserQuery();
-  const getUsers = fetchAll(userQuery.getAll, "users");
+  const getUsers = FetchAll(userQuery.getAll, "users");
 
   const orderQuery = new OrderQuery();
-  const getOrders = fetchAll(orderQuery.getAll, "orders");
+  const getOrders = FetchAll(orderQuery.getAll, "orders");
 
   const zoneQuery = new ZoneQuery();
-  const getZones = fetchAll(zoneQuery.getAll, "zones");
+  const getZones = FetchAll(zoneQuery.getAll, "zones");
 
   const [agents, setAgents] = React.useState<Agent[]>([]);
   const [orders, setOrders] = React.useState<Order[]>([]);
@@ -59,7 +67,13 @@ function Page() {
   const { setLoading } = useStore();
 
   React.useEffect(() => {
-    setLoading(getAgents.isLoading || getDeliveries.isLoading || getUsers.isLoading || getOrders.isLoading || getZones.isLoading);
+    setLoading(
+      getAgents.isLoading ||
+        getDeliveries.isLoading ||
+        getUsers.isLoading ||
+        getOrders.isLoading ||
+        getZones.isLoading
+    );
     if (getAgents.isSuccess) {
       setAgents(getAgents.data);
     }
@@ -111,10 +125,10 @@ function Page() {
   const handleAssign = (agent: Agent) => {
     setSelected(agent);
     setAssignDialog(true);
-  }
+  };
 
-  const agentStatusName = (status:AgentStatus) => {
-    switch (status){
+  const agentStatusName = (status: AgentStatus) => {
+    switch (status) {
       case "AVAILABLE":
         return "Disponible";
       case "FULL":
@@ -128,28 +142,34 @@ function Page() {
       default:
         return status;
     }
-  }
+  };
 
-  const statistics:statisticCard[] = [
+  const statistics: statisticCard[] = [
     {
       title: "Livraison en cours",
-      value: deliveries.filter((x)=>x.status.toLowerCase().includes("pending")).length,
+      value: deliveries.filter((x) =>
+        x.status.toLowerCase().includes("pending")
+      ).length,
       icon: <Truck className="h-4 w-4 text-green-700" />,
     },
     {
       title: "Livraisons terminées",
-      value: deliveries.filter((x) => x.status === "COMPLETED" && !!x.deliveredTime).length,
+      value: deliveries.filter(
+        (x) => x.status === "COMPLETED" && !!x.deliveredTime
+      ).length,
       icon: <Package className="h-4 w-4 text-secondary" />,
     },
     {
       title: "Livreurs",
-      value: agents.filter(agent=>agent.status==="AVAILABLE" || agent.status==="FULL").length,
-      icon:<UserIcon className="h-4 w-4 text-muted-foreground" />,
+      value: agents.filter(
+        (agent) => agent.status === "AVAILABLE" || agent.status === "FULL"
+      ).length,
+      icon: <UserIcon className="h-4 w-4 text-muted-foreground" />,
       sub: {
         title: "Livreurs disponibles",
-        value: agents.filter(agent=>agent.status==="AVAILABLE").length
-      }
-    }
+        value: agents.filter((agent) => agent.status === "AVAILABLE").length,
+      },
+    },
   ];
 
   return (
@@ -160,7 +180,9 @@ function Page() {
       }
     >
       <div className="grid gap-4 grid-cols-1 @min-[540px]:grid-cols-2 @min-[860px]:grid-cols-3">
-        {statistics.map((item, id)=><StatCard key={id} {...item}/>)}
+        {statistics.map((item, id) => (
+          <StatCard key={id} {...item} />
+        ))}
       </div>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
@@ -171,132 +193,184 @@ function Page() {
           </Button>
         </CardHeader>
         <CardContent>
-            <div className="grid gap-4 grid-cols-1 @min-[700px]/Main:grid-cols-2 @min-[1200px]/Main:grid-cols-3 @min-[1600px]/Main:grid-cols-4">
-              {agents.length === 0 ? (
-                <div className="p-4 min-h-[10vh] flex flex-col gap-3 md:gap-5">
-                  <p className="text-muted-foreground italic">{"Aucun livreur trouvé"}</p>
-                  <Button size={"lg"} onClick={() => setAddDialog(true)}>
-                    {"Ajouter un Livreur"}
-                  </Button>
-                </div>
-              ) : (
-                agents.map((driver) => (
-                  <Card key={driver.id}>
-                    <CardContent className="p-4 @container flex flex-col gap-4">
-                      <div className="flex items-start gap-3">
-                        <Avatar className="h-16 w-16">
-                          <AvatarImage
-                            src={
-                              users.find((x) => x.id === driver.userId)
-                                ?.imageUrl || "/placeholder.svg"
-                            }
-                          />
-                          <AvatarFallback>
-                            {users.find((x) => x.id === driver.userId)
-                              ? users
-                                  .find((x) => x.id === driver.userId)
-                                  ?.name.split(" ")
-                                  .map((n) => n[0])
-                                  .join("")
-                              : "DR"}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          {users.find((x) => x.id === driver.userId) && (
-                            <p className="font-medium">
-                              {users.find((x) => x.id === driver.userId)?.name}
-                            </p>
-                          )}
-                          {users.find((x) => x.id === driver.userId) &&
-                              <p className="text-sm text-muted-foreground">
-                                {users.find((x) => x.id === driver.userId)?.tel ?? "Aucun numéro"}
-                              </p>
-                            }
-                            <Badge
-                            variant={driver.status === "AVAILABLE" ? "default" : driver.status === "FULL" ? "warning" : "destructive"}
-                          >
-                            {agentStatusName(driver.status)}
-                          </Badge>
-                        </div>
-                        <div className="flex gap-1">
-                          <Button
-                            variant="outline"
-                            size={"icon"}
-                            onClick={() => handleEdit(driver)}
-                          >
-                            <Edit size={16} />
-                          </Button>
-                          <Button
-                            variant="delete"
-                            size={"icon"}
-                            onClick={() => handleDelete(driver)}
-                          >
-                            <Trash2 size={16} />
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        {driver.zone && (
-                          <div className="flex flex-col justify-between gap-2 text-sm">
-                            <span className="text-gray-500 text-xs uppercase">{"Zones"}</span>
-                            <div className="flex flex-wrap justify-start gap-1.5">
-                              {driver.zone.map(el => (
-                                <span key={el.id} className="text-xs px-2.5 py-1.5 rounded-full border bg-gray-100 font-medium">{el.name}</span>
-                              ))}
-                            </div>
-                          </div>
+          <div className="grid gap-4 grid-cols-1 @min-[700px]/Main:grid-cols-2 @min-[1200px]/Main:grid-cols-3 @min-[1600px]/Main:grid-cols-4">
+            {agents.length === 0 ? (
+              <div className="p-4 min-h-[10vh] flex flex-col gap-3 md:gap-5">
+                <p className="text-muted-foreground italic">
+                  {"Aucun livreur trouvé"}
+                </p>
+                <Button size={"lg"} onClick={() => setAddDialog(true)}>
+                  {"Ajouter un Livreur"}
+                </Button>
+              </div>
+            ) : (
+              agents.map((driver) => (
+                <Card key={driver.id}>
+                  <CardContent className="p-4 @container flex flex-col gap-4">
+                    <div className="flex items-start gap-3">
+                      <Avatar className="h-16 w-16">
+                        <AvatarImage
+                          src={
+                            users.find((x) => x.id === driver.userId)
+                              ?.imageUrl || "/placeholder.svg"
+                          }
+                        />
+                        <AvatarFallback>
+                          {users.find((x) => x.id === driver.userId)
+                            ? users
+                                .find((x) => x.id === driver.userId)
+                                ?.name.split(" ")
+                                .map((n) => n[0])
+                                .join("")
+                            : "DR"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        {users.find((x) => x.id === driver.userId) && (
+                          <p className="font-medium">
+                            {users.find((x) => x.id === driver.userId)?.name}
+                          </p>
                         )}
-                        </div>
-                        <div className="flex flex-col gap-2">
-                          <span className="text-gray-500 text-xs uppercase">{"Livraisons"}</span>
-                          <div className="grid grid-cols-2 gap-0 divide-x">
-                            <div className="grid p-3 bg-gray-100">
-                              <span className="text-xs font-medium flex items-center gap-1"><span className="size-2 rounded-full bg-green-600" />{"En cours:"}</span>
-                              <span className="flex items-center gap-1 text-sm"><Calendar1 size={16}/><strong>{
-                                driver.delivery?.filter((z) => !!z.deliveredTime)
-                                  .length ?? 0
-                              }</strong>{"livraison(s)"}</span>
-                            </div>
-                            <div className="grid p-3 bg-gray-100">
-                              <span className="text-xs font-medium flex items-center gap-1"><span className="size-2 rounded-full bg-purple-600" />{"Aujourd'hui:"}</span>
-                              <span className="flex items-center gap-1 text-sm"><Truck size={16} /><strong>{driver.delivery?.filter(x=>x.deliveredTime && isSameDay(new Date(x.deliveredTime), new Date())).length}</strong>{"livrée(s)"}</span>
-                            </div>
-                          </div>
-                          </div>
-                      <div className="grid grid-cols-1 @min-[400px]:grid-cols-2 gap-2">
-                        <Button variant="default" onClick={()=>handleAssign(driver)}>
-                          {"Assigner"}
-                        </Button>
-                        <a
-                        className="w-full"
-                          href={
-                            users.find((x) => x.id === driver.userId)?.tel
-                              ? `tel:${
-                                  users.find((x) => x.id === driver.userId)?.tel
-                                }`
-                              : "#"
+                        {users.find((x) => x.id === driver.userId) && (
+                          <p className="text-sm text-muted-foreground">
+                            {users.find((x) => x.id === driver.userId)?.tel ??
+                              "Aucun numéro"}
+                          </p>
+                        )}
+                        <Badge
+                          variant={
+                            driver.status === "AVAILABLE"
+                              ? "default"
+                              : driver.status === "FULL"
+                              ? "warning"
+                              : "destructive"
                           }
                         >
-                          <Button
-                            variant="black"
-                            disabled={
-                              !users.find((x) => x.id === driver.userId)?.tel
-                            }
-                            className="w-full"
-                          >
-                            <Phone size={16} />
-                            {"Appeler"}
-                          </Button>
-                        </a>
+                          {agentStatusName(driver.status)}
+                        </Badge>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))
-              )}
-            </div>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="outline"
+                          size={"icon"}
+                          onClick={() => handleEdit(driver)}
+                        >
+                          <Edit size={16} />
+                        </Button>
+                        <Button
+                          variant="delete"
+                          size={"icon"}
+                          onClick={() => handleDelete(driver)}
+                        >
+                          <Trash2 size={16} />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      {driver.zone && (
+                        <div className="flex flex-col justify-between gap-2 text-sm">
+                          <span className="text-gray-500 text-xs uppercase">
+                            {"Zones"}
+                          </span>
+                          <div className="flex flex-wrap justify-start gap-1.5">
+                            {driver.zone.map((el) => (
+                              <span
+                                key={el.id}
+                                className="text-xs px-2.5 py-1.5 rounded-full border bg-gray-100 font-medium"
+                              >
+                                {el.name}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <span className="text-gray-500 text-xs uppercase">
+                        {"Livraisons"}
+                      </span>
+                      <div className="grid grid-cols-2 gap-0 divide-x">
+                        <div className="grid p-3 bg-gray-100">
+                          <span className="text-xs font-medium flex items-center gap-1">
+                            <span className="size-2 rounded-full bg-green-600" />
+                            {"En cours:"}
+                          </span>
+                          <span className="flex items-center gap-1 text-sm">
+                            <Calendar1 size={16} />
+                            <strong>
+                              {driver.delivery?.filter((z) => !!z.deliveredTime)
+                                .length ?? 0}
+                            </strong>
+                            {"livraison(s)"}
+                          </span>
+                        </div>
+                        <div className="grid p-3 bg-gray-100">
+                          <span className="text-xs font-medium flex items-center gap-1">
+                            <span className="size-2 rounded-full bg-purple-600" />
+                            {"Aujourd'hui:"}
+                          </span>
+                          <span className="flex items-center gap-1 text-sm">
+                            <Truck size={16} />
+                            <strong>
+                              {
+                                driver.delivery?.filter(
+                                  (x) =>
+                                    x.deliveredTime &&
+                                    isSameDay(
+                                      new Date(x.deliveredTime),
+                                      new Date()
+                                    )
+                                ).length
+                              }
+                            </strong>
+                            {"livrée(s)"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 @min-[400px]:grid-cols-2 gap-2">
+                      <Button
+                        variant="default"
+                        onClick={() => handleAssign(driver)}
+                      >
+                        {"Assigner"}
+                      </Button>
+                      <a
+                        className="w-full"
+                        href={
+                          users.find((x) => x.id === driver.userId)?.tel
+                            ? `tel:${
+                                users.find((x) => x.id === driver.userId)?.tel
+                              }`
+                            : "#"
+                        }
+                      >
+                        <Button
+                          variant="black"
+                          disabled={
+                            !users.find((x) => x.id === driver.userId)?.tel
+                          }
+                          className="w-full"
+                        >
+                          <Phone size={16} />
+                          {"Appeler"}
+                        </Button>
+                      </a>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
         </CardContent>
       </Card>
-      <AddDriver openChange={setAddDialog} isOpen={addDialog} zones={zones} users={users} agents={agents} />
+      <AddDriver
+        openChange={setAddDialog}
+        isOpen={addDialog}
+        zones={zones}
+        users={users}
+        agents={agents}
+      />
       {selected && (
         <EditDriver
           isOpen={editDialog}
@@ -312,11 +386,12 @@ function Page() {
         />
       )}
       {selected && (
-        <AssignToDriver 
-        driver={selected} 
-        isOpen={assignDialog} 
-        openChange={setAssignDialog} 
-        orders={orders}/>
+        <AssignToDriver
+          driver={selected}
+          isOpen={assignDialog}
+          openChange={setAssignDialog}
+          orders={orders}
+        />
       )}
     </PageLayout>
   );

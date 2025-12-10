@@ -28,7 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { fetchAll } from "@/hooks/useData";
+import { FetchAll } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
 import CategoryQuery from "@/queries/category";
 import ProductQuery from "@/queries/product";
@@ -36,7 +36,17 @@ import ShopQuery from "@/queries/shop";
 import { Category, Product, Shop, statisticCard } from "@/types/types";
 import { formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
-import { ArrowDownAZ, ArrowUpAz, Edit, MoreHorizontal, Package, Package2, PlusCircle, Search, Trash2 } from "lucide-react";
+import {
+  ArrowDownAZ,
+  ArrowUpAz,
+  Edit,
+  MoreHorizontal,
+  Package,
+  Package2,
+  PlusCircle,
+  Search,
+  Trash2,
+} from "lucide-react";
 import React, { useMemo, useState } from "react";
 import AddProduct from "./add";
 import DeleteProduct from "./delete";
@@ -45,13 +55,12 @@ import GroupDelete from "./groupDelete";
 import GroupEdit from "./groupEdit";
 
 export default function ProductsPage() {
-
   const product = new ProductQuery();
   const category = new CategoryQuery();
   const shopQuery = new ShopQuery();
-  const productData = fetchAll(product.getAll,"products");
-  const categoryData = fetchAll(category.getAll,"categories");
-  const shopsData = fetchAll(shopQuery.getAll, "shops");
+  const productData = FetchAll(product.getAll, "products");
+  const categoryData = FetchAll(category.getAll, "categories");
+  const shopsData = FetchAll(shopQuery.getAll, "shops");
 
   const { setLoading } = useStore();
 
@@ -59,7 +68,9 @@ export default function ProductsPage() {
   const [categories, setCategories] = useState<Category[]>([]);
 
   React.useEffect(() => {
-    setLoading(productData.isLoading || categoryData.isLoading || shopsData.isLoading);
+    setLoading(
+      productData.isLoading || categoryData.isLoading || shopsData.isLoading
+    );
     if (productData.isSuccess) {
       setProducts(productData.data);
     }
@@ -97,19 +108,32 @@ export default function ProductsPage() {
 
   const filteredProducts = useMemo(
     () =>
-      products.sort((a,b)=> sortDirection === "asc" ? a.name.localeCompare(b.name, "fr") : b.name.localeCompare(a.name, "fr")).filter((product) => {
-        const matchesSearch = product?.name
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase());
-        const matchesCategory =
-          categoryFilter === "all" ||
-          product.categoryId ===
-            categories.find((x) => x.name === categoryFilter)?.id;
-        const matchesStatus =
-          statusFilter === "all" || String(product.status) === statusFilter;
-        return matchesSearch && matchesCategory && matchesStatus;
-      }),
-    [products, categories, searchTerm, statusFilter, categoryFilter, sortDirection]
+      products
+        .sort((a, b) =>
+          sortDirection === "asc"
+            ? a.name.localeCompare(b.name, "fr")
+            : b.name.localeCompare(a.name, "fr")
+        )
+        .filter((product) => {
+          const matchesSearch = product?.name
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase());
+          const matchesCategory =
+            categoryFilter === "all" ||
+            product.categoryId ===
+              categories.find((x) => x.name === categoryFilter)?.id;
+          const matchesStatus =
+            statusFilter === "all" || String(product.status) === statusFilter;
+          return matchesSearch && matchesCategory && matchesStatus;
+        }),
+    [
+      products,
+      categories,
+      searchTerm,
+      statusFilter,
+      categoryFilter,
+      sortDirection,
+    ]
   );
 
   const handleSelectAll = (checked: boolean) => {
@@ -128,30 +152,32 @@ export default function ProductsPage() {
     }
   };
 
-  const handleEdit = (product:Product):void => {
+  const handleEdit = (product: Product): void => {
     setSelectedProduct(product);
     setIsEditDialogOpen(true);
-  }
+  };
 
-  const handleAdd = ():void => {
+  const handleAdd = (): void => {
     setIsAddDialogOpen(true);
-  }
-  const handleDelete = (product: Product):void =>{
+  };
+  const handleDelete = (product: Product): void => {
     setSelectedProduct(product);
     setIsDeleteDialogOpen(true);
-  }
+  };
 
-  const productStatistics:statisticCard[] = [
+  const productStatistics: statisticCard[] = [
     {
       title: "Produits",
       value: products.length,
-      icon: <Package size={16} className="text-muted-foreground"/>
+      icon: <Package size={16} className="text-muted-foreground" />,
     },
     {
       title: "Produit sans variante",
-      value: products.filter(product=>!product.variants || product.variants?.length === 0).length,
-      icon: <Package2 size={16} className="text-destructive"/>
-    }
+      value: products.filter(
+        (product) => !product.variants || product.variants?.length === 0
+      ).length,
+      icon: <Package2 size={16} className="text-destructive" />,
+    },
   ];
 
   return (
@@ -160,7 +186,9 @@ export default function ProductsPage() {
       className="flex-1 overflow-auto p-4 space-y-6"
     >
       <div className="grid gap-4 grid-cols-1 @min-[540px]:grid-cols-2 @min-[860px]:grid-cols-3">
-        {productStatistics.map((item, id)=><StatCard key={id} {...item} />)}
+        {productStatistics.map((item, id) => (
+          <StatCard key={id} {...item} />
+        ))}
       </div>
       {/* Filters */}
       <Card>
@@ -184,11 +212,17 @@ export default function ProductsPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">{"Classer par ordre"}</label>
+              <label className="text-sm font-medium">
+                {"Classer par ordre"}
+              </label>
               <Select value={sortDirection} onValueChange={setSortDirection}>
                 <SelectTrigger className="w-32">
-                  {sortDirection === "asc" ? <ArrowDownAZ size={16}/> : <ArrowUpAz size={16}/>}
-                  <SelectValue placeholder="Arranger par ordre alphabétique"/>
+                  {sortDirection === "asc" ? (
+                    <ArrowDownAZ size={16} />
+                  ) : (
+                    <ArrowUpAz size={16} />
+                  )}
+                  <SelectValue placeholder="Arranger par ordre alphabétique" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="asc">{"A-Z"}</SelectItem>
@@ -228,9 +262,9 @@ export default function ProductsPage() {
               </Select>
             </div>
             {/**Add Product */}
-              <Button onClick={()=>handleAdd()}>
-                <PlusCircle size={16} /> {"Ajouter un produit"}
-              </Button>
+            <Button onClick={() => handleAdd()}>
+              <PlusCircle size={16} /> {"Ajouter un produit"}
+            </Button>
             {selectedProducts.length > 0 && (
               <div className="flex gap-2">
                 <Select defaultValue="edit">
@@ -311,9 +345,13 @@ export default function ProductsPage() {
                       alt="no-image"
                       className="w-1/3 max-w-32 h-auto mx-auto mt-5 opacity-20"
                     />
-                    <Button size={"lg"} onClick={()=>handleAdd()} className="my-5">
-                <PlusCircle size={16} /> {"Ajouter un produit"}
-              </Button>
+                    <Button
+                      size={"lg"}
+                      onClick={() => handleAdd()}
+                      className="my-5"
+                    >
+                      <PlusCircle size={16} /> {"Ajouter un produit"}
+                    </Button>
                   </TableCell>
                 </TableRow>
               ) : (
@@ -341,7 +379,12 @@ export default function ProductsPage() {
                         <div className="flex flex-wrap gap-2">
                           {product.variants.map((x) => (
                             <Badge key={x.id} variant={"outline"}>
-                              {x.name.concat(" ",String(x.quantity), " ", x.unit)}
+                              {x.name.concat(
+                                " ",
+                                String(x.quantity),
+                                " ",
+                                x.unit
+                              )}
                             </Badge>
                           ))}
                         </div>
@@ -373,15 +416,13 @@ export default function ProductsPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() =>handleEdit(product)}
-                          >
+                          <DropdownMenuItem onClick={() => handleEdit(product)}>
                             <Edit size={16} />
                             {"Modifier le produit"}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             variant="destructive"
-                            onClick={() =>handleDelete(product)}
+                            onClick={() => handleDelete(product)}
                           >
                             <Trash2 size={16} />
                             {"Supprimer le produit"}

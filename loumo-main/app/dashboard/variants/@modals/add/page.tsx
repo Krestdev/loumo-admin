@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { units } from "@/data/unit";
-import { fetchAll } from "@/hooks/useData";
+import { FetchAll } from "@/hooks/useData";
 import { formatName, unitName } from "@/lib/utils";
 import ProductQuery from "@/queries/product";
 import ProductVariantQuery from "@/queries/productVariant";
@@ -93,14 +93,14 @@ function PageAdd() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const shopQuery = new ShopQuery();
-  const shopsData = fetchAll(shopQuery.getAll, "shops");
+  const shopsData = FetchAll(shopQuery.getAll, "shops");
   const [shops, setShops] = useState<Shop[]>([]);
 
-  useEffect(()=>{
+  useEffect(() => {
     if (shopsData.isSuccess) {
       setShops(shopsData.data);
     }
-  },[shopsData.isSuccess, shopsData.data, setShops]);
+  }, [shopsData.isSuccess, shopsData.data, setShops]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -143,7 +143,7 @@ function PageAdd() {
             quantity: Number(stockItem.quantity),
             threshold: Number(stockItem.threshold),
             shopId: Number(stockItem.shopId),
-          }))
+          })),
         });
       }
       return actions.create({
@@ -155,10 +155,10 @@ function PageAdd() {
         quantity: Number(values.quantity),
         unit: values.unit,
         stock: values.stock.map((stockItem) => ({
-            quantity: Number(stockItem.quantity),
-            threshold: Number(stockItem.threshold),
-            shopId: Number(stockItem.shopId),
-          }))
+          quantity: Number(stockItem.quantity),
+          threshold: Number(stockItem.threshold),
+          shopId: Number(stockItem.shopId),
+        })),
       });
     },
     onSuccess: () => {
@@ -283,7 +283,6 @@ function PageAdd() {
                   </FormItem>
                 )}
               />
-
             </div>
             <FormField
               control={form.control}
@@ -295,10 +294,10 @@ function PageAdd() {
                     <RequiredStar />
                   </FormLabel>
                   <div className="relative">
-                  <FormControl>
-                    <Input {...field} placeholder="Poids" className="pr-10" />
-                  </FormControl>
-                  <span className="text-muted-foreground absolute right-3 top-1/2 -translate-y-1/2 text-sm">
+                    <FormControl>
+                      <Input {...field} placeholder="Poids" className="pr-10" />
+                    </FormControl>
+                    <span className="text-muted-foreground absolute right-3 top-1/2 -translate-y-1/2 text-sm">
                       {"kg"}
                     </span>
                   </div>
@@ -418,8 +417,8 @@ function PageAdd() {
                                       value={String(shop.id)}
                                       disabled={form
                                         .getValues("stock")
-                                        .some((y) =>
-                                           Number(y.shopId) === shop.id
+                                        .some(
+                                          (y) => Number(y.shopId) === shop.id
                                         )}
                                     >
                                       {shop.name}

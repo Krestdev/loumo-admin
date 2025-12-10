@@ -27,7 +27,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { fetchAll } from "@/hooks/useData";
+import { FetchAll } from "@/hooks/useData";
 import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import ProductQuery from "@/queries/product";
@@ -47,7 +47,7 @@ import {
   Search,
   Store,
   Trash2,
-  Warehouse
+  Warehouse,
 } from "lucide-react";
 import Link from "next/link";
 import React, { useState } from "react";
@@ -59,9 +59,9 @@ export default function VariantsPage() {
   const actions = new ProductVariantQuery();
   const productQuery = new ProductQuery();
   const shopQuery = new ShopQuery();
-  const variantsData = fetchAll(actions.getAll, "variants");
-  const productsData = fetchAll(productQuery.getAll, "products");
-  const shopData = fetchAll(shopQuery.getAll, "shops");
+  const variantsData = FetchAll(actions.getAll, "variants");
+  const productsData = FetchAll(productQuery.getAll, "products");
+  const shopData = FetchAll(shopQuery.getAll, "shops");
 
   const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -96,7 +96,6 @@ export default function VariantsPage() {
     shopData.isLoading,
   ]);
 
-
   const [searchTerm, setSearchTerm] = useState("");
   const [shopFilter, setShopFilter] = useState<string>("all");
 
@@ -118,24 +117,40 @@ export default function VariantsPage() {
 
     const term = normalize(searchTerm);
 
-    return variants.sort((a,b)=> sortDirection === "asc" ? a.name.localeCompare(b.name, "fr") : sortDirection === "desc" ? b.name.localeCompare(a.name, "fr") : 0).filter((variant) => {
-      const product = products.find((p) => p.id === variant.productId);
+    return variants
+      .sort((a, b) =>
+        sortDirection === "asc"
+          ? a.name.localeCompare(b.name, "fr")
+          : sortDirection === "desc"
+          ? b.name.localeCompare(a.name, "fr")
+          : 0
+      )
+      .filter((variant) => {
+        const product = products.find((p) => p.id === variant.productId);
 
-      const matchesSearch =
-        normalize(variant.name).includes(term) ||
-        (product && normalize(product.name).includes(term));
+        const matchesSearch =
+          normalize(variant.name).includes(term) ||
+          (product && normalize(product.name).includes(term));
 
-      const matchesProduct =
-        productFilter === "all" ||
-        variant.productId.toString() === productFilter;
+        const matchesProduct =
+          productFilter === "all" ||
+          variant.productId.toString() === productFilter;
 
         //Shop Filter
-      const matchesShop =
-      shopFilter === "all" || variant.stock.some(x=>x.shopId === Number(shopFilter))
+        const matchesShop =
+          shopFilter === "all" ||
+          variant.stock.some((x) => x.shopId === Number(shopFilter));
 
-      return matchesSearch && matchesProduct && matchesShop;
-    });
-  }, [variants, products, searchTerm, productFilter, shopFilter, sortDirection]);
+        return matchesSearch && matchesProduct && matchesShop;
+      });
+  }, [
+    variants,
+    products,
+    searchTerm,
+    productFilter,
+    shopFilter,
+    sortDirection,
+  ]);
 
   const handleEdit = (variant: ProductVariant) => {
     setActiveVariant(variant);
@@ -150,27 +165,34 @@ export default function VariantsPage() {
     setIsDialogOpen(true);
   };
 
-  const variantStats:statisticCard[] = [
+  const variantStats: statisticCard[] = [
     {
       title: "Variantes",
       value: variants.length,
       icon: <Layers size={16} className="text-muted-foreground" />,
       sub: {
         title: "Variantes actives",
-        value: variants.filter(variant=>!!variant.status).length
-      }
+        value: variants.filter((variant) => !!variant.status).length,
+      },
     },
     {
       title: "Variantes sans Stock",
-      value: variants.filter(variant=>variant.stock.length === 0).length,
+      value: variants.filter((variant) => variant.stock.length === 0).length,
       icon: <Package size={16} className="text-destructive" />,
     },
     {
       title: "Stock total",
-      value: variants.reduce((sum, variant)=>sum +(Array.isArray(variant.stock)? variant.stock.reduce((s, stock) => s + stock.quantity, 0): 0),0),
-      icon: <Warehouse size={16} className="text-ternary"/>,
-      valueName: "Produits"
-    }
+      value: variants.reduce(
+        (sum, variant) =>
+          sum +
+          (Array.isArray(variant.stock)
+            ? variant.stock.reduce((s, stock) => s + stock.quantity, 0)
+            : 0),
+        0
+      ),
+      icon: <Warehouse size={16} className="text-ternary" />,
+      valueName: "Produits",
+    },
   ];
 
   return (
@@ -180,7 +202,9 @@ export default function VariantsPage() {
     >
       {/* Variant Stats */}
       <div className="grid gap-4 grid-cols-1 @min-[540px]:grid-cols-2 @min-[860px]:grid-cols-3">
-        {variantStats.map((item, id)=><StatCard key={id} {...item} />)}
+        {variantStats.map((item, id) => (
+          <StatCard key={id} {...item} />
+        ))}
       </div>
 
       {/* Variant Types Overview */}
@@ -207,11 +231,17 @@ export default function VariantsPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">{"Classer par ordre"}</label>
+              <label className="text-sm font-medium">
+                {"Classer par ordre"}
+              </label>
               <Select value={sortDirection} onValueChange={setSortDirection}>
                 <SelectTrigger className="w-40">
-                  {sortDirection === "asc" ? <ArrowDownAZ size={16}/> : <ArrowUpAz size={16}/>}
-                  <SelectValue placeholder="Classer par ordre alphabétique"/>
+                  {sortDirection === "asc" ? (
+                    <ArrowDownAZ size={16} />
+                  ) : (
+                    <ArrowUpAz size={16} />
+                  )}
+                  <SelectValue placeholder="Classer par ordre alphabétique" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="asc">{"A-Z"}</SelectItem>
@@ -222,26 +252,30 @@ export default function VariantsPage() {
             <div className="space-y-2">
               <label className="text-sm font-medium">{"Point de vente"}</label>
               <Select value={shopFilter} onValueChange={setShopFilter}>
-              <SelectTrigger>
-                <Store size={16} />
-                <SelectValue placeholder="Point de vente" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{"Toutes les boutiques"}</SelectItem>
-                {shops.map((x) => (
-                  <SelectItem key={x.id} value={String(x.id)}>
-                    {x.name}
-                  </SelectItem>
-                ))}
-                {shops.length === 0 && <SelectItem value="disabled" disabled>{"Aucune boutique"}</SelectItem>}
-              </SelectContent>
-            </Select>
+                <SelectTrigger>
+                  <Store size={16} />
+                  <SelectValue placeholder="Point de vente" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{"Toutes les boutiques"}</SelectItem>
+                  {shops.map((x) => (
+                    <SelectItem key={x.id} value={String(x.id)}>
+                      {x.name}
+                    </SelectItem>
+                  ))}
+                  {shops.length === 0 && (
+                    <SelectItem value="disabled" disabled>
+                      {"Aucune boutique"}
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">{"Produit"}</label>
               <Select value={productFilter} onValueChange={setProductFilter}>
                 <SelectTrigger className="max-w-[200px]">
-                  <Candy size={16}/>
+                  <Candy size={16} />
                   <SelectValue placeholder="Produit" />
                 </SelectTrigger>
                 <SelectContent>
@@ -249,7 +283,10 @@ export default function VariantsPage() {
                   {products
                     .filter((x) => variants.some((y) => y.productId === x.id))
                     .map((product) => (
-                      <SelectItem key={product.id} value={product.id.toString()}>
+                      <SelectItem
+                        key={product.id}
+                        value={product.id.toString()}
+                      >
                         {product.name}
                       </SelectItem>
                     ))}
@@ -310,13 +347,24 @@ export default function VariantsPage() {
                                 ? "/images/placeholder.svg"
                                 : variant.imgUrl.includes("http")
                                 ? variant.imgUrl
-                                : `${process.env.NEXT_PUBLIC_API_BASE_URL}${variant.imgUrl.startsWith("/")?variant.imgUrl.slice(1):variant.imgUrl}`
+                                : `${process.env.NEXT_PUBLIC_API_BASE_URL}${
+                                    variant.imgUrl.startsWith("/")
+                                      ? variant.imgUrl.slice(1)
+                                      : variant.imgUrl
+                                  }`
                             }
                             alt={variant.name}
                             className="h-10 w-10 rounded-md object-cover"
                           />
                           <div>
-                            <p className="font-medium">{variant.name.concat(" ",String(variant.quantity), " ", variant.unit)}</p>
+                            <p className="font-medium">
+                              {variant.name.concat(
+                                " ",
+                                String(variant.quantity),
+                                " ",
+                                variant.unit
+                              )}
+                            </p>
                             {/* {variant.isDefault && (
                               <Badge variant="outline" className="text-xs">
                                 Par défaut

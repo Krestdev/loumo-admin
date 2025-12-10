@@ -11,9 +11,20 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -22,21 +33,31 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { fetchAll } from "@/hooks/useData";
+import { FetchAll } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
 import CategoryQuery from "@/queries/category";
 import { Category, statisticCard } from "@/types/types";
-import { ArrowDownAZ, ArrowUpAz, Edit, Eye, MoreHorizontal, Package, PlusCircle, Search, Tag, Trash } from "lucide-react";
+import {
+  ArrowDownAZ,
+  ArrowUpAz,
+  Edit,
+  Eye,
+  MoreHorizontal,
+  Package,
+  PlusCircle,
+  Search,
+  Tag,
+  Trash,
+} from "lucide-react";
 import React, { useMemo, useState } from "react";
 import AddCategory from "./add";
 import DeleteCategory from "./delete";
 import EditCategory from "./edit";
 
-
 export default function CategoriesPage() {
   const { setLoading } = useStore();
   const categoryQuery = new CategoryQuery();
-  const getCategories = fetchAll(categoryQuery.getAll,"categories");
+  const getCategories = FetchAll(categoryQuery.getAll, "categories");
 
   const [categories, setCategories] = useState<Category[]>([]);
 
@@ -61,15 +82,23 @@ export default function CategoriesPage() {
   >();
   const [sortDirection, setSortDirection] = useState<string>();
 
-  const filteredCategories = useMemo(()=>{
-    return categories.sort((a,b)=> sortDirection === "asc" ? a.name.localeCompare(b.name, "fr") : sortDirection === "desc" ? b.name.localeCompare(a.name, "fr") : 0).filter((category) => {
-    const matchesSearch = category.name
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase()); //||
-    //category.description?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCategories = useMemo(() => {
+    return categories
+      .sort((a, b) =>
+        sortDirection === "asc"
+          ? a.name.localeCompare(b.name, "fr")
+          : sortDirection === "desc"
+          ? b.name.localeCompare(a.name, "fr")
+          : 0
+      )
+      .filter((category) => {
+        const matchesSearch = category.name
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()); //||
+        //category.description?.toLowerCase().includes(searchTerm.toLowerCase())
 
-    return matchesSearch;
-  });
+        return matchesSearch;
+      });
   }, [sortDirection, categories, searchTerm]);
 
   const handleEdit = (category: Category) => {
@@ -82,7 +111,7 @@ export default function CategoriesPage() {
     setDeleteDialog(true);
   };
 
-  const statistics:statisticCard[] = [
+  const statistics: statisticCard[] = [
     {
       title: "Catégories",
       value: categories.length,
@@ -90,19 +119,22 @@ export default function CategoriesPage() {
     },
     {
       title: "Catégories Actives",
-      value: categories.filter(category=>!!category.status).length,
-      icon: <Eye size={16} className="text-primary" />
+      value: categories.filter((category) => !!category.status).length,
+      icon: <Eye size={16} className="text-primary" />,
     },
     {
       title: "Produits",
-      value: categories.reduce((sum, cat) => sum + (cat.products?.length ?? 0),0),
-      icon: <Package size={16} className="text-ternary" />
+      value: categories.reduce(
+        (sum, cat) => sum + (cat.products?.length ?? 0),
+        0
+      ),
+      icon: <Package size={16} className="text-ternary" />,
     },
     {
       title: "Catégorie sur la page d'accueil",
-      value: categories.filter(cat=>!!cat.display).length,
-      icon: <Tag size={16} className="text-blue-500" />
-    }
+      value: categories.filter((cat) => !!cat.display).length,
+      icon: <Tag size={16} className="text-blue-500" />,
+    },
   ];
 
   return (
@@ -112,7 +144,9 @@ export default function CategoriesPage() {
     >
       {/* Stats Cards */}
       <div className="grid gap-4 grid-cols-1 @min-[540px]:grid-cols-2 @min-[860px]:grid-cols-3 @min-[1156px]:grid-cols-4">
-        {statistics.map((item, id)=><StatCard key={id} {...item}/>)}
+        {statistics.map((item, id) => (
+          <StatCard key={id} {...item} />
+        ))}
       </div>
 
       {/* Search */}
@@ -135,11 +169,17 @@ export default function CategoriesPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">{"Classer par ordre"}</label>
+              <label className="text-sm font-medium">
+                {"Classer par ordre"}
+              </label>
               <Select value={sortDirection} onValueChange={setSortDirection}>
                 <SelectTrigger className="w-40">
-                  {sortDirection === "asc" ? <ArrowDownAZ size={16}/> : <ArrowUpAz size={16}/>}
-                  <SelectValue placeholder="Réordonner"/>
+                  {sortDirection === "asc" ? (
+                    <ArrowDownAZ size={16} />
+                  ) : (
+                    <ArrowUpAz size={16} />
+                  )}
+                  <SelectValue placeholder="Réordonner" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="asc">{"A-Z"}</SelectItem>
@@ -195,21 +235,24 @@ export default function CategoriesPage() {
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-3">
                         <img
-                            src={
-                              !category.imgUrl
-                                ? "/images/placeholder.svg"
-                                : category.imgUrl.includes("http")
-                                ? category.imgUrl
-                                : `${process.env.NEXT_PUBLIC_API_BASE_URL}${category.imgUrl}`
-                            }
-                            alt={category.name}
-                            className="h-10 w-10 rounded-md object-cover"
-                          />
+                          src={
+                            !category.imgUrl
+                              ? "/images/placeholder.svg"
+                              : category.imgUrl.includes("http")
+                              ? category.imgUrl
+                              : `${process.env.NEXT_PUBLIC_API_BASE_URL}${category.imgUrl}`
+                          }
+                          alt={category.name}
+                          className="h-10 w-10 rounded-md object-cover"
+                        />
                         {category.name}
                       </div>
                     </TableCell>
                     <TableCell>
-                      {category.parentId ? categories.find(x=>x.id === category.parentId)?.name : "--"}
+                      {category.parentId
+                        ? categories.find((x) => x.id === category.parentId)
+                            ?.name
+                        : "--"}
                     </TableCell>
                     <TableCell>
                       <Badge variant="secondary">
@@ -233,15 +276,22 @@ export default function CategoriesPage() {
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant={"ghost"} size={"icon"}><MoreHorizontal size={16}/></Button>
+                          <Button variant={"ghost"} size={"icon"}>
+                            <MoreHorizontal size={16} />
+                          </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownMenuItem onClick={()=>handleEdit(category)}>
-                              <Edit size={16}/>
+                          <DropdownMenuItem
+                            onClick={() => handleEdit(category)}
+                          >
+                            <Edit size={16} />
                             {"Modifier"}
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={()=>handleDelete(category)} variant="destructive">
-                              <Trash size={16}/>
+                          <DropdownMenuItem
+                            onClick={() => handleDelete(category)}
+                            variant="destructive"
+                          >
+                            <Trash size={16} />
                             {"Supprimer"}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -269,7 +319,11 @@ export default function CategoriesPage() {
           openChange={setDeleteDialog}
         />
       )}
-      <AddCategory isOpen={isDialogOpen} openChange={setIsDialogOpen} categories={categories} />
+      <AddCategory
+        isOpen={isDialogOpen}
+        openChange={setIsDialogOpen}
+        categories={categories}
+      />
     </PageLayout>
   );
 }

@@ -20,10 +20,9 @@ type LoadingState = {
   setLoading: (value: boolean) => void;
 };
 
-
 export const useStore = create<Store & LoadingState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       isHydrated: false,
       token: null,
       isLoading: false,
@@ -31,9 +30,9 @@ export const useStore = create<Store & LoadingState>()(
       setLoading: (value) => set(() => ({ isLoading: value })),
       user: null,
       setToken: (token) => set(() => ({ token })),
-      login: (user) =>{
+      login: (user) => {
         set(() => ({ user }));
-        notifySuccess("Connexion réuissie !", `Bon retour ${user.name}`)
+        notifySuccess("Connexion réuissie !", `Bon retour ${user.name}`);
       },
       logout: () => {
         set({ user: null });

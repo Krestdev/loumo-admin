@@ -28,16 +28,28 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { fetchAll } from "@/hooks/useData";
+import { FetchAll } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
 import ProductQuery from "@/queries/product";
 import ProductVariantQuery from "@/queries/productVariant";
 import ShopQuery from "@/queries/shop";
 import StockQuery from "@/queries/stock";
-import { Product, ProductVariant, Shop, statisticCard, Stock } from "@/types/types";
+import {
+  Product,
+  ProductVariant,
+  Shop,
+  statisticCard,
+  Stock,
+} from "@/types/types";
 import { formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
-import { AlertTriangle, Calendar, CirclePlus, DollarSign, Package } from "lucide-react";
+import {
+  AlertTriangle,
+  Calendar,
+  CirclePlus,
+  DollarSign,
+  Package,
+} from "lucide-react";
 import React, { useMemo, useState } from "react";
 import { DateRange } from "react-day-picker";
 import Restock from "./add";
@@ -48,10 +60,10 @@ export default function InventoryPage() {
   const shopQuery = new ShopQuery();
   const productQuery = new ProductQuery();
   const variantQuery = new ProductVariantQuery();
-  const getStocks = fetchAll(stockQuery.getAll, "stocks");
-  const getShops = fetchAll(shopQuery.getAll, "shops");
-  const getProducts = fetchAll(productQuery.getAll, "products");
-  const getVariants = fetchAll(variantQuery.getAll, "variants");
+  const getStocks = FetchAll(stockQuery.getAll, "stocks");
+  const getShops = FetchAll(shopQuery.getAll, "shops");
+  const getProducts = FetchAll(productQuery.getAll, "products");
+  const getVariants = FetchAll(variantQuery.getAll, "variants");
 
   const { setLoading } = useStore();
   const [stocks, setStocks] = useState<Stock[]>([]);
@@ -61,7 +73,10 @@ export default function InventoryPage() {
 
   React.useEffect(() => {
     setLoading(
-      getShops.isLoading || getStocks.isLoading || getProducts.isLoading || getVariants.isLoading
+      getShops.isLoading ||
+        getStocks.isLoading ||
+        getProducts.isLoading ||
+        getVariants.isLoading
     );
     if (getShops.isSuccess) {
       setShops(getShops.data);
@@ -178,45 +193,53 @@ export default function InventoryPage() {
     setAddDialog(true);
   };
 
-  const stockStatistics:statisticCard[] = [
+  const stockStatistics: statisticCard[] = [
     {
       title: "Type de Produits",
-      value: products.filter(p=>p.variants && p.variants.length>0).length,
-      icon: <Package size={16} className="text-muted-foreground" />
+      value: products.filter((p) => p.variants && p.variants.length > 0).length,
+      icon: <Package size={16} className="text-muted-foreground" />,
     },
     {
       title: "Stock épuisé",
-      value: stocks.filter(s=>s.quantity===0).length,
+      value: stocks.filter((s) => s.quantity === 0).length,
       icon: <AlertTriangle className="h-4 w-4 text-destructive" />,
       sub: {
         title: "Stock critique",
-        value: stocks.filter(s=>s.quantity<=s.threshold).length
-      }
+        value: stocks.filter((s) => s.quantity <= s.threshold).length,
+      },
     },
     {
       title: "Valeur du Stock",
-      value: stocks.reduce((total, x) =>total + x.quantity * (x.productVariant?.price ?? 0),0),
-      icon: <DollarSign size={16} className="text-ternary"/>,
+      value: stocks.reduce(
+        (total, x) => total + x.quantity * (x.productVariant?.price ?? 0),
+        0
+      ),
+      icon: <DollarSign size={16} className="text-ternary" />,
     },
     {
       title: "Dernière Mise à jour",
       icon: <Calendar size={16} className="text-muted-foreground" />,
-      value: lastUpdate ? formatRelative(lastUpdate, new Date(), {locale: fr}) : "Non disponible"
-    }
+      value: lastUpdate
+        ? formatRelative(lastUpdate, new Date(), { locale: fr })
+        : "Non disponible",
+    },
   ];
 
   return (
     <PageLayout
       isLoading={
-        getShops.isLoading || getStocks.isLoading || getProducts.isLoading || getVariants.isLoading
+        getShops.isLoading ||
+        getStocks.isLoading ||
+        getProducts.isLoading ||
+        getVariants.isLoading
       }
       className="flex-1 overflow-auto p-4 space-y-6"
     >
       {/* Stats Cards */}
       <div className="grid gap-4 grid-cols-1 @min-[540px]:grid-cols-2 @min-[860px]:grid-cols-3 @min-[1156px]:grid-cols-4">
-        {
-          stockStatistics.map((item, id)=><StatCard key={id} {...item}/>)
-        }
+        {stockStatistics.map((item, id) => (
+          <StatCard key={id} {...item} />
+        ))}
       </div>
       {/* Filters */}
       <Card>
@@ -344,7 +367,9 @@ export default function InventoryPage() {
                 filteredData.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell className="font-medium">
-                      {item.productVariant ? `${item.productVariant.name} ${item.productVariant.quantity} ${item.productVariant.unit}`  : "Non défini"}
+                      {item.productVariant
+                        ? `${item.productVariant.name} ${item.productVariant.quantity} ${item.productVariant.unit}`
+                        : "Non défini"}
                     </TableCell>
                     <TableCell>
                       {products.find((x) =>
@@ -417,7 +442,13 @@ export default function InventoryPage() {
           shops={shops}
         />
       )}
-      <CreateStockPage isOpen={createDialog} openChange={setCreateDialog} shops={shops} variants={variants} products={products}/>
+      <CreateStockPage
+        isOpen={createDialog}
+        openChange={setCreateDialog}
+        shops={shops}
+        variants={variants}
+        products={products}
+      />
     </PageLayout>
   );
 }
