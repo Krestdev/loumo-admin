@@ -28,7 +28,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { fetchAll } from "@/hooks/useData";
+import { FetchAll } from "@/hooks/useData";
 import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import OrderQuery from "@/queries/order";
@@ -43,7 +43,7 @@ import {
   MapPin,
   MoreHorizontal,
   Store,
-  Trash2
+  Trash2,
 } from "lucide-react";
 import React, { useState } from "react";
 import DeleteStore from "./delete";
@@ -53,13 +53,13 @@ import ViewStore from "./view";
 
 export default function StoresPage() {
   const shopQuery = new ShopQuery();
-  const getShops = fetchAll(shopQuery.getAll, "shops", 60000);
+  const getShops = FetchAll(shopQuery.getAll, "shops", 60000);
 
   const orderQuery = new OrderQuery();
-  const getOrders = fetchAll(orderQuery.getAll, "orders", 60000);
+  const getOrders = FetchAll(orderQuery.getAll, "orders", 60000);
 
   const zonesQuery = new ZoneQuery();
-  const getZones = fetchAll(zonesQuery.getAll, "zones", 60000);
+  const getZones = FetchAll(zonesQuery.getAll, "zones", 60000);
 
   const [shops, setShops] = useState<Shop[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -99,66 +99,88 @@ export default function StoresPage() {
   //console.log(addresses);
   //console.log(shops)
 
-
   type monthlyRevenueProps = {
     orders: Order[];
     addressId?: number;
     monthOffset?: number;
-  }
+  };
 
-  const getMonthlyRevenue = ({orders, addressId, monthOffset = 0}:monthlyRevenueProps):number =>{
-  const now = new Date();
-  const target = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
+  const getMonthlyRevenue = ({
+    orders,
+    addressId,
+    monthOffset = 0,
+  }: monthlyRevenueProps): number => {
+    const now = new Date();
+    const target = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
 
-  return orders
-    .filter(order=>!!order.payment && order.payment.status === "COMPLETED")
-    .filter((order) => {
-      const date = new Date(order.createdAt);
-      if(!!addressId){
+    return orders
+      .filter(
+        (order) => !!order.payment && order.payment.status === "COMPLETED"
+      )
+      .filter((order) => {
+        const date = new Date(order.createdAt);
+        if (!!addressId) {
+          return (
+            order.addressId === addressId &&
+            date.getMonth() === target.getMonth() &&
+            date.getFullYear() === target.getFullYear()
+          );
+        }
         return (
-          order.addressId === addressId &&
           date.getMonth() === target.getMonth() &&
           date.getFullYear() === target.getFullYear()
         );
-      }
-      return (
-          date.getMonth() === target.getMonth() &&
-          date.getFullYear() === target.getFullYear()
-        );
-    })
-    .reduce((total, order) => total + order.total, 0);
-}
+      })
+      .reduce((total, order) => total + order.total, 0);
+  };
 
-const monthlyDiff = getMonthlyRevenue({orders:orders, monthOffset:-1})!==0 ? ((getMonthlyRevenue({orders:orders})-getMonthlyRevenue({orders:orders, monthOffset:-1}))/getMonthlyRevenue({orders:orders, monthOffset:-1}))*100 : 0;
+  const monthlyDiff =
+    getMonthlyRevenue({ orders: orders, monthOffset: -1 }) !== 0
+      ? ((getMonthlyRevenue({ orders: orders }) -
+          getMonthlyRevenue({ orders: orders, monthOffset: -1 })) /
+          getMonthlyRevenue({ orders: orders, monthOffset: -1 })) *
+        100
+      : 0;
 
-  const stats:statisticCard[] = [
+  const stats: statisticCard[] = [
     {
       title: "Points de vente",
       value: shops.length,
-      icon: <Store size={16} className="text-primary"/>,
+      icon: <Store size={16} className="text-primary" />,
     },
     {
       title: "Chiffre d'Affaires",
-      icon: <DollarSign size={16} className="text-ternary"/>,
-      value : orders.filter(x=> !!x.payment && x.payment.status === "COMPLETED").reduce((total, item)=>total + item.total,0),
+      icon: <DollarSign size={16} className="text-ternary" />,
+      value: orders
+        .filter((x) => !!x.payment && x.payment.status === "COMPLETED")
+        .reduce((total, item) => total + item.total, 0),
       isMoney: true,
       variation: monthlyDiff, //Comparer vs the previous month
       sub: {
-        title : "CA du mois en cours",
-        value: getMonthlyRevenue({orders:orders}),
-        isMoney: true
-      }
-    }
+        title: "CA du mois en cours",
+        value: getMonthlyRevenue({ orders: orders }),
+        isMoney: true,
+      },
+    },
   ];
 
   return (
     <PageLayout
-      isLoading={getShops.isLoading || getOrders.isLoading || getZones.isLoading}
+      isLoading={
+        getShops.isLoading || getOrders.isLoading || getZones.isLoading
+      }
       className="flex-1 space-y-4 p-4"
     >
       <div className="flex items-center justify-between space-y-2">
         <div className="flex items-center space-x-2">
-          <Button onClick={()=>{setIsDialogOpen(true)}}><CirclePlus size={16}/>{"Nouveau point de vente"}</Button>
+          <Button
+            onClick={() => {
+              setIsDialogOpen(true);
+            }}
+          >
+            <CirclePlus size={16} />
+            {"Nouveau point de vente"}
+          </Button>
         </div>
       </div>
 
@@ -172,7 +194,9 @@ const monthlyDiff = getMonthlyRevenue({orders:orders, monthOffset:-1})!==0 ? ((g
 
         <TabsContent value="overview" className="space-y-4">
           <div className="grid gap-4 grid-cols-1 @min-[540px]:grid-cols-2 @min-[860px]:grid-cols-3 @min-[1156px]:grid-cols-4">
-            {stats.map((item, id)=><StatCard key={id} {...item} />)}
+            {stats.map((item, id) => (
+              <StatCard key={id} {...item} />
+            ))}
           </div>
 
           <Card>
@@ -200,7 +224,9 @@ const monthlyDiff = getMonthlyRevenue({orders:orders, monthOffset:-1})!==0 ? ((g
                           <div className="font-medium">{store.name}</div>
                           <div className="text-sm text-muted-foreground flex items-center">
                             <MapPin className="mr-1 h-3 w-3" />
-                            {zones.find(x=>x.addresses.some(y=>y.id === store.addressId))?.name ?? "Non défini"}
+                            {zones.find((x) =>
+                              x.addresses.some((y) => y.id === store.addressId)
+                            )?.name ?? "Non défini"}
                           </div>
                         </div>
                       </TableCell>
@@ -208,7 +234,14 @@ const monthlyDiff = getMonthlyRevenue({orders:orders, monthOffset:-1})!==0 ? ((g
                         <Badge variant={"info"}>{"Actif"}</Badge>
                       </TableCell>
                       <TableCell>
-                        {store.addressId ? XAF.format(getMonthlyRevenue({orders:orders, addressId:store.addressId})) : "--"}
+                        {store.addressId
+                          ? XAF.format(
+                              getMonthlyRevenue({
+                                orders: orders,
+                                addressId: store.addressId,
+                              })
+                            )
+                          : "--"}
                       </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
@@ -219,16 +252,32 @@ const monthlyDiff = getMonthlyRevenue({orders:orders, monthOffset:-1})!==0 ? ((g
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={()=>{setSelectedStore(store);setViewDialog(true)}}>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setSelectedStore(store);
+                                setViewDialog(true);
+                              }}
+                            >
                               <Eye size={16} />
                               {"Voir détails"}
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={()=>{setSelectedStore(store);setEditDialog(true);}}>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setSelectedStore(store);
+                                setEditDialog(true);
+                              }}
+                            >
                               <Edit size={16} />
                               {"Modifier"}
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-red-600" onClick={()=>{setSelectedStore(store);setDeleteDialog(true)}}>
+                            <DropdownMenuItem
+                              className="text-red-600"
+                              onClick={() => {
+                                setSelectedStore(store);
+                                setDeleteDialog(true);
+                              }}
+                            >
                               <Trash2 size={16} />
                               {"Supprimer"}
                             </DropdownMenuItem>
@@ -255,20 +304,41 @@ const monthlyDiff = getMonthlyRevenue({orders:orders, monthOffset:-1})!==0 ? ((g
                   <div className="flex justify-between items-center">
                     <span className="text-sm">{"Chiffre d'affaires"}</span>
                     <span className="font-bold">
-                      {!!store.addressId ? XAF.format(getMonthlyRevenue({orders:orders, addressId: store.addressId})) : "--"}
+                      {!!store.addressId
+                        ? XAF.format(
+                            getMonthlyRevenue({
+                              orders: orders,
+                              addressId: store.addressId,
+                            })
+                          )
+                        : "--"}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm">{"Commandes"}</span>
-                    <span className="font-bold">{orders.filter(x=>x.addressId === store.addressId).length}</span>
+                    <span className="font-bold">
+                      {
+                        orders.filter((x) => x.addressId === store.addressId)
+                          .length
+                      }
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm">{"Panier moyen"}</span>
                     <span className="font-bold">
-                      {XAF.format(Math.round((orders.filter(x=>x.addressId === store.addressId).reduce((total, el)=>total + el.total, 0))/orders.filter(x=>x.addressId === store.addressId).length))}
+                      {XAF.format(
+                        Math.round(
+                          orders
+                            .filter((x) => x.addressId === store.addressId)
+                            .reduce((total, el) => total + el.total, 0) /
+                            orders.filter(
+                              (x) => x.addressId === store.addressId
+                            ).length
+                        )
+                      )}
                     </span>
                   </div>
-{/*                   <div className="flex justify-between items-center">
+                  {/*                   <div className="flex justify-between items-center">
                     <span className="text-sm">Employés</span>
                     <span className="font-bold">{store.employees}</span>
                   </div>
@@ -311,11 +381,19 @@ const monthlyDiff = getMonthlyRevenue({orders:orders, monthOffset:-1})!==0 ? ((g
                     </div>
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
-                        <span className="text-muted-foreground">{"Adresse:"}</span>
-                        {store.address?.street && <p>{store.address?.street}</p>}
-                        {store.address?.zone?.name && <p className="font-semibold">{store.address?.zone.name}</p>}
+                        <span className="text-muted-foreground">
+                          {"Adresse:"}
+                        </span>
+                        {store.address?.street && (
+                          <p>{store.address?.street}</p>
+                        )}
+                        {store.address?.zone?.name && (
+                          <p className="font-semibold">
+                            {store.address?.zone.name}
+                          </p>
+                        )}
                       </div>
-{/*                       <div>
+                      {/*                       <div>
                         <span className="text-muted-foreground">Horaires:</span>
                         <p className="flex items-center">
                           <Clock className="mr-1 h-3 w-3" />
@@ -327,18 +405,21 @@ const monthlyDiff = getMonthlyRevenue({orders:orders, monthOffset:-1})!==0 ? ((g
                       <span className="text-muted-foreground text-sm">
                         {"Zone desservie:"}
                       </span>
-                        {zones.filter(x=>x.id === store.address?.zoneId).map((zone) => (
-                      <div key={zone.id} className="flex flex-col gap-3">
-                        <span className="font-semibold">{zone.name}</span>
-                        <div className="flex flex-wrap gap-2">
-                          {(!!zone.addresses && zone.addresses.length > 0) && 
-                          zone.addresses.map(y=>
-                            <Badge key={y.id} variant={"outline"}>
-                              {y.street ?? y.local}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
+                      {zones
+                        .filter((x) => x.id === store.address?.zoneId)
+                        .map((zone) => (
+                          <div key={zone.id} className="flex flex-col gap-3">
+                            <span className="font-semibold">{zone.name}</span>
+                            <div className="flex flex-wrap gap-2">
+                              {!!zone.addresses &&
+                                zone.addresses.length > 0 &&
+                                zone.addresses.map((y) => (
+                                  <Badge key={y.id} variant={"outline"}>
+                                    {y.street ?? y.local}
+                                  </Badge>
+                                ))}
+                            </div>
+                          </div>
                         ))}
                     </div>
                   </div>
@@ -448,18 +529,41 @@ const monthlyDiff = getMonthlyRevenue({orders:orders, monthOffset:-1})!==0 ? ((g
           </Card>
         </TabsContent> */}
       </Tabs>
-      <NewStore isOpen={isDialogOpen} openChange={setIsDialogOpen} zones={zones}/>
-      {selectedStore && <DeleteStore isOpen={deleteDialog} openChange={setDeleteDialog} store={selectedStore}/>}
-      {selectedStore && <EditStore isOpen={editDialog} openChange={setEditDialog} store={selectedStore} zones={zones}/>}
-      {selectedStore && 
-        <ViewStore 
-        isOpen={viewDialog} 
-        openChange={setViewDialog} 
-        store={selectedStore} 
-        CA={getMonthlyRevenue({orders:orders, addressId: selectedStore.addressId ?? undefined})} 
-        totalOrders={orders.filter(x=>x.addressId === selectedStore.addressId).length}
-        zones={zones} />
-      }
+      <NewStore
+        isOpen={isDialogOpen}
+        openChange={setIsDialogOpen}
+        zones={zones}
+      />
+      {selectedStore && (
+        <DeleteStore
+          isOpen={deleteDialog}
+          openChange={setDeleteDialog}
+          store={selectedStore}
+        />
+      )}
+      {selectedStore && (
+        <EditStore
+          isOpen={editDialog}
+          openChange={setEditDialog}
+          store={selectedStore}
+          zones={zones}
+        />
+      )}
+      {selectedStore && (
+        <ViewStore
+          isOpen={viewDialog}
+          openChange={setViewDialog}
+          store={selectedStore}
+          CA={getMonthlyRevenue({
+            orders: orders,
+            addressId: selectedStore.addressId ?? undefined,
+          })}
+          totalOrders={
+            orders.filter((x) => x.addressId === selectedStore.addressId).length
+          }
+          zones={zones}
+        />
+      )}
     </PageLayout>
   );
 }

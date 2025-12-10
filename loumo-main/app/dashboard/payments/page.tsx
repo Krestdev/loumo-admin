@@ -21,7 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { fetchAll } from "@/hooks/useData";
+import { FetchAll } from "@/hooks/useData";
 import { payStatusName, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import OrderQuery from "@/queries/order";
@@ -43,7 +43,7 @@ import {
   Smartphone,
   Store,
   Tag,
-  Truck
+  Truck,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { DateRange } from "react-day-picker";
@@ -54,7 +54,7 @@ const paymentMethods: Payment["method"][] = [
   "ORANGE_CMR",
 ];
 
-  const paymentStatus: Payment["status"][] = [
+const paymentStatus: Payment["status"][] = [
   //"ACCEPTED",
   "COMPLETED",
   "FAILED",
@@ -64,27 +64,27 @@ const paymentMethods: Payment["method"][] = [
 ];
 
 const payMethodName = (method: Payment["method"]): string => {
-    switch (method) {
-      case "CASH":
-        return "Espèces";
-      case "MTN_MOMO_CMR":
-        return "MTN MOMO";
-      case "ORANGE_CMR":
-        return "Orange Money";
-      default:
-        return "Espèces";
-    }
-  };
+  switch (method) {
+    case "CASH":
+      return "Espèces";
+    case "MTN_MOMO_CMR":
+      return "MTN MOMO";
+    case "ORANGE_CMR":
+      return "Orange Money";
+    default:
+      return "Espèces";
+  }
+};
 
 export default function PaymentsPage() {
   const paymentQuery = new PaymentQuery();
-  const getPayments = fetchAll(paymentQuery.getAll, "payments", 60000);
+  const getPayments = FetchAll(paymentQuery.getAll, "payments", 60000);
 
   const ordersQuery = new OrderQuery();
-  const getOrders = fetchAll(ordersQuery.getAll, "orders", 60000);
+  const getOrders = FetchAll(ordersQuery.getAll, "orders", 60000);
 
   const zoneQuery = new ZoneQuery();
-  const getZones = fetchAll(zoneQuery.getAll, "zones");
+  const getZones = FetchAll(zoneQuery.getAll, "zones");
 
   const { setLoading } = useStore();
 
@@ -99,7 +99,7 @@ export default function PaymentsPage() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: undefined,
     to: undefined,
-  })
+  });
 
   useEffect(() => {
     setLoading(getPayments.isLoading);
@@ -122,52 +122,68 @@ export default function PaymentsPage() {
     getZones.data,
   ]);
 
-  const filteredPayments = useMemo(()=>{
-    return payments.filter((payment)=>{
-
+  const filteredPayments = useMemo(() => {
+    return payments.filter((payment) => {
       const order = orders.find((z) => payment.orderId === z.id);
       const createdAt = order ? new Date(order.createdAt) : new Date();
       // Filtrage par date (range)
-    const matchesDate =
-      (!dateRange?.from || createdAt >= new Date(dateRange.from.setHours(0, 0, 0, 0))) &&
-      (!dateRange?.to || createdAt <= new Date(dateRange.to.setHours(23, 59, 59, 999)));
+      const matchesDate =
+        (!dateRange?.from ||
+          createdAt >= new Date(dateRange.from.setHours(0, 0, 0, 0))) &&
+        (!dateRange?.to ||
+          createdAt <= new Date(dateRange.to.setHours(23, 59, 59, 999)));
       //Search filter
       const matchesSearch =
-      payment.ref.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      payMethodName(payment.method).toLowerCase().includes(searchTerm.toLowerCase()) ||
-      String(payment.total).toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order?.ref.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      String(payment.orderId)
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      String(payment.id).toLowerCase().includes(searchTerm.toLowerCase());
+        payment.ref.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        payMethodName(payment.method)
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        String(payment.total)
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        order?.ref.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(payment.orderId)
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        String(payment.id).toLowerCase().includes(searchTerm.toLowerCase());
       //Status filter
-    const matchesStatus =
-      statusFilter === "all" || payment.status === statusFilter;
+      const matchesStatus =
+        statusFilter === "all" || payment.status === statusFilter;
       //Method filter
-    const matchesMethod =
-      methodFilter === "all" || payment.method === methodFilter;
+      const matchesMethod =
+        methodFilter === "all" || payment.method === methodFilter;
       //Zone filter
-      const matchesZone = 
-      zoneFilter === "all" || order?.address?.zoneId === Number(zoneFilter)
+      const matchesZone =
+        zoneFilter === "all" || order?.address?.zoneId === Number(zoneFilter);
 
-    return matchesSearch && matchesStatus && matchesMethod && matchesDate && matchesZone;
-    })
-  },[
-    payments, orders, searchTerm, dateRange, statusFilter, zoneFilter, methodFilter
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesMethod &&
+        matchesDate &&
+        matchesZone
+      );
+    });
+  }, [
+    payments,
+    orders,
+    searchTerm,
+    dateRange,
+    statusFilter,
+    zoneFilter,
+    methodFilter,
   ]);
-
 
   function getStatusColor(status: Payment["status"]) {
     switch (status) {
       case "COMPLETED":
         return "default";
       case "PENDING":
-      //case "PROCESSING":
-      //case "ACCEPTED":
+        //case "PROCESSING":
+        //case "ACCEPTED":
         return "secondary";
       case "FAILED":
-      //case "REJECTED":
+        //case "REJECTED":
         return "destructive";
       default:
         return "outline";
@@ -213,66 +229,84 @@ export default function PaymentsPage() {
     (x) => x.status === "COMPLETED"
   );
 
-  const statistics:statisticCard[] = [
+  const statistics: statisticCard[] = [
     {
       title: "Transactions réussies",
       icon: <CheckCircle className="h-4 w-4 text-green-500" />,
       value: successPayments.length,
       sub: {
         title: "Taux de réuissite",
-        value: successPayments.length > 0 ? `${((successPayments.length * 100) / payments.length).toPrecision(4)}%` : "0%"
-      }
+        value:
+          successPayments.length > 0
+            ? `${((successPayments.length * 100) / payments.length).toPrecision(
+                4
+              )}%`
+            : "0%",
+      },
     },
     {
       title: "Transaction en Attente",
       icon: <Clock className="h-4 w-4 text-orange-500" />,
-      value: filteredPayments.filter((x) => x.status === "PENDING").length
+      value: filteredPayments.filter((x) => x.status === "PENDING").length,
     },
     {
-      title :"Frais de livraison",
+      title: "Frais de livraison",
       icon: <Truck className="h-4 w-4 text-muted-foreground" />,
-      value: filteredPayments.reduce((total, el) => total + (el.order?.deliveryFee ?? 0),0),
-      isMoney: true
-    }
+      value: filteredPayments.reduce(
+        (total, el) => total + (el.order?.deliveryFee ?? 0),
+        0
+      ),
+      isMoney: true,
+    },
   ];
-
-
 
   return (
     <PageLayout
-      isLoading={getPayments.isLoading || getOrders.isLoading || getZones.isLoading}
+      isLoading={
+        getPayments.isLoading || getOrders.isLoading || getZones.isLoading
+      }
       className="p-4 space-y-6 @container"
     >
       {/**Filtres */}
       <div className="p-6 w-full bg-white rounded-lg flex flex-col xl:flex-row items-center justify-between gap-4 shadow-sm">
-        <h4 className="font-semibold text-sm sm:text-base flex gap-2 items-center"><Filter size={16}/> {"Filtres"}</h4>
+        <h4 className="font-semibold text-sm sm:text-base flex gap-2 items-center">
+          <Filter size={16} /> {"Filtres"}
+        </h4>
         <div className="flex flex-wrap gap-3">
           <div className="space-y-2">
             <label className="text-sm font-medium">{"Période"}</label>
-            <DateRangePicker date={dateRange} onChange={setDateRange} className="!w-full" />
+            <DateRangePicker
+              date={dateRange}
+              onChange={setDateRange}
+              className="!w-full"
+            />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium">{"Statut du paiement"}</label>
+            <label className="text-sm font-medium">
+              {"Statut du paiement"}
+            </label>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="min-w-[160px] w-full">
-                  <Tag size={16}/>
-                  <SelectValue placeholder="Statut"></SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{"Tous"}</SelectItem>
-                  {paymentStatus.map((x, id) => (
-                    <SelectItem key={id} value={x}>
-                      {payStatusName(x)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SelectTrigger className="min-w-[160px] w-full">
+                <Tag size={16} />
+                <SelectValue placeholder="Statut"></SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{"Tous"}</SelectItem>
+                {paymentStatus.map((x, id) => (
+                  <SelectItem key={id} value={x}>
+                    {payStatusName(x)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium">{"Méthode de paiement"}</label>
+            <label className="text-sm font-medium">
+              {"Méthode de paiement"}
+            </label>
             <Select value={methodFilter} onValueChange={setMethodFilter}>
               <SelectTrigger className="min-w-[160px] w-full">
-                <DollarSign size={16}/>
+                <DollarSign size={16} />
                 <SelectValue placeholder="Méthode" />
               </SelectTrigger>
               <SelectContent>
@@ -288,29 +322,33 @@ export default function PaymentsPage() {
           <div className="space-y-2">
             <label className="text-sm font-medium">{"Zone"}</label>
             <Select value={zoneFilter} onValueChange={setZoneFilter}>
-            <SelectTrigger className="w-full">
-              <Store size={16} />
-              <SelectValue placeholder="Sélectionner une zone" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{"Toutes les zones"}</SelectItem>
-              {zones.map((zone) => (
-                <SelectItem key={zone.id} value={String(zone.id)}>
-                  {zone.name}
-                </SelectItem>
-              ))}
-              {zones.length === 0 && <SelectItem value="disabled" disabled>{"Aucune zone"}</SelectItem>}
-            </SelectContent>
-          </Select>
+              <SelectTrigger className="w-full">
+                <Store size={16} />
+                <SelectValue placeholder="Sélectionner une zone" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{"Toutes les zones"}</SelectItem>
+                {zones.map((zone) => (
+                  <SelectItem key={zone.id} value={String(zone.id)}>
+                    {zone.name}
+                  </SelectItem>
+                ))}
+                {zones.length === 0 && (
+                  <SelectItem value="disabled" disabled>
+                    {"Aucune zone"}
+                  </SelectItem>
+                )}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
 
       {/* Payment Stats */}
       <div className="grid gap-4 grid-cols-1 @min-[540px]:grid-cols-2 @min-[860px]:grid-cols-3">
-        {
-          statistics.map((stat, id)=><StatCard key={id} {...stat} />)
-        }
+        {statistics.map((stat, id) => (
+          <StatCard key={id} {...stat} />
+        ))}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -377,8 +415,7 @@ export default function PaymentsPage() {
                           {currentOrder?.user.name ?? "--"}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {payment.ref} •{" "}
-                          {payMethodName(payment.method)}
+                          {payment.ref} • {payMethodName(payment.method)}
                         </p>
                       </div>
                     </div>
@@ -470,7 +507,9 @@ export default function PaymentsPage() {
                       <TableCell className="font-medium uppercase">
                         {payment.ref}
                       </TableCell>
-                      <TableCell className="uppercase">{payment.order ? payment.order.ref : "--"}</TableCell>
+                      <TableCell className="uppercase">
+                        {payment.order ? payment.order.ref : "--"}
+                      </TableCell>
                       <TableCell>{currentOrder?.user.name ?? "--"}</TableCell>
                       <TableCell>
                         {XAF.format(currentOrder?.total ?? 0)}
@@ -488,7 +527,13 @@ export default function PaymentsPage() {
                           </Badge>
                         </div>
                       </TableCell>
-                      <TableCell>{formatRelative(new Date(payment.updatedAt ?? payment.createdAt), new Date(), {locale: fr})}</TableCell>
+                      <TableCell>
+                        {formatRelative(
+                          new Date(payment.updatedAt ?? payment.createdAt),
+                          new Date(),
+                          { locale: fr }
+                        )}
+                      </TableCell>
                     </TableRow>
                   );
                 })

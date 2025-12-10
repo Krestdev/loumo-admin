@@ -11,7 +11,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -20,7 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { fetchAll } from "@/hooks/useData";
+import { FetchAll } from "@/hooks/useData";
 import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import AddressQuery from "@/queries/address";
@@ -28,8 +33,25 @@ import DeliveryQuery from "@/queries/delivery";
 import OrderQuery from "@/queries/order";
 import ShopQuery from "@/queries/shop";
 import ZoneQuery from "@/queries/zone";
-import { Address, Delivery, Order, Shop, statisticCard, Zone } from "@/types/types";
-import { CirclePlus, Edit, Eye, MapPin, MapPinned, MoreHorizontal, Store, Trash2, Truck } from "lucide-react";
+import {
+  Address,
+  Delivery,
+  Order,
+  Shop,
+  statisticCard,
+  Zone,
+} from "@/types/types";
+import {
+  CirclePlus,
+  Edit,
+  Eye,
+  MapPin,
+  MapPinned,
+  MoreHorizontal,
+  Store,
+  Trash2,
+  Truck,
+} from "lucide-react";
 import React from "react";
 import AddZone from "./add";
 import DeleteZone from "./delete";
@@ -38,19 +60,19 @@ import ViewZoneDetails from "./viewDetails";
 
 export default function ZonesPage() {
   const zonesQuery = new ZoneQuery();
-  const getZones = fetchAll(zonesQuery.getAll,"zones");
+  const getZones = FetchAll(zonesQuery.getAll, "zones");
 
   const deliveriesQuery = new DeliveryQuery();
-  const getDeliveries = fetchAll(deliveriesQuery.getAll,"deliveries");
+  const getDeliveries = FetchAll(deliveriesQuery.getAll, "deliveries");
 
   const addressQuery = new AddressQuery();
-  const getAddresses = fetchAll(addressQuery.getAll,"addresses");
+  const getAddresses = FetchAll(addressQuery.getAll, "addresses");
 
   const shopQuery = new ShopQuery();
-  const getShops = fetchAll(shopQuery.getAll,"shops");
+  const getShops = FetchAll(shopQuery.getAll, "shops");
 
   const ordersQuery = new OrderQuery();
-  const getOrders = fetchAll(ordersQuery.getAll,"orders");
+  const getOrders = FetchAll(ordersQuery.getAll, "orders");
 
   const { setLoading } = useStore();
 
@@ -120,42 +142,44 @@ export default function ZonesPage() {
   const handleDelete = (zone: Zone) => {
     setSelected(zone);
     setDeleteDialog(true);
-  }
+  };
 
   const handleEdit = (zone: Zone) => {
     setSelected(zone);
     setEditDialog(true);
-  }
+  };
 
   const handleView = (zone: Zone) => {
     setSelected(zone);
     setViewDialog(true);
-  }
+  };
 
-  const zoneStats:statisticCard[] = [
+  const zoneStats: statisticCard[] = [
     {
       title: "Zones actives",
-      icon: <MapPin size={16} className="text-primary"/>,
-      value: zones.filter(zone=>!!zone.status).length,
+      icon: <MapPin size={16} className="text-primary" />,
+      value: zones.filter((zone) => !!zone.status).length,
       sub: {
         title: "Total zones",
-        value: zones.length
-      }
+        value: zones.length,
+      },
     },
     {
       title: "Quartiers associés",
-      icon: <MapPinned size={16} className="text-ternary"/>,
-      value: zones.reduce((total, item)=>total + item.addresses.length, 0),
+      icon: <MapPinned size={16} className="text-ternary" />,
+      value: zones.reduce((total, item) => total + item.addresses.length, 0),
       sub: {
         title: "Dans les zones actives",
-        value: zones.filter(x=>!!x.status).reduce((total, item)=>total + item.addresses.length, 0)
-      }
+        value: zones
+          .filter((x) => !!x.status)
+          .reduce((total, item) => total + item.addresses.length, 0),
+      },
     },
     {
       title: "Livraisons du mois",
       value: getMonthlyDeliveries({ deliveries }).length,
-      icon: <Truck size={16} className="text-secondary"/>
-    }
+      icon: <Truck size={16} className="text-secondary" />,
+    },
   ];
 
   return (
@@ -171,7 +195,9 @@ export default function ZonesPage() {
     >
       {/* Zone Stats */}
       <div className="grid gap-4 grid-cols-1 @min-[540px]:grid-cols-2 @min-[860px]:grid-cols-3 @min-[1156px]:grid-cols-4">
-        {zoneStats.map((item, id)=><StatCard key={id} {...item} />)}
+        {zoneStats.map((item, id) => (
+          <StatCard key={id} {...item} />
+        ))}
       </div>
 
       {/* Zones Table */}
@@ -179,12 +205,14 @@ export default function ZonesPage() {
         <CardHeader>
           <div className="flex justify-between gap-4 flex-wrap items-center">
             <div className="grid gap-1">
-            <CardTitle>{"Zones de livraison"}</CardTitle>
-            <CardDescription>
-              {"Configuration des zones et tarifs de livraison"}
-            </CardDescription>
+              <CardTitle>{"Zones de livraison"}</CardTitle>
+              <CardDescription>
+                {"Configuration des zones et tarifs de livraison"}
+              </CardDescription>
             </div>
-            <Button onClick={()=>setAddDialog(true)}><CirclePlus size={16}/> {"Ajouter une zone"}</Button>
+            <Button onClick={() => setAddDialog(true)}>
+              <CirclePlus size={16} /> {"Ajouter une zone"}
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -206,14 +234,14 @@ export default function ZonesPage() {
                   <TableCell>
                     <div>
                       <p className="font-medium">{zone.name}</p>
-{/*                       <p className="text-sm text-muted-foreground">
+                      {/*                       <p className="text-sm text-muted-foreground">
                         {zone.description}
                       </p> */}
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">
-                      {zone.addresses.slice(0,2).map((neighborhood, index) => (
+                      {zone.addresses.slice(0, 2).map((neighborhood, index) => (
                         <Badge
                           key={index}
                           variant="outline"
@@ -222,12 +250,14 @@ export default function ZonesPage() {
                           {neighborhood.street}
                         </Badge>
                       ))}
-                      {zone.addresses.length > 2 && 
-                      <Badge variant={"outline"}>{`+${zone.addresses.length - 2} autres`}</Badge>
-                      }
-                      {zone.addresses.length === 0 && 
-                      <p>{"Aucune adresse renseignée"}</p>
-                      }
+                      {zone.addresses.length > 2 && (
+                        <Badge variant={"outline"}>{`+${
+                          zone.addresses.length - 2
+                        } autres`}</Badge>
+                      )}
+                      {zone.addresses.length === 0 && (
+                        <p>{"Aucune adresse renseignée"}</p>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell>
@@ -248,7 +278,13 @@ export default function ZonesPage() {
                     <div className="font-medium">{XAF.format(zone.price)}</div>
                   </TableCell>
                   <TableCell>
-                    <div className="font-medium">{orders.filter(x=> zone.addresses.some(y=>y.id === x.addressId)).length}</div>
+                    <div className="font-medium">
+                      {
+                        orders.filter((x) =>
+                          zone.addresses.some((y) => y.id === x.addressId)
+                        ).length
+                      }
+                    </div>
                     {/* <div className="text-xs text-muted-foreground">ce mois</div> */}
                   </TableCell>
                   <TableCell>
@@ -258,19 +294,22 @@ export default function ZonesPage() {
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant={"ghost"} size={"icon"}>
-                          <MoreHorizontal size={16}/>
+                          <MoreHorizontal size={16} />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <DropdownMenuItem onClick={()=>handleView(zone)}>
+                        <DropdownMenuItem onClick={() => handleView(zone)}>
                           <Eye size={16} />
                           {"Voir les détails"}
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={()=>handleEdit(zone)}>
+                        <DropdownMenuItem onClick={() => handleEdit(zone)}>
                           <Edit size={16} />
                           {"Modifier"}
                         </DropdownMenuItem>
-                        <DropdownMenuItem variant="destructive" onClick={()=>handleDelete(zone)}>
+                        <DropdownMenuItem
+                          variant="destructive"
+                          onClick={() => handleDelete(zone)}
+                        >
                           <Trash2 size={16} />
                           {"Supprimer"}
                         </DropdownMenuItem>
@@ -300,10 +339,29 @@ export default function ZonesPage() {
             </div>
           </CardContent>
         </Card> */}
-        <AddZone isOpen={addDialog} openChange={setAddDialog}/>
-        {selected && <DeleteZone zone={selected} isOpen={deleteDialog} openChange={setDeleteDialog}/>}
-        {selected && <EditZone zone={selected} isOpen={editDialog} openChange={setEditDialog} addresses={addresses}/>}
-        {selected && <ViewZoneDetails isOpen={viewDialog} openChange={setViewDialog} zone={selected}/>}
+      <AddZone isOpen={addDialog} openChange={setAddDialog} />
+      {selected && (
+        <DeleteZone
+          zone={selected}
+          isOpen={deleteDialog}
+          openChange={setDeleteDialog}
+        />
+      )}
+      {selected && (
+        <EditZone
+          zone={selected}
+          isOpen={editDialog}
+          openChange={setEditDialog}
+          addresses={addresses}
+        />
+      )}
+      {selected && (
+        <ViewZoneDetails
+          isOpen={viewDialog}
+          openChange={setViewDialog}
+          zone={selected}
+        />
+      )}
     </PageLayout>
   );
 }

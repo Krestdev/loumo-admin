@@ -30,7 +30,7 @@ import {
 import { sidebarContent } from "@/data/navigation";
 import { useStore } from "@/providers/datastore";
 import NotificationQuery from "@/queries/notification";
-import { fetchAll } from "@/hooks/useData";
+import { FetchAll } from "@/hooks/useData";
 import { useEffect, useState } from "react";
 import { NotificationT, Order } from "@/types/types";
 import OrderQuery from "@/queries/order";
@@ -42,8 +42,8 @@ export function AppSidebar() {
 
   const notificationQuery = new NotificationQuery();
   const orderQuery = new OrderQuery();
-  const getNotifications = fetchAll(notificationQuery.getAll, "notifications");
-  const getOrders = fetchAll(orderQuery.getAll, "orders");
+  const getNotifications = FetchAll(notificationQuery.getAll, "notifications");
+  const getOrders = FetchAll(orderQuery.getAll, "orders");
 
   const [notifications, setNotifications] = useState<NotificationT[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -54,7 +54,14 @@ export function AppSidebar() {
     if (getOrders.isSuccess) {
       setOrders(getOrders.data);
     }
-  }, [getNotifications.data, getNotifications.isSuccess, setNotifications,getOrders.data, getOrders.isSuccess, setOrders,]);
+  }, [
+    getNotifications.data,
+    getNotifications.isSuccess,
+    setNotifications,
+    getOrders.data,
+    getOrders.isSuccess,
+    setOrders,
+  ]);
 
   return (
     <Sidebar className="border-r">

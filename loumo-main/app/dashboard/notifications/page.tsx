@@ -2,8 +2,14 @@
 import Notification from "@/components/notification";
 import PageLayout from "@/components/page-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { fetchAll } from "@/hooks/useData";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { FetchAll } from "@/hooks/useData";
 import { useStore } from "@/providers/datastore";
 import NotificationQuery from "@/queries/notification";
 import OrderQuery from "@/queries/order";
@@ -29,12 +35,12 @@ function Page() {
   const productQuery = new ProductQuery();
   const shopQuery = new ShopQuery();
 
-  const getNotifications = fetchAll(notificationsQuery.getAll, "notifications");
-  const getOrders = fetchAll(orderQuery.getAll, "orders");
-  const getPayments = fetchAll(paymentQuery.getAll, "payments");
-  const getStocks = fetchAll(stockQuery.getAll, "stocks");
-  const getProducts = fetchAll(productQuery.getAll, "products");
-  const getShops = fetchAll(shopQuery.getAll, "shops");
+  const getNotifications = FetchAll(notificationsQuery.getAll, "notifications");
+  const getOrders = FetchAll(orderQuery.getAll, "orders");
+  const getPayments = FetchAll(paymentQuery.getAll, "payments");
+  const getStocks = FetchAll(stockQuery.getAll, "stocks");
+  const getProducts = FetchAll(productQuery.getAll, "products");
+  const getShops = FetchAll(shopQuery.getAll, "shops");
 
   const [notifications, setNotifications] = useState<NotificationT[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -95,17 +101,17 @@ function Page() {
     return notifications.filter((item) => item.type === filter);
   }, [filter, notifications]);
 
-  const types:NotificationT["type"][] = ["ORDER", "PAYMENT", "STOCK"];
-  const getTypeName = (type:NotificationT["type"]):string => {
-    switch(type){
+  const types: NotificationT["type"][] = ["ORDER", "PAYMENT", "STOCK"];
+  const getTypeName = (type: NotificationT["type"]): string => {
+    switch (type) {
       case "ORDER":
         return "Commande";
       case "PAYMENT":
         return "Paiement";
       case "STOCK":
-        return "Etat des stocks (inventaire)"
+        return "Etat des stocks (inventaire)";
     }
-  }
+  };
 
   return (
     <PageLayout
@@ -126,12 +132,14 @@ function Page() {
         <CardContent>
           <Select defaultValue={filter} onValueChange={setFilter}>
             <SelectTrigger className="min-w-2xs w-full max-w-sm">
-              <SelectValue placeholder="Sélectionner un type"/>
+              <SelectValue placeholder="Sélectionner un type" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{"Tous"}</SelectItem>
-              {types.map((type, id)=>(
-                <SelectItem key={id} value={type}>{getTypeName(type)}</SelectItem>
+              {types.map((type, id) => (
+                <SelectItem key={id} value={type}>
+                  {getTypeName(type)}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>

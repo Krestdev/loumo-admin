@@ -28,13 +28,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { fetchAll } from "@/hooks/useData";
+import { FetchAll } from "@/hooks/useData";
 import { exportToExcel } from "@/lib/exportToExcel";
 import {
   getDeliveryStatusName,
   getOrderStatusLabel,
   payStatusName,
-  XAF
+  XAF,
 } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import DeliveryQuery from "@/queries/delivery";
@@ -42,7 +42,15 @@ import OrderQuery from "@/queries/order";
 import ProductQuery from "@/queries/product";
 import ProductVariantQuery from "@/queries/productVariant";
 import ZoneQuery from "@/queries/zone";
-import { Delivery, Order, OrderStatus, Payment, Product, ProductVariant, Zone } from "@/types/types";
+import {
+  Delivery,
+  Order,
+  OrderStatus,
+  Payment,
+  Product,
+  ProductVariant,
+  Zone,
+} from "@/types/types";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import {
   ArrowRightCircle,
@@ -56,7 +64,7 @@ import {
   MoreHorizontal,
   Search,
   SquareChevronRight,
-  Store
+  Store,
 } from "lucide-react";
 import React, { useState } from "react";
 import { DateRange } from "react-day-picker";
@@ -68,19 +76,19 @@ import RejectOrder from "./reject";
 
 export default function OrdersPage() {
   const ordersQuery = new OrderQuery();
-  const orderData = fetchAll(ordersQuery.getAll, "orders", 30000);
+  const orderData = FetchAll(ordersQuery.getAll, "orders", 30000);
 
   const zoneQuery = new ZoneQuery();
-  const getZones = fetchAll(zoneQuery.getAll, "zones", 30000);
+  const getZones = FetchAll(zoneQuery.getAll, "zones", 30000);
 
   const deliveryQuery = new DeliveryQuery();
-  const getDeliveries = fetchAll(deliveryQuery.getAll, "deliveries", 30000);
+  const getDeliveries = FetchAll(deliveryQuery.getAll, "deliveries", 30000);
 
   const productQuery = new ProductQuery();
-  const getProducts = fetchAll(productQuery.getAll, "products", 30000);
+  const getProducts = FetchAll(productQuery.getAll, "products", 30000);
 
   const variantQuery = new ProductVariantQuery();
-  const getVariants = fetchAll(variantQuery.getAll, "variants", 30000);
+  const getVariants = FetchAll(variantQuery.getAll, "variants", 30000);
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
@@ -109,7 +117,10 @@ export default function OrdersPage() {
 
   React.useEffect(() => {
     setLoading(
-      orderData.isLoading || getZones.isLoading || getDeliveries.isLoading || getVariants.isLoading
+      orderData.isLoading ||
+        getZones.isLoading ||
+        getDeliveries.isLoading ||
+        getVariants.isLoading
     );
     if (orderData.isSuccess) {
       setOrders(orderData.data);
@@ -156,7 +167,7 @@ export default function OrdersPage() {
     "PENDING",
     "PROCESSING",
     "REJECTED",
-    "CANCELED"
+    "CANCELED",
   ] as const;
 
   const paymentStatus: Payment["status"][] = [
@@ -176,12 +187,12 @@ export default function OrdersPage() {
           order.id.toString().includes(searchTerm.toLowerCase());
 
         const matchesStatus =
-          statusFilter === "all" ||
-          order.status === statusFilter;
+          statusFilter === "all" || order.status === statusFilter;
 
         const matchesPayment =
           paymentFilter === "all" ||
-          paymentFilter === (order.payment ? order.payment?.status : "undefined") ;
+          paymentFilter ===
+            (order.payment ? order.payment?.status : "undefined");
 
         /* const matchesPeriod =
           periodFilter === "all" ||
@@ -241,7 +252,6 @@ export default function OrdersPage() {
     dateRange,
   ]);
 
-
   const handleView = (order: Order) => {
     setSelectedOrder(order);
     setViewDialog(true);
@@ -260,7 +270,7 @@ export default function OrdersPage() {
   const handleReject = (order: Order) => {
     setSelectedOrder(order);
     setRejectDialog(true);
-  }
+  };
 
   //Export xlsx
   const handleExcelExport = (orders: Order[]) => {
@@ -288,7 +298,11 @@ export default function OrdersPage() {
   return (
     <PageLayout
       isLoading={
-        orderData.isLoading || getZones.isLoading || getDeliveries.isLoading || getProducts.isLoading || getVariants.isLoading
+        orderData.isLoading ||
+        getZones.isLoading ||
+        getDeliveries.isLoading ||
+        getProducts.isLoading ||
+        getVariants.isLoading
       }
       className="flex-1 overflow-auto p-4 space-y-6"
     >
@@ -322,12 +336,16 @@ export default function OrdersPage() {
                 }
               >
                 <SelectTrigger className="w-full">
-                  <ArrowUp size={16}/>
+                  <ArrowUp size={16} />
                   <SelectValue placeholder="Trier par date" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="desc">{"Des plus récentes aux plus anciennes"}</SelectItem>
-                  <SelectItem value="asc">{"Des plus anciennes aux plus récentes"}</SelectItem>
+                  <SelectItem value="desc">
+                    {"Des plus récentes aux plus anciennes"}
+                  </SelectItem>
+                  <SelectItem value="asc">
+                    {"Des plus anciennes aux plus récentes"}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -532,7 +550,9 @@ export default function OrdersPage() {
                       </TableCell>
                       <TableCell>
                         {order.address?.local ?? "--"}
-                        <p className="text-xs italic text-gray-400">{order.note}</p>
+                        <p className="text-xs italic text-gray-400">
+                          {order.note}
+                        </p>
                       </TableCell>
                       <TableCell>{`${order.weight} kg`}</TableCell>
                       <TableCell>
@@ -554,9 +574,9 @@ export default function OrdersPage() {
                         <Badge
                           variant={
                             !order.payment
-                              /* ? "destructive"
+                              ? /* ? "destructive"
                               : order.payment.status === "ACCEPTED" */
-                              ? "destructive"
+                                "destructive"
                               : order.payment.status === "PENDING"
                               ? "info"
                               : order.payment.status === "COMPLETED"
@@ -570,7 +590,7 @@ export default function OrdersPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {(!!order.delivery && order.delivery.length > 0) ? (
+                        {!!order.delivery && order.delivery.length > 0 ? (
                           <Badge
                             variant={
                               order.delivery[0].status === "COMPLETED"
@@ -605,34 +625,52 @@ export default function OrdersPage() {
                               <Eye size={16} />
                               {"Voir les détails"}
                             </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  handleAssign(order);
-                                }}
-                                disabled={order.delivery && order.delivery?.length > 0 || order.status === "REJECTED" || order.status === "COMPLETED" || order.status === "CANCELED"}
-                              >
-                                <SquareChevronRight size={16} />
-                                {"Assigner"}
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  handleReject(order);
-                                }}
-                                variant="destructive"
-                                disabled={order.status === "REJECTED" || order.status === "COMPLETED" || order.payment !== null || !!order.delivery?.find(x=> x.status === "COMPLETED") || order.status === "CANCELED"}
-                              >
-                                <Ban size={16} />
-                                {"Rejeter la commande"}
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  handlePay(order);
-                                }}
-                                disabled={!!order.payment || order.status === "REJECTED" || order.status === "CANCELED"}
-                              >
-                                <DollarSign size={16} />
-                                {"Encaisser (Payer)"}
-                              </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                handleAssign(order);
+                              }}
+                              disabled={
+                                (order.delivery &&
+                                  order.delivery?.length > 0) ||
+                                order.status === "REJECTED" ||
+                                order.status === "COMPLETED" ||
+                                order.status === "CANCELED"
+                              }
+                            >
+                              <SquareChevronRight size={16} />
+                              {"Assigner"}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                handleReject(order);
+                              }}
+                              variant="destructive"
+                              disabled={
+                                order.status === "REJECTED" ||
+                                order.status === "COMPLETED" ||
+                                order.payment !== null ||
+                                !!order.delivery?.find(
+                                  (x) => x.status === "COMPLETED"
+                                ) ||
+                                order.status === "CANCELED"
+                              }
+                            >
+                              <Ban size={16} />
+                              {"Rejeter la commande"}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                handlePay(order);
+                              }}
+                              disabled={
+                                !!order.payment ||
+                                order.status === "REJECTED" ||
+                                order.status === "CANCELED"
+                              }
+                            >
+                              <DollarSign size={16} />
+                              {"Encaisser (Payer)"}
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -646,7 +684,7 @@ export default function OrdersPage() {
       )}
       {selectedOrder && (
         <ViewOrder
-        products={products}
+          products={products}
           order={selectedOrder}
           openChange={setViewDialog}
           isOpen={viewDialog}
@@ -670,12 +708,13 @@ export default function OrdersPage() {
           order={selectedOrder}
         />
       )}
-      {selectedOrder && 
-      <RejectOrder
-      isOpen={rejectDialog}
-      openChange={setRejectDialog}
-      order={selectedOrder}
-      />}
+      {selectedOrder && (
+        <RejectOrder
+          isOpen={rejectDialog}
+          openChange={setRejectDialog}
+          order={selectedOrder}
+        />
+      )}
     </PageLayout>
   );
 }

@@ -20,12 +20,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { fetchAll } from "@/hooks/useData";
+import { FetchAll } from "@/hooks/useData";
 import {
   getClientsByDay,
   getOrderStatusLabel,
   sortOrdersByNewest,
-  XAF
+  XAF,
 } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import OrderQuery from "@/queries/order";
@@ -33,7 +33,14 @@ import ProductQuery from "@/queries/product";
 import ShopQuery from "@/queries/shop";
 import StockQuery from "@/queries/stock";
 import UserQuery from "@/queries/user";
-import { Order, Product, Shop, statisticCard, Stock, User } from "@/types/types";
+import {
+  Order,
+  Product,
+  Shop,
+  statisticCard,
+  Stock,
+  User,
+} from "@/types/types";
 import {
   AlertTriangle,
   Candy,
@@ -44,7 +51,7 @@ import {
   Store,
   Truck,
   UsersIcon,
-  Warehouse
+  Warehouse,
 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
@@ -65,20 +72,19 @@ export default function Dashboard() {
   const { setLoading } = useStore();
 
   const ordersQuery = new OrderQuery();
-  const getOrders = fetchAll(ordersQuery.getAll, "orders",60000);
+  const getOrders = FetchAll(ordersQuery.getAll, "orders", 60000);
 
   const clientsQuery = new UserQuery();
-  const getClients = fetchAll(clientsQuery.getAll, "clients",60000);
+  const getClients = FetchAll(clientsQuery.getAll, "clients", 60000);
 
   const stockQuery = new StockQuery();
-  const getStocks = fetchAll(stockQuery.getAll, "stocks",60000);
+  const getStocks = FetchAll(stockQuery.getAll, "stocks", 60000);
 
   const shopQuery = new ShopQuery();
-  const getShops = fetchAll(shopQuery.getAll, "shops",60000);
-
+  const getShops = FetchAll(shopQuery.getAll, "shops", 60000);
 
   const productQuery = new ProductQuery();
-  const getProducts = fetchAll(productQuery.getAll, "products",60000);
+  const getProducts = FetchAll(productQuery.getAll, "products", 60000);
 
   const [orders, setOrders] = React.useState<Order[]>([]);
   const [clients, setClients] = React.useState<User[]>([]);
@@ -89,10 +95,9 @@ export default function Dashboard() {
   const [shopFilter, setShopFilter] = React.useState<string>("all");
   const [productFilter, setProductFilter] = React.useState<string>("all");
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
-  from: undefined,
-  to: undefined,
-})
-
+    from: undefined,
+    to: undefined,
+  });
 
   React.useEffect(() => {
     setLoading(
@@ -132,32 +137,31 @@ export default function Dashboard() {
   ]);
 
   const filteredOrders = React.useMemo(() => {
-  return orders.filter((order) => {
-    const createdAt = new Date(order.createdAt);
+    return orders.filter((order) => {
+      const createdAt = new Date(order.createdAt);
 
-    // Filtrage par date (range)
-    const matchesDate =
-      (!dateRange?.from || createdAt >= new Date(dateRange.from.setHours(0, 0, 0, 0))) &&
-      (!dateRange?.to || createdAt <= new Date(dateRange.to.setHours(23, 59, 59, 999)));
+      // Filtrage par date (range)
+      const matchesDate =
+        (!dateRange?.from ||
+          createdAt >= new Date(dateRange.from.setHours(0, 0, 0, 0))) &&
+        (!dateRange?.to ||
+          createdAt <= new Date(dateRange.to.setHours(23, 59, 59, 999)));
 
-    // Filtrage par boutique
-    const matchesShop =
-      shopFilter === "all" ||
-      String(order.address?.zoneId ?? "") === shopFilter;
+      // Filtrage par boutique
+      const matchesShop =
+        shopFilter === "all" ||
+        String(order.address?.zoneId ?? "") === shopFilter;
 
-    // Filtrage par produit
-    const matchesProduct =
-      productFilter === "all" ||
-      order.orderItems?.some(
-        (x) => x.productVariant?.productId === Number(productFilter)
-      );
+      // Filtrage par produit
+      const matchesProduct =
+        productFilter === "all" ||
+        order.orderItems?.some(
+          (x) => x.productVariant?.productId === Number(productFilter)
+        );
 
-    return matchesDate && matchesShop && matchesProduct;
-  });
-}, [orders, shopFilter, productFilter, dateRange]);
-
-
-
+      return matchesDate && matchesShop && matchesProduct;
+    });
+  }, [orders, shopFilter, productFilter, dateRange]);
 
   //Sales
   const salesCompleted = (orders: Order[]): number => {
@@ -225,20 +229,27 @@ export default function Dashboard() {
       .reverse();
   };
 
-  const deliveries = filteredOrders.filter(x=> !!x.delivery);
-  const startedDeliveries:number = filteredOrders.filter(x=> !!x.delivery && x.delivery.some(y=>y.status === "STARTED")).length;
+  const deliveries = filteredOrders.filter((x) => !!x.delivery);
+  const startedDeliveries: number = filteredOrders.filter(
+    (x) => !!x.delivery && x.delivery.some((y) => y.status === "STARTED")
+  ).length;
 
-  const ordersActive = filteredOrders.filter(x=> x.status === "PROCESSING" || x.status ==="PENDING" || x.status === "ACCEPTED");
+  const ordersActive = filteredOrders.filter(
+    (x) =>
+      x.status === "PROCESSING" ||
+      x.status === "PENDING" ||
+      x.status === "ACCEPTED"
+  );
 
-  const cardsData:statisticCard[] = [
+  const cardsData: statisticCard[] = [
     {
       title: "Commandes",
       value: filteredOrders.length,
       icon: <ShoppingCart size={16} className="text-primary" />,
       sub: {
         title: "Commandes en cours",
-        value: ordersActive.length
-      }
+        value: ordersActive.length,
+      },
     },
     {
       title: "Chiffre d'Affaires",
@@ -247,9 +258,11 @@ export default function Dashboard() {
       isMoney: true,
       sub: {
         title: "CA des Livraisons",
-        value: filteredOrders.filter(x=>!!x.delivery).reduce((total, acc)=>total + acc.deliveryFee,0),
-        isMoney: true
-      }
+        value: filteredOrders
+          .filter((x) => !!x.delivery)
+          .reduce((total, acc) => total + acc.deliveryFee, 0),
+        isMoney: true,
+      },
     },
     {
       title: "Utilisateurs",
@@ -257,8 +270,8 @@ export default function Dashboard() {
       value: activeClients.length,
       sub: {
         title: "Actifs aujourd'hui",
-        value: todayClients.length
-      }
+        value: todayClients.length,
+      },
     },
     {
       title: "Livraisons",
@@ -266,10 +279,10 @@ export default function Dashboard() {
       value: deliveries.length,
       sub: {
         title: "Livraisons en cours",
-        value: startedDeliveries
-      }
-    }
-  ]
+        value: startedDeliveries,
+      },
+    },
+  ];
 
   return (
     <PageLayout
@@ -284,11 +297,17 @@ export default function Dashboard() {
     >
       {/**Filters */}
       <div className="@container p-6 w-full bg-white rounded-lg flex flex-wrap justify-between items-center gap-4 sm:gap-6 shadow-sm">
-        <h4 className="font-semibold text-sm sm:text-base flex gap-2 items-center"><Filter size={16}/> {"Filtres"}</h4>
+        <h4 className="font-semibold text-sm sm:text-base flex gap-2 items-center">
+          <Filter size={16} /> {"Filtres"}
+        </h4>
         <div className="grid grid-cols-1 gap-2 @min-[640px]:grid-cols-2 @min-[940px]:grid-cols-3">
-          <DateRangePicker date={dateRange} onChange={setDateRange} className="w-full" />
+          <DateRangePicker
+            date={dateRange}
+            onChange={setDateRange}
+            className="w-full"
+          />
           <Select value={shopFilter} onValueChange={setShopFilter}>
-            <SelectTrigger className="w-full" >
+            <SelectTrigger className="w-full">
               <Store size={16} />
               <SelectValue placeholder="Point de vente" />
             </SelectTrigger>
@@ -299,7 +318,11 @@ export default function Dashboard() {
                   {x.name}
                 </SelectItem>
               ))}
-              {shops.length === 0 && <SelectItem value="disabled" disabled>{"Aucune boutique"}</SelectItem>}
+              {shops.length === 0 && (
+                <SelectItem value="disabled" disabled>
+                  {"Aucune boutique"}
+                </SelectItem>
+              )}
             </SelectContent>
           </Select>
           <Select value={productFilter} onValueChange={setProductFilter}>
@@ -314,18 +337,20 @@ export default function Dashboard() {
                   {x.name}
                 </SelectItem>
               ))}
-              {products.length === 0 && <SelectItem value="disabled" disabled>{"Aucun produit enregistré"}</SelectItem>}
+              {products.length === 0 && (
+                <SelectItem value="disabled" disabled>
+                  {"Aucun produit enregistré"}
+                </SelectItem>
+              )}
             </SelectContent>
           </Select>
         </div>
       </div>
       {/* Commandes */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 2xl:grid-cols-4">
-        {
-          cardsData.map((item, id)=>
-            <StatCard key={id} {...item}/>
-          )
-        }
+        {cardsData.map((item, id) => (
+          <StatCard key={id} {...item} />
+        ))}
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
@@ -369,7 +394,9 @@ export default function Dashboard() {
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium uppercase">{order.ref}</span>
+                          <span className="font-medium uppercase">
+                            {order.ref}
+                          </span>
                           <Badge
                             variant={
                               order.status === "ACCEPTED"
@@ -438,10 +465,28 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-medium text-sm">
-                          {`${stock.productVariant?.name ?? "Nom de la variante"} ${stock.productVariant?.quantity} ${stock.productVariant?.unit} ${products.find(product=>product.variants?.some(x=>x.id === stock.productVariantId)) && `- ${products.find(product=>product.variants?.some(x=>x.id === stock.productVariantId))?.name}`}`}
+                          {`${
+                            stock.productVariant?.name ?? "Nom de la variante"
+                          } ${stock.productVariant?.quantity} ${
+                            stock.productVariant?.unit
+                          } ${
+                            products.find((product) =>
+                              product.variants?.some(
+                                (x) => x.id === stock.productVariantId
+                              )
+                            ) &&
+                            `- ${
+                              products.find((product) =>
+                                product.variants?.some(
+                                  (x) => x.id === stock.productVariantId
+                                )
+                              )?.name
+                            }`
+                          }`}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {shops.find(shop=>shop.id === stock.shopId)?.name ?? "Nom du point de vente"}
+                          {shops.find((shop) => shop.id === stock.shopId)
+                            ?.name ?? "Nom du point de vente"}
                         </p>
                       </div>
                       <Badge variant="destructive" className="text-xs">
