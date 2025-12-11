@@ -121,12 +121,12 @@ function EditDriver({ agent, isOpen, openChange }: Props) {
         });
         openChange(false);
         form.reset({
-      email: agent.user?.email ?? "",
-      tel: agent.user?.tel ?? "",
-      name: agent.user?.name ?? "",
-      status: agent.status,
-      zoneIds: agent.zone.map((e) => String(e.id)),
-    });
+          email: agent.user?.email ?? "",
+          tel: agent.user?.tel ?? "",
+          name: agent.user?.name ?? "",
+          status: agent.status,
+          zoneIds: agent.zone.map((e) => String(e.id)),
+        });
       }
     },
   });
@@ -148,12 +148,12 @@ function EditDriver({ agent, isOpen, openChange }: Props) {
         });
         openChange(false);
         form.reset({
-      email: agent.user?.email ?? "",
-      tel: agent.user?.tel ?? "",
-      name: agent.user?.name ?? "",
-      status: agent.status,
-      zoneIds: agent.zone.map((e) => String(e.id)),
-    });
+          email: agent.user?.email ?? "",
+          tel: agent.user?.tel ?? "",
+          name: agent.user?.name ?? "",
+          status: agent.status,
+          zoneIds: agent.zone.map((e) => String(e.id)),
+        });
       }
     },
   });
@@ -168,20 +168,20 @@ function EditDriver({ agent, isOpen, openChange }: Props) {
     });
   };
 
-  React.useEffect(()=>{
-    if(isOpen){
-      form.reset({
-      email: agent.user?.email ?? "",
-      tel: agent.user?.tel ?? "",
-      name: agent.user?.name ?? "",
-      status: agent.status,
-      zoneIds: agent.zone.map((e) => String(e.id)),
-    })
-    }
-  },[isOpen, form, agent])
-
   return (
-    <Dialog open={isOpen} onOpenChange={openChange}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(v) => {
+        openChange(v);
+        form.reset({
+          email: agent.user?.email ?? "",
+          tel: agent.user?.tel ?? "",
+          name: agent.user?.name ?? "",
+          status: agent.status,
+          zoneIds: agent.zone.map((e) => String(e.id)),
+        });
+      }}
+    >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{`Modifier ${agent.user?.name}`}</DialogTitle>
@@ -190,7 +190,13 @@ function EditDriver({ agent, isOpen, openChange }: Props) {
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              form.handleSubmit(onSubmit)(event);
+            }}
+            className="space-y-6"
+          >
             <FormField
               control={form.control}
               name="name"

@@ -43,15 +43,15 @@ import {
   Trash
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import AddPage from "./addPage";
 import AddQA from "./addQA";
 import AddTopic from "./addTopic";
+import DeletePageModal from "./deletePage";
 import DeleteQA from "./deleteQA";
 import DeleteTopic from "./deleteTopic";
+import EditPageModal from "./editPage";
 import EditQA from "./editQA";
 import EditTopic from "./editTopic";
-import AddPage from "./addPage";
-import DeletePageModal from "./deletePage";
-import EditPageModal from "./editPage";
 import ViewPageModal from "./viewPage";
 
 export default function SettingsPage() {
@@ -71,8 +71,6 @@ export default function SettingsPage() {
     refetchOnWindowFocus: false,
   });
 
-  const [settings, setSettings] = useState<Setting[]>([]);
-  const [topics, setTopics] = useState<Topic[]>([]);
 
   const [addQADialog, setAddQADialog] = useState<boolean>(false);
   const [addTopicDialog, setAddTopicDialog] = useState<boolean>(false);
@@ -94,18 +92,10 @@ export default function SettingsPage() {
 
   useEffect(() => {
     setLoading(getSettings.isLoading || getTopics.isLoading);
-    if (getSettings.isSuccess) setSettings(getSettings.data);
-    if (getTopics.isSuccess) setTopics(getTopics.data);
   }, [
     setLoading,
     getSettings.isLoading,
     getTopics.isLoading,
-    getSettings.isSuccess,
-    getTopics.isSuccess,
-    getSettings.data,
-    getTopics.data,
-    setSettings,
-    setTopics,
   ]);
 
   const handleAddQA = (topic: Topic): void => {
@@ -153,6 +143,8 @@ export default function SettingsPage() {
       isLoading={getSettings.isLoading || getTopics.isLoading}
       className="flex-1 space-y-4 p-4 md:p-8 pt-6"
     >
+      {
+        getTopics.isSuccess && getSettings.isSuccess &&
       <Tabs defaultValue="pages" className="space-y-4">
         <TabsList className="grid w-full grid-cols-6">
           {/* <TabsTrigger value="general">{"Général"}</TabsTrigger> */}
@@ -276,14 +268,14 @@ export default function SettingsPage() {
               )}
               {selectedFAQ && (
                 <EditQA
-                  topics={topics}
+                  topics={getTopics.data}
                   QA={selectedFAQ}
                   isOpen={editFAQ}
                   openChange={setEditFAQ}
                 />
               )}
 
-              {topics.length === 0 ? (
+              {getTopics.data.length === 0 ? (
                 <div className="flex flex-col py-4 items-center text-center text-muted-foreground">
                   <p className="text-base sm:text-lg italic">
                     {"Aucun topic n’a encore été créé."}
@@ -302,7 +294,7 @@ export default function SettingsPage() {
                   </Button>
                 </div>
               ) : (
-                topics.map((topic) => (
+                getTopics.data.map((topic) => (
                   <Card key={topic.id}>
                     <CardHeader className="flex justify-between items-center">
                       <CardTitle>{topic.name}</CardTitle>
@@ -418,7 +410,7 @@ export default function SettingsPage() {
             </CardHeader>
 
             <CardContent className="space-y-4">
-              {settings.filter((s) => s.section === "page").length === 0 ? (
+              {getSettings.data.filter((s) => s.section === "page").length === 0 ? (
                 <div className="text-center text-muted-foreground py-6">
                   <p className="text-base sm:text-lg italic">{"Aucune page n’a encore été créée."}</p>
                   <Button
@@ -439,7 +431,7 @@ export default function SettingsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {settings
+                    {getSettings.data
                       .filter((s) => s.section === "page")
                       .map((page) => (
                         <TableRow key={page.id}>
@@ -479,6 +471,7 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
       </Tabs>
+      }
     </PageLayout>
   );
 }

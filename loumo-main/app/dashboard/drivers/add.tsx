@@ -40,7 +40,7 @@ import {
   Search,
   UserPlus
 } from "lucide-react";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -184,18 +184,6 @@ function AddDriver({ isOpen, openChange, zones, users, agents }: Props) {
     return createDriver.mutate(values);
   };
 
-  useEffect(() => {
-    if (isOpen) {
-      setOption(undefined);
-      form.reset({
-        user: undefined,
-        status: "AVAILABLE",
-        zoneIds: [],
-        userId: undefined,
-      });
-    }
-  }, [isOpen, form]);
-
   const availableDrivers = users.filter(
     (e) => !agents.some((x) => x.userId === e.id)
   );
@@ -215,14 +203,19 @@ function AddDriver({ isOpen, openChange, zones, users, agents }: Props) {
     return availableDrivers;
   }, [availableDrivers, searchValue]);
 
-  useEffect(()=>{
-    if(open){
-      setSearchValue("");
-    }
-  },[setSearchValue, open])
 
   return (
-    <Dialog open={isOpen} onOpenChange={openChange}>
+    <Dialog open={isOpen} onOpenChange={(v)=>{
+      openChange(v); 
+      setOption(undefined);
+      form.reset({
+        user: undefined,
+        status: "AVAILABLE",
+        zoneIds: [],
+        userId: undefined,
+      });
+      setSearchValue("");
+      }}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{"Ajouter un livreur"}</DialogTitle>

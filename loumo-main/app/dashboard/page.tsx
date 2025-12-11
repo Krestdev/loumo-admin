@@ -35,6 +35,7 @@ import ShopQuery from "@/queries/shop";
 import StockQuery from "@/queries/stock";
 import UserQuery from "@/queries/user";
 import {
+  Delivery,
   Order,
   Product,
   Shop,
@@ -86,6 +87,9 @@ export default function Dashboard() {
 
   const productQuery = new ProductQuery();
   const getProducts = FetchAll(productQuery.getAll, "products", 60000);
+
+  const deliveryQuery = new DeliveryQuery();
+  const getDeliveries = FetchAll(deliveryQuery.getAll, "deliveries", 60000);
 
   const [orders, setOrders] = React.useState<Order[]>([]);
   const [clients, setClients] = React.useState<User[]>([]);
@@ -237,7 +241,6 @@ export default function Dashboard() {
       .reverse();
   };
 
-  const deliveries = filteredOrders.filter((x) => !!x.delivery);
   const startedDeliveries: number = filteredOrders.filter(
     (x) => !!x.delivery && x.delivery.some((y) => y.status === "STARTED")
   ).length;

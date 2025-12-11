@@ -10,7 +10,6 @@ import { useStore } from '@/providers/datastore';
 import PermissionQuery from '@/queries/permission';
 import RoleQuery from '@/queries/role';
 import UserQuery from '@/queries/user';
-import { Permission, Role, User } from '@/types/types';
 import { useQuery } from '@tanstack/react-query';
 import { formatRelative } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -40,9 +39,6 @@ function Page() {
         refetchOnWindowFocus: false,
       });
 
-  const [permissions, setPermissions] = useState<Permission[]>([]);
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [staff, setStaff] = useState<User[]>([]);
   const { setLoading } = useStore();
 
   const [searchTerm, setSearchTerm] = useState<string>("")
@@ -50,28 +46,17 @@ function Page() {
   const [statusFilter, setStatusFilter] = useState<string>("all")
 
   useEffect(() => {
-      setLoading(getRoles.isLoading || getUsers.isLoading);
-      if (getRoles.isSuccess) setRoles(getRoles.data);
-      if (getUsers.isSuccess) setStaff(getUsers.data);
-      if (getPermissions.isSuccess) setPermissions(getPermissions.data);
+      setLoading(getRoles.isLoading || getUsers.isLoading || getPermissions.isLoading);
     }, [
       setLoading,
-      setRoles,
       getRoles.isLoading,
-      getRoles.data,
-      getRoles.isSuccess,
-      setStaff,
       getUsers.isLoading,
-      getUsers.data,
-      getUsers.isSuccess,
-      setPermissions,
-      getPermissions.isLoading,
-      getPermissions.data,
-      getPermissions.isSuccess,
+      getPermissions.isLoading
     ]);
 
     const filteredStaff = useMemo(()=>{
-      return staff.filter((member) => {
+      if(!getUsers.isSuccess) return [];
+      return getUsers.data.filter((member) => {
     const matchesSearch =
       member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       member.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -79,8 +64,9 @@ function Page() {
     const matchesStatus = statusFilter === "all" || member.active === Boolean(statusFilter)
     return matchesSearch && matchesRole && matchesStatus
   })
-    },[staff, searchTerm, roleFilter, statusFilter]);
+    },[getUsers.data, getUsers.isSuccess, searchTerm, roleFilter, statusFilter]);
   
+    if(getUsers.isSuccess && getRoles.isSuccess && getPermissions.isSuccess)
   return (
     <PageLayout isLoading={getPermissions.isLoading || getRoles.isLoading || getUsers.isLoading} className='flex-1 space-y-6 p-4 overflow-auto'>
       {/* Staff Stats */}
@@ -91,8 +77,8 @@ function Page() {
               <Users className="text-muted-foreground" size={16} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{staff.length}</div>
-              <p className="text-xs text-muted-foreground">{`${staff.filter((s) => !!s.active ).length} actifs`}</p>
+              <div className="text-2xl font-bold">{getUsers.data.length}</div>
+              <p className="text-xs text-muted-foreground">{`${getUsers.data.filter((s) => !!s.active ).length} actifs`}</p>
             </CardContent>
           </Card>
 
@@ -102,7 +88,7 @@ function Page() {
               <Shield className="text-red-500" size={16} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{staff.filter((s) => s.role && s.role.name.includes("admin")).length}</div>
+              <div className="text-2xl font-bold">{getUsers.data.filter((s) => s.role && s.role.name.includes("admin")).length}</div>
               <p className="text-xs text-muted-foreground">{"Accès complet"}</p>
             </CardContent>
           </Card>
@@ -124,7 +110,7 @@ function Page() {
               <UserX className=" text-orange-500" size={16} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{staff.filter((s) => !s.active).length}</div>
+              <div className="text-2xl font-bold">{getUsers.data.filter((s) => !s.active).length}</div>
               <p className="text-xs text-muted-foreground">{"À vérifier"}</p>
             </CardContent>
           </Card>
@@ -137,20 +123,20 @@ function Page() {
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {roles.map((role, index) => (
+              {getRoles.data.map((role, index) => (
                 <Card key={index}>
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-2">
                       <Badge>{role.name}</Badge>
                       <span className="text-sm text-muted-foreground">
-                        {`${staff.filter((s) => s.role?.name === role.name).length} membres`}
+                        {`${getUsers.data.filter((s) => s.role?.name === role.name).length} membres`}
                       </span>
                     </div>
                     <div className="space-y-1">
                       {(
                         role.permissions.map((perm) => (
                           <Badge key={perm.id} variant="outline">
-                            {permissions.find((p) => p.id === perm.id)?.action ?? "Permission X"}
+                            {getPermissions.data.find((p) => p.id === perm.id)?.action ?? "Permission X"}
                           </Badge>
                         ))
                       )}
@@ -186,7 +172,7 @@ function Page() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{"Tous les rôles"}</SelectItem>
-                  {roles.map((role) => (
+                  {getRoles.data.map((role) => (
                     <SelectItem key={role.name} value={role.name}>
                       {role.name}
                     </SelectItem>
