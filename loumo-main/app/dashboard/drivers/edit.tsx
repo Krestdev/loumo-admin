@@ -136,7 +136,7 @@ function EditDriver({ agent, isOpen, openChange }: Props) {
       return userQuery.update(agent.userId, {
         email: values.email,
         name: values.name,
-        tel: values.tel,
+        tel: values.tel
       });
     },
     onSuccess: () => {
@@ -285,14 +285,14 @@ function EditDriver({ agent, isOpen, openChange }: Props) {
                                 onCheckedChange={(checked) => {
                                   return checked
                                     ? field.onChange([
-                                        ...field.value,
-                                        String(x.id),
-                                      ])
+                                      ...field.value,
+                                      String(x.id),
+                                    ])
                                     : field.onChange(
-                                        field.value.filter(
-                                          (value) => value !== String(x.id)
-                                        )
-                                      );
+                                      field.value.filter(
+                                        (value) => value !== String(x.id)
+                                      )
+                                    );
                                 }}
                               />
                               <span className="text-sm font-medium">

@@ -67,12 +67,14 @@ type AgentProps = {
 };
 const userSchema = z.object({
   email: z.string().email({ message: "Doit être une adresse mail" }),
-  //password: z.string(),
   tel: z.string().regex(/^\d{9}$/, {
     message: "Le numéro doit contenir exactement 9 chiffres",
   }),
   name: z.string().min(3, { message: "Trop court" }),
   imageUrl: z.string().optional(),
+  password: z
+    .string()
+    .regex(/^\d+$/, "Le mot de passe doit contenir uniquement des chiffres"),
 });
 const formSchema = z.object({
   user: userSchema.optional(),
@@ -139,7 +141,7 @@ function AddDriver({ isOpen, openChange, zones, users, agents }: Props) {
       form.reset({
         user: {
           email: "",
-          //password: "",
+          password: undefined,
           tel: "",
           name: "",
         },
@@ -159,7 +161,7 @@ function AddDriver({ isOpen, openChange, zones, users, agents }: Props) {
       return userQuery.register({
         email: values.user?.email,
         name: values.user?.name,
-        password: "Loumo123", //default password
+        password: String(values.user?.password),
         tel: values.user?.tel,
       });
     },
@@ -205,8 +207,8 @@ function AddDriver({ isOpen, openChange, zones, users, agents }: Props) {
 
 
   return (
-    <Dialog open={isOpen} onOpenChange={(v)=>{
-      openChange(v); 
+    <Dialog open={isOpen} onOpenChange={(v) => {
+      openChange(v);
       setOption(undefined);
       form.reset({
         user: undefined,
@@ -215,7 +217,7 @@ function AddDriver({ isOpen, openChange, zones, users, agents }: Props) {
         userId: undefined,
       });
       setSearchValue("");
-      }}>
+    }}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{"Ajouter un livreur"}</DialogTitle>
@@ -277,8 +279,8 @@ function AddDriver({ isOpen, openChange, zones, users, agents }: Props) {
                           onOpenChange={setOpen}
                         >
                           <SelectTrigger className="w-full">
-                              {availableDrivers.find(driver=> driver.id === Number(field.value)) ? 
-                              <div className="font-medium">{availableDrivers.find(x=>x.id === Number(field.value))?.name}</div> : 
+                            {availableDrivers.find(driver => driver.id === Number(field.value)) ?
+                              <div className="font-medium">{availableDrivers.find(x => x.id === Number(field.value))?.name}</div> :
                               <div className="text-muted-foreground">{"Sélectionner un utilisateur"}</div>}
                           </SelectTrigger>
                           <SelectContent>
@@ -317,14 +319,14 @@ function AddDriver({ isOpen, openChange, zones, users, agents }: Props) {
                                 </SelectItem>
                               )}
                             {filteredDrivers.map((user) => (
-                              <div key={user.id} className={cn("px-3 py-1.5 text-sm rounded-sm cursor-pointer hover:bg-gray-100 transition-colors flex justify-between items-center gap-3", field.value === String(user.id) && "bg-primary/20 hover:bg-primary/30")} onClick={()=>{field.onChange(()=>String(user.id));setOpen(false)}}>
+                              <div key={user.id} className={cn("px-3 py-1.5 text-sm rounded-sm cursor-pointer hover:bg-gray-100 transition-colors flex justify-between items-center gap-3", field.value === String(user.id) && "bg-primary/20 hover:bg-primary/30")} onClick={() => { field.onChange(() => String(user.id)); setOpen(false) }}>
                                 <div className="flex flex-col">
                                   <p className="font-medium">
                                     {user.name}
                                   </p>
                                   <p className="text-muted-foreground text-xs">{user.email}</p>
                                 </div>
-                                {field.value === String(user.id) && <Check size={16} className="text-green-600"/>}
+                                {field.value === String(user.id) && <Check size={16} className="text-green-600" />}
                               </div>
                             ))}
                           </SelectContent>
@@ -378,6 +380,26 @@ function AddDriver({ isOpen, openChange, zones, users, agents }: Props) {
                       </FormItem>
                     )}
                   />
+                  <FormField
+                    control={form.control}
+                    name="user.password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{"Mot de passe"}</FormLabel>
+                        <FormControl>
+                          <Input
+                            value={field.value || ""}
+                            onChange={(e) => {
+                              const onlyNumbers = e.target.value.replace(/[^0-9]/g, "");
+                              field.onChange(onlyNumbers);
+                            }}
+                            placeholder="ex. 12345"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
               )}
               <FormField
@@ -410,8 +432,8 @@ function AddDriver({ isOpen, openChange, zones, users, agents }: Props) {
                                     x === "AVAILABLE"
                                       ? "green"
                                       : x === "UNVERIFIED"
-                                      ? "orange"
-                                      : "red"
+                                        ? "orange"
+                                        : "red"
                                   }
                                 />
                               </svg>
@@ -443,14 +465,14 @@ function AddDriver({ isOpen, openChange, zones, users, agents }: Props) {
                               onCheckedChange={(checked) => {
                                 return checked
                                   ? field.onChange([
-                                      ...field.value,
-                                      String(x.id),
-                                    ])
+                                    ...field.value,
+                                    String(x.id),
+                                  ])
                                   : field.onChange(
-                                      field.value.filter(
-                                        (value) => value !== String(x.id)
-                                      )
-                                    );
+                                    field.value.filter(
+                                      (value) => value !== String(x.id)
+                                    )
+                                  );
                               }}
                             />
                             <span className="text-sm font-medium">
