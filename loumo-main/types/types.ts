@@ -281,7 +281,7 @@ export type User = {
   active: boolean;
   imageUrl: string | null;
   roleId: number | null;
-  role?: Role;
+  role: Role;
   orders?: Order[];
   favorite?: Product[];
   logs?: Log[];

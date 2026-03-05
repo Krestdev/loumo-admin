@@ -2,7 +2,7 @@ import api from "@/providers/axios";
 import { User } from "@/types/types";
 import { toast } from "react-toastify";
 
-const allowedAdminRoles = [0,1]; //Update if needed
+//const allowedAdminRoles = [0,1]; //Update if needed
 export default class UserQuery {
   route = "/users";
   login = async (data: {
@@ -50,7 +50,7 @@ export default class UserQuery {
     .then((response) => {
       const { user, token } = response.data;
 
-      if (!allowedAdminRoles.includes(user.roleId ?? -1)) {
+      if (user.role.name.toLowerCase() !== "admin") {
         throw new Error("401 Accès non autorisé pour ce rôle.");
       }
       return { user, token };

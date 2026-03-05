@@ -18,6 +18,7 @@ import {
   FormLabel,
   FormMessage,
 } from "./ui/form";
+import { Toast } from "./ui/toast";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Email non valide" }),
@@ -28,7 +29,7 @@ export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const { login, setToken } = useStore();
+  const { login, setToken} = useStore();
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -49,8 +50,8 @@ export function LoginForm({
       setToken(token);
       login(user);
     },
-    onError: () => {
-      //add a toast ?
+    onError: (error:Error) => {
+      Toast({variant: "error", value: error.message});
     },
   });
 
