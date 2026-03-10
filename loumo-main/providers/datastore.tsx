@@ -14,6 +14,8 @@ type Store = {
   setToken: (token: string) => void;
   lastActivity: number;
   updateActivity: () => void;
+  source: "web" | "mobile" | "both";
+  setSource: (source: "web" | "mobile" | "both") => void;
 };
 type LoadingState = {
   isLoading: boolean;
@@ -27,6 +29,8 @@ export const useStore = create<Store & LoadingState>()(
       token: null,
       isLoading: false,
       lastActivity: Date.now(),
+      source: "both",
+      setSource: (source) => set(() => ({ source })),
       setLoading: (value) => set(() => ({ isLoading: value })),
       user: null,
       setToken: (token) => set(() => ({ token })),

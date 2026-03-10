@@ -86,7 +86,7 @@ export default function PaymentsPage() {
   const zoneQuery = new ZoneQuery();
   const getZones = FetchAll(zoneQuery.getAll, "zones");
 
-  const { setLoading } = useStore();
+  const { setLoading, source } = useStore();
 
   const [payments, setPayments] = useState<Payment[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -126,6 +126,8 @@ export default function PaymentsPage() {
     return payments.filter((payment) => {
       const order = orders.find((z) => payment.orderId === z.id);
       const createdAt = order ? new Date(order.createdAt) : new Date();
+      const matchSource =
+        source === "both" ? true : order?.source === source;
       // Filtrage par date (range)
       const matchesDate =
         (!dateRange?.from ||
@@ -161,7 +163,8 @@ export default function PaymentsPage() {
         matchesStatus &&
         matchesMethod &&
         matchesDate &&
-        matchesZone
+        matchesZone &&
+        matchSource
       );
     });
   }, [
@@ -172,6 +175,7 @@ export default function PaymentsPage() {
     statusFilter,
     zoneFilter,
     methodFilter,
+    source
   ]);
 
   function getStatusColor(status: Payment["status"]) {

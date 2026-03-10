@@ -95,7 +95,7 @@ export default function OrdersPage() {
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [variants, setVariants] = useState<ProductVariant[]>([]);
-  const { setLoading } = useStore();
+  const { setLoading, source } = useStore();
 
   const [selectedOrder, setSelectedOrder] = useState<Order | undefined>();
   const [searchTerm, setSearchTerm] = useState("");
@@ -182,6 +182,8 @@ export default function OrdersPage() {
   const filteredOrders = React.useMemo(() => {
     return orders
       .filter((order) => {
+        const matchSource =
+        source === "both" ? true : order.source === source;
         const matchesSearch =
           order.user?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           order.id.toString().includes(searchTerm.toLowerCase());
@@ -230,6 +232,7 @@ export default function OrdersPage() {
           matchesStatus &&
           matchesPayment &&
           //matchesPeriod &&
+          matchSource &&
           matchesZone &&
           matchesAmount &&
           matchesDate
@@ -250,6 +253,7 @@ export default function OrdersPage() {
     amountFilter,
     sortDirection,
     dateRange,
+    source
   ]);
 
   const handleView = (order: Order) => {

@@ -49,7 +49,7 @@ function Page() {
   const [products, setProducts] = useState<Product[]>([]);
   const [shops, setShops] = useState<Shop[]>([]);
   const [filter, setFilter] = useState<string>("all");
-  const { setLoading } = useStore();
+  const { setLoading, source } = useStore();
 
   useEffect(() => {
     setLoading(
@@ -95,10 +95,14 @@ function Page() {
   ]);
 
   const filteredNotifications = useMemo(() => {
-    if (filter === "all") {
-      return notifications;
-    }
-    return notifications.filter((item) => item.type === filter);
+    return notifications.filter(notification => {
+      //To-do: matchSource
+      //Filter
+      const matchFilter = 
+      filter === "all" ? true : notification.type === filter;
+
+      return matchFilter;
+    })
   }, [filter, notifications]);
 
   const types: NotificationT["type"][] = ["ORDER", "PAYMENT", "STOCK"];

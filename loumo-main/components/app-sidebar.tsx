@@ -101,11 +101,11 @@ export function AppSidebar() {
                         isActive={pathname === subItem.url}
                       >
                         <Link href={subItem.url}>
-                          <subItem.icon className="h-4 w-4" />
-                          <span>{subItem.title}</span>
+                          <subItem.icon size={16} className="shrink-0" />
+                          <span className="w-full">{subItem.title}</span>
                           {subItem.url.includes("notification") &&
                             notifications.length > 0 && (
-                              <span className="h-6 w-6 flex items-center justify-center rounded-sm bg-red-800 text-white text-xs">
+                              <span className="shrink-0 h-6 w-6 flex items-center justify-center rounded-[4px] bg-amber-600 text-white text-xs">
                                 {notifications.length}
                               </span>
                             )}
@@ -116,7 +116,7 @@ export function AppSidebar() {
                                 order.status === "PROCESSING" ||
                                 order.status === "ACCEPTED"
                             ).length > 0 && (
-                              <span className="h-6 w-6 flex items-center justify-center rounded-sm bg-red-800 text-white text-xs">
+                              <span className="shrink-0 h-6 w-6 flex items-center justify-center rounded-[4px] bg-amber-600 text-white text-xs">
                                 {
                                   orders.filter(
                                     (order) =>

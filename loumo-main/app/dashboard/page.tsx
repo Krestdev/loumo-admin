@@ -71,7 +71,7 @@ import {
 } from "recharts";
 
 export default function Dashboard() {
-  const { setLoading } = useStore();
+  const { setLoading, source } = useStore();
 
   const ordersQuery = new OrderQuery();
   const getOrders = FetchAll(ordersQuery.getAll, "orders", 60000);
@@ -148,10 +148,20 @@ export default function Dashboard() {
     getDeliveries.data,
   ]);
 
+  const filteredDeliveries = React.useMemo(()=>{
+    return deliveries.filter(delivery => {
+      const matchSource = 
+      source === "both" ? true : delivery.order?.source === source;
+      return matchSource;
+    })
+  },[deliveries, source])
+
   const filteredOrders = React.useMemo(() => {
     return orders.filter((order) => {
       const createdAt = new Date(order.createdAt);
 
+      const matchSource =
+      source === "both" ? true : order.source === source;
       // Filtrage par date (range)
       const matchesDate =
         (!dateRange?.from ||
@@ -171,9 +181,9 @@ export default function Dashboard() {
           (x) => x.productVariant?.productId === Number(productFilter)
         );
 
-      return matchesDate && matchesShop && matchesProduct;
+      return matchesDate && matchesShop && matchesProduct && matchSource;
     });
-  }, [orders, shopFilter, productFilter, dateRange]);
+  }, [orders, shopFilter, productFilter, dateRange, source]);
 
   //Sales
   const salesCompleted = (orders: Order[]): number => {
@@ -287,7 +297,7 @@ export default function Dashboard() {
     {
       title: "Livraisons",
       icon: <Truck size={16} className="text-indigo-600" />,
-      value: deliveries.length,
+      value: filteredDeliveries.length,
       sub: {
         title: "Livraisons en cours",
         value: startedDeliveries,
@@ -379,7 +389,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {orders.length === 0 ? (
+              {filteredOrders.length === 0 ? (
                 <div className="flex flex-col gap-4 items-center pt-7">
                   <img
                     src={"/images/cart-empty.png"}
@@ -397,7 +407,7 @@ export default function Dashboard() {
                   </Link>
                 </div>
               ) : (
-                sortOrdersByNewest(orders)
+                sortOrdersByNewest(filteredOrders)
                   .slice(0, 4)
                   .map((order) => (
                     <div

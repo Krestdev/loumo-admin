@@ -160,6 +160,7 @@ export type Order = {
   payment?: Payment;
   delivery?: Delivery[];
   createdAt: string;
+  source: "web" | "mobile";
 };
 
 export type OrderItem = {

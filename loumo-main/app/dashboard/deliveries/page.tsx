@@ -79,7 +79,7 @@ export default function DeliveriesPage() {
   const orderQuery = new OrderQuery();
   const getOrders = FetchAll(orderQuery.getAll, "orders", 60000);
 
-  const { setLoading } = useStore();
+  const { setLoading, source } = useStore();
 
   const [selected, setSelected] = useState<Delivery>();
   const [viewMore, setViewMore] = useState(false);
@@ -150,6 +150,8 @@ export default function DeliveriesPage() {
       const deliveryDate = !!delivery.deliveredTime
         ? new Date(delivery.deliveredTime)
         : new Date(delivery.scheduledTime);
+      const matchSource = 
+      source === "both" ? true : delivery.order?.source === source;
       //Search
       const matchesSearch =
         delivery.order?.user.name
@@ -180,7 +182,8 @@ export default function DeliveriesPage() {
         matchesStatus &&
         matchesZones &&
         matchesDate &&
-        matchesAgent
+        matchesAgent &&
+        matchSource
       );
     });
   }, [
@@ -190,6 +193,7 @@ export default function DeliveriesPage() {
     searchTerm,
     dateRange,
     agentFilter,
+    source
   ]);
 
   const handleView = (delivery: Delivery) => {
